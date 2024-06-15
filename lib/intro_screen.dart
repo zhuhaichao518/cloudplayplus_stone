@@ -4,6 +4,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:introduction_screen/introduction_screen.dart';
 import 'package:provider/provider.dart';
 
+import 'pages/login_page.dart';
 import 'services/shared_preferences_manager.dart';
 import 'theme/fixed_colors.dart';
 import 'theme/theme_provider.dart';
@@ -12,10 +13,10 @@ class IntroScreen extends StatefulWidget {
   const IntroScreen({super.key});
 
   @override
-  State<IntroScreen> createState() => _IntroScreenDemoState();
+  State<IntroScreen> createState() => _IntroScreenState();
 }
 
-class _IntroScreenDemoState extends State<IntroScreen> {
+class _IntroScreenState extends State<IntroScreen> {
   final _introKey = GlobalKey<IntroductionScreenState>();  
   int _themeIndex = SharedPreferencesManager.getInt('themeIndex') ?? 0;
   int _streamingmode = SharedPreferencesManager.getInt('streamingMode') ?? 0;
@@ -216,6 +217,11 @@ class _IntroScreenDemoState extends State<IntroScreen> {
         done: const Text("完成"),
         onDone: () {
           SharedPreferencesManager.setBool('appintroFinished', true);
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+                builder: (context) => LoginPage()),
+          );
         },
         showBackButton: true,
         showNextButton: true,

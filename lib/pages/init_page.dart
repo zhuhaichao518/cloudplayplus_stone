@@ -51,9 +51,11 @@ class InitPage extends StatelessWidget {
         } else {
           int appStatus = snapshot.data ?? 0;
           if (appStatus == 0) {
-            return IntroScreen();
+            return const IntroScreen();
+          } else if (appStatus == 1) {
+            return const Text('login');
           } else {
-            return IntroScreen();
+            return const Text('devices');
           }
         }
       },

@@ -28,6 +28,10 @@ class SharedPreferencesManager {
     await _preferences?.setStringList(key, value);
   }
 
+  static Future<void> clear() async {
+    await _preferences?.clear();
+  }
+
   // Getters
   static bool? getBool(String key) {
     return _preferences?.getBool(key);

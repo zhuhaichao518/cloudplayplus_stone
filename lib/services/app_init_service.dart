@@ -1,5 +1,6 @@
 import 'package:cloudplayplus/services/login_service.dart';
 
+import '../dev_settings.dart/develop_settings.dart';
 import 'shared_preferences_manager.dart';
 
 class AppInitService {
@@ -9,12 +10,16 @@ class AppInitService {
   // 1:需要进登录页面
   // 2:进入登录的主页
   static Future<int> getAppState() async {
+    //SharedPreferencesManager.clear();
     //simulate loading time
     await Future.delayed(const Duration(seconds: 2));
+    if (DevelopSettings.alwaysShowIntroPage){
+      return 0;
+    }
     bool appintroFinished =
         SharedPreferencesManager.getBool('appintroFinished') ?? false;
     if (!appintroFinished) return 0;
-    bool isLoggedin = await LoginService.tryLoginWithCachedInfo();
+    bool isLoggedin = await LoginService.tryLoginWithCachedToken();
     if (!isLoggedin) {
       return 1;
     }

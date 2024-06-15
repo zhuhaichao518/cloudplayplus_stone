@@ -235,7 +235,7 @@ class LoginService {
   }
   
   //TODO(haichao):refresh refresh token
-  static Future<bool> tryLoginWithCachedInfo() async {
+  static Future<bool> tryLoginWithCachedToken() async {
     String? accessToken;
     String? refreshToken;
     if (DevelopSettings.useSecureStorage) {
