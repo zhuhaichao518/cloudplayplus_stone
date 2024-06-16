@@ -1,5 +1,6 @@
 import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:cloudplayplus/intro_screen.dart';
+import 'package:cloudplayplus/pages/login_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 
@@ -53,7 +54,7 @@ class InitPage extends StatelessWidget {
           if (appStatus == 0) {
             return const IntroScreen();
           } else if (appStatus == 1) {
-            return const Text('login');
+            return const LoginScreen();
           } else {
             return const Text('devices');
           }
