@@ -8,6 +8,7 @@ environment:
   flutter: ">=3.16.0"
 
 dependencies:
+  animated_text_kit: ^4.2.2
   another_flushbar: ^1.10.29
   another_transformer_page_view: ^2.0.0
   flutter:

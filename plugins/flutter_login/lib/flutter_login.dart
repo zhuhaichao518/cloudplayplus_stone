@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -239,6 +240,30 @@ class __HeaderState extends State<_Header> {
         widget.title!,
         key: kTitleKey,
         style: theme.textTheme.displaySmall,
+      );
+      final colorizeColors = [
+        Colors.blue,
+        Colors.red,
+        Colors.blue,
+      ];
+
+      final colorizeTextStyle = TextStyle(
+        fontSize: widget.loginTheme.beforeHeroFontSize - 10,
+        fontFamily: 'Horizon',
+      );
+
+      title = AnimatedTextKit(
+        animatedTexts: [
+          ColorizeAnimatedText(
+            'Cloud Play Plus',
+            textStyle: colorizeTextStyle,
+            colors: colorizeColors,
+          ),
+        ],
+        totalRepeatCount: 2,
+        onTap: () {
+          //print("Tap Event");
+        },
       );
     } else {
       title = null;

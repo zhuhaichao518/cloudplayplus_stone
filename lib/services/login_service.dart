@@ -233,7 +233,7 @@ class LoginService {
     }
     return false;
   }
-  
+
   //TODO(haichao):refresh refresh token
   static Future<bool> tryLoginWithCachedToken() async {
     String? accessToken;

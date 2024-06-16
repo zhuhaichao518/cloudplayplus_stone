@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_login/flutter_login.dart';
 
-const users =  {
+const users = {
   'dribbble@gmail.com': '12345',
   'hunter@gmail.com': 'hunter',
 };
@@ -46,6 +46,7 @@ class LoginScreen extends StatelessWidget {
     return FlutterLogin(
       title: 'CloudPlay Plus',
       logo: const AssetImage('assets/images/cpp_logo.png'),
+      userType: LoginUserType.name,
       onLogin: _authUser,
       onSignup: _signupUser,
       onSubmitAnimationCompleted: () {

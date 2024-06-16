@@ -18,7 +18,7 @@ class IntroScreen extends StatefulWidget {
 }
 
 class _IntroScreenState extends State<IntroScreen> {
-  final _introKey = GlobalKey<IntroductionScreenState>();  
+  final _introKey = GlobalKey<IntroductionScreenState>();
   int _themeIndex = SharedPreferencesManager.getInt('themeIndex') ?? 0;
   int _streamingmode = SharedPreferencesManager.getInt('streamingMode') ?? 0;
   Color _themeColor = Colors.blue;
@@ -220,8 +220,7 @@ class _IntroScreenState extends State<IntroScreen> {
           SharedPreferencesManager.setBool('appintroFinished', true);
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(
-                builder: (context) => const LoginScreen()),
+            MaterialPageRoute(builder: (context) => const LoginScreen()),
           );
         },
         showBackButton: true,

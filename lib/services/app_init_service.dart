@@ -13,7 +13,7 @@ class AppInitService {
     //SharedPreferencesManager.clear();
     //simulate loading time
     await Future.delayed(const Duration(seconds: 2));
-    if (DevelopSettings.alwaysShowIntroPage){
+    if (DevelopSettings.alwaysShowIntroPage) {
       return 0;
     }
     bool appintroFinished =
