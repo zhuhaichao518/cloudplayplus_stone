@@ -41,6 +41,13 @@ class LoginScreen extends StatelessWidget {
     });
   }
 
+  static String? _userValidator(String? value) {
+    if (value == null || value.isEmpty) {
+      return 'Invalid username!';
+    }
+    return null;
+  }
+
   @override
   Widget build(BuildContext context) {
     return FlutterLogin(
@@ -49,6 +56,7 @@ class LoginScreen extends StatelessWidget {
       userType: LoginUserType.name,
       onLogin: _authUser,
       onSignup: _signupUser,
+      userValidator: _userValidator,
       onSubmitAnimationCompleted: () {
         /*Navigator.of(context).pushReplacement(MaterialPageRoute(
           builder: (context) => const DashboardScreen(),

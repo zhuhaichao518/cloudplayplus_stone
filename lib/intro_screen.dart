@@ -5,7 +5,6 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:introduction_screen/introduction_screen.dart';
 import 'package:provider/provider.dart';
 
-import 'pages/login_page.dart';
 import 'services/shared_preferences_manager.dart';
 import 'theme/fixed_colors.dart';
 import 'theme/theme_provider.dart';
