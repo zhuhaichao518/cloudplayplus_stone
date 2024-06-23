@@ -226,6 +226,7 @@ class _IntroScreenState extends State<IntroScreen> {
         showNextButton: true,
         showDoneButton: true,
       ),
+      //TODO(haichao): 这个必须做到packet里面 否则无法实现背景被覆盖
       Positioned(
         top: 0,
         left: 0,
