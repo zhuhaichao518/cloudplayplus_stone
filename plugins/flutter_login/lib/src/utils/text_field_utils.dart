@@ -54,7 +54,7 @@ Icon getPrefixIcon(LoginUserType userType) {
 String getLabelText(LoginUserType userType) {
   switch (userType) {
     case LoginUserType.name:
-      return "Name";
+      return "用户名";
     case LoginUserType.firstName:
       return "First Name";
     case LoginUserType.lastName:

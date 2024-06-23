@@ -479,6 +479,29 @@ class _LoginCardState extends State<_LoginCard> with TickerProviderStateMixin {
     );
   }
 
+  Widget _buildSignUp(ThemeData theme, LoginMessages messages) {
+    return FadeIn(
+      controller: widget.loadingController,
+      fadeDirection: FadeDirection.bottomToTop,
+      offset: .5,
+      curve: _textButtonLoadingAnimationInterval,
+      child: TextButton(
+        onPressed: buttonEnabled
+            ? () {
+                // save state to populate email field on recovery card
+                _formKey.currentState!.save();
+                widget.onSwitchSignUpAdditionalData();
+              }
+            : null,
+        child: Text(
+          messages.additionalSignUpSubmitButton,
+          style: theme.textTheme.bodyMedium,
+          textAlign: TextAlign.left,
+        ),
+      ),
+    );
+  }
+
   Widget _buildSubmitButton(
     ThemeData theme,
     LoginMessages messages,
@@ -767,7 +790,9 @@ class _LoginCardState extends State<_LoginCard> with TickerProviderStateMixin {
                   ),
                 _buildSubmitButton(theme, messages, auth),
                 if (!widget.hideSignUpButton)
-                  _buildSwitchAuthButton(theme, messages, auth, loginTheme)
+                  //_buildSwitchAuthButton(theme, messages, auth, loginTheme)
+                  //TODO:haichao: change to similar logic to sign up button
+                  _buildSignUp(theme, messages)
                 else
                   SizedBox.fromSize(
                     size: const Size.fromHeight(10),

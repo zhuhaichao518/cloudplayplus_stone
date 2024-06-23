@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_login/flutter_login.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 const users = {
   'dribbble@gmail.com': '12345',
@@ -25,6 +26,7 @@ class LoginScreen extends StatelessWidget {
   }
 
   Future<String?> _signupUser(SignupData data) {
+    // We will only use data.additionalSignupData for compatibility.
     debugPrint('Signup Name: ${data.name}, Password: ${data.password}');
     return Future.delayed(loginTime).then((_) {
       return null;
@@ -63,6 +65,30 @@ class LoginScreen extends StatelessWidget {
         ));*/
       },
       onRecoverPassword: _recoverPassword,
+      additionalSignupFields: [
+        const UserFormField(
+          keyName: 'Username',
+          icon: Icon(FontAwesomeIcons.userLarge),
+        ),
+        const UserFormField(keyName: 'Name'),
+        const UserFormField(keyName: 'Surname'),
+        UserFormField(
+          keyName: 'phone_number',
+          displayName: 'Phone Number',
+          userType: LoginUserType.phone,
+          fieldValidator: (value) {
+            final phoneRegExp = RegExp(
+              '^(\\+\\d{1,2}\\s)?\\(?\\d{3}\\)?[\\s.-]?\\d{3}[\\s.-]?\\d{4}\$',
+            );
+            if (value != null &&
+                value.length < 7 &&
+                !phoneRegExp.hasMatch(value)) {
+              return "This isn't a valid phone number";
+            }
+            return null;
+          },
+        ),
+      ],
     );
   }
 }
