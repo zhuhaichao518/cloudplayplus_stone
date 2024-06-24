@@ -203,6 +203,7 @@ class _AdditionalSignUpCardState extends State<_AdditionalSignUpCard>
               tooltip: formField.tooltip,
 
               initialIsoCode: widget.initialIsoCode,
+              obscureText: formField.obscureText,
             ),
             const SizedBox(
               height: 5,

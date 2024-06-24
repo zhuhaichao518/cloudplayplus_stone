@@ -49,7 +49,7 @@ class LoginMessages with ChangeNotifier {
       'We will send your plain-text password to this email account.';
   static const defaultRecoverCodePasswordDescription =
       'We will send a password recovery code to your email.';
-  static const defaultGoBackButton = 'BACK';
+  static const defaultGoBackButton = '返回';
   static const defaultConfirmPasswordError = 'Password do not match!';
   static const defaultRecoverPasswordSuccess = 'An email has been sent';
   static const defaultflushbarTitleSuccess = 'Success';
@@ -59,7 +59,7 @@ class LoginMessages with ChangeNotifier {
   static const defaultProvidersTitleSecond = 'or';
   static const defaultAdditionalSignUpSubmitButton = '注册账号';
   static const defaultAdditionalSignUpFormDescription =
-      'Please fill in this form to complete the signup';
+      '请完善表格以注册账号';
 
   static const defaultConfirmRecoverIntro =
       'The recovery code to set a new password was sent to your email.';

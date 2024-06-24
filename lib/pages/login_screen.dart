@@ -27,9 +27,14 @@ class LoginScreen extends StatelessWidget {
 
   Future<String?> _signupUser(SignupData data) {
     // We will only use data.additionalSignupData for compatibility.
+    if (data.additionalSignupData!['password'] != data.additionalSignupData!['confirmpassword']){
+      return Future.delayed(Duration.zero).then((_) {
+        return '两次密码不一致';
+      });
+    }
     debugPrint('Signup Name: ${data.name}, Password: ${data.password}');
     return Future.delayed(loginTime).then((_) {
-      return null;
+      return '注册失败';
     });
   }
 
@@ -67,26 +72,36 @@ class LoginScreen extends StatelessWidget {
       onRecoverPassword: _recoverPassword,
       additionalSignupFields: [
         const UserFormField(
-          keyName: 'Username',
-          icon: Icon(FontAwesomeIcons.userLarge),
+          keyName: 'username',
+          displayName: '用户名',
         ),
-        const UserFormField(keyName: 'Name'),
-        const UserFormField(keyName: 'Surname'),
+        const UserFormField(keyName: 'nickname',displayName: '昵称',          icon: Icon(FontAwesomeIcons.userLarge),),
         UserFormField(
-          keyName: 'phone_number',
-          displayName: 'Phone Number',
-          userType: LoginUserType.phone,
+          keyName: 'email',
+          displayName: '邮箱',
+          icon: const Icon(Icons.email),
           fieldValidator: (value) {
-            final phoneRegExp = RegExp(
-              '^(\\+\\d{1,2}\\s)?\\(?\\d{3}\\)?[\\s.-]?\\d{3}[\\s.-]?\\d{4}\$',
+            final emailRegExp = RegExp(
+              r'^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$',
             );
             if (value != null &&
-                value.length < 7 &&
-                !phoneRegExp.hasMatch(value)) {
-              return "This isn't a valid phone number";
+                !emailRegExp.hasMatch(value)) {
+              return "This isn't a valid email address";
             }
             return null;
           },
+        ),
+        const UserFormField(
+          keyName: 'password',
+          displayName: '密码',
+          icon: Icon(FontAwesomeIcons.lock),
+          obscureText: true
+        ),
+        const UserFormField(
+          keyName: 'confirmpassword',
+          displayName: '确认密码',
+          icon: Icon(FontAwesomeIcons.lock),
+          obscureText: true
         ),
       ],
     );

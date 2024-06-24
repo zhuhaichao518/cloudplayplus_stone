@@ -27,6 +27,8 @@ class UserFormField {
 
   final InlineSpan? tooltip;
 
+  final bool obscureText;
+
   const UserFormField({
     required this.keyName,
     String? displayName,
@@ -36,5 +38,6 @@ class UserFormField {
     this.fieldValidator,
     this.userType = LoginUserType.name,
     this.tooltip,
+    this.obscureText = false,
   }) : displayName = displayName ?? keyName;
 }
