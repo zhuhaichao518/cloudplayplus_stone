@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_login/flutter_login.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
+import '../services/login_service.dart';
+
 const users = {
   'dribbble@gmail.com': '12345',
   'hunter@gmail.com': 'hunter',
@@ -25,18 +27,29 @@ class LoginScreen extends StatelessWidget {
     });
   }
 
-  Future<String?> _signupUser(SignupData data) {
-    // We will only use data.additionalSignupData for compatibility.
-    if (data.additionalSignupData!['password'] != data.additionalSignupData!['confirmpassword']){
-      return Future.delayed(Duration.zero).then((_) {
-        return '两次密码不一致';
-      });
+Future<String?> _signupUser(SignupData data) async {
+  try {
+    var additionalData = data.additionalSignupData!;
+    var password = additionalData['password']!;
+    var confirmPassword = additionalData['confirmpassword']!;
+    var username = additionalData['username']!;
+    var email = additionalData['email']!;
+    var nickname = additionalData['nickname']!;
+
+    if (password != confirmPassword) {
+      return '两次密码不一致';
     }
-    debugPrint('Signup Name: ${data.name}, Password: ${data.password}');
-    return Future.delayed(loginTime).then((_) {
-      return '注册失败';
-    });
+
+    var result = await LoginService.register(username, password, email, nickname);
+    if (result['status'] == 'success') {
+      return null;
+    } else {
+      return result['message'];
+    }
+  } catch (e) {
+    return '注册过程中发生错误，检查输入和网络后重试';
   }
+}
 
   Future<String> _recoverPassword(String name) {
     debugPrint('Name: $name');
