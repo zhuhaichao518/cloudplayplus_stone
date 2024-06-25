@@ -31,6 +31,7 @@ migrate_working_dir/
 .pub/
 /build/
 *.lock
+pubspec.lock
 
 # Symbolication related
 app.*.symbols
@@ -42,3 +43,19 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Some generated files
+linux/flutter/generated_plugin_registrant.cc
+linux/flutter/generated_plugin_registrant.h
+linux/flutter/generated_plugins.cmake
+macos/Flutter/GeneratedPluginRegistrant.swift
+plugins/flutter_login/example/pubspec.lock
+plugins/flutter_login/example/linux/flutter/generated_plugin_registrant.cc
+plugins/flutter_login/example/linux/flutter/generated_plugin_registrant.h
+plugins/flutter_login/example/linux/flutter/generated_plugins.cmake
+plugins/flutter_login/example/windows/flutter/generated_plugin_registrant.cc
+plugins/flutter_login/example/windows/flutter/generated_plugin_registrant.h
+plugins/flutter_login/example/windows/flutter/generated_plugins.cmake
+windows/flutter/generated_plugin_registrant.cc
+windows/flutter/generated_plugin_registrant.h
+windows/flutter/generated_plugins.cmake
