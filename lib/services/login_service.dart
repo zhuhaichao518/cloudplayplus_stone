@@ -308,7 +308,7 @@ class LoginService {
 
   // ...
 
-  Map<String, dynamic> _handleResponse(http.Response response) {
+  static Map<String, dynamic> _handleResponse(http.Response response) {
     if (response.statusCode >= 200 && response.statusCode < 300) {
       return jsonDecode(response.body);
     } else {
@@ -321,7 +321,7 @@ class LoginService {
     }
   }
 
-  Future<Map<String, dynamic>> login(String username, String password) async {
+  static Future<Map<String, dynamic>> login(String username, String password) async {
     //final Uri url = Uri.https('www.cloudplayplus.com', '/api/login/');
     Uri url = Uri.parse('$_baseUrl/api/login/');
     if (DevelopSettings.useLocalServer) {
@@ -402,7 +402,7 @@ class LoginService {
     return _handleResponse(response);
   }
 
-  Future<Map<String, dynamic>> register(
+  static Future<Map<String, dynamic>> register(
       String username, String password, String email, String nickname) async {
     //final Uri url = Uri.https('www.cloudplayplus.com', '/api/login/');
     Uri url = Uri.parse('$_baseUrl/api/register/');

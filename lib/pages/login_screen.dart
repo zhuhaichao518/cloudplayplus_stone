@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_login/flutter_login.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
+import '../services/login_service.dart';
+
 const users = {
   'dribbble@gmail.com': '12345',
   'hunter@gmail.com': 'hunter',
@@ -25,13 +27,29 @@ class LoginScreen extends StatelessWidget {
     });
   }
 
-  Future<String?> _signupUser(SignupData data) {
-    // We will only use data.additionalSignupData for compatibility.
-    debugPrint('Signup Name: ${data.name}, Password: ${data.password}');
-    return Future.delayed(loginTime).then((_) {
+Future<String?> _signupUser(SignupData data) async {
+  try {
+    var additionalData = data.additionalSignupData!;
+    var password = additionalData['password']!;
+    var confirmPassword = additionalData['confirmpassword']!;
+    var username = additionalData['username']!;
+    var email = additionalData['email']!;
+    var nickname = additionalData['nickname']!;
+
+    if (password != confirmPassword) {
+      return '两次密码不一致';
+    }
+
+    var result = await LoginService.register(username, password, email, nickname);
+    if (result['status'] == 'success') {
       return null;
-    });
+    } else {
+      return result['message'];
+    }
+  } catch (e) {
+    return '注册过程中发生错误，检查输入和网络后重试';
   }
+}
 
   Future<String> _recoverPassword(String name) {
     debugPrint('Name: $name');
@@ -67,26 +85,36 @@ class LoginScreen extends StatelessWidget {
       onRecoverPassword: _recoverPassword,
       additionalSignupFields: [
         const UserFormField(
-          keyName: 'Username',
-          icon: Icon(FontAwesomeIcons.userLarge),
+          keyName: 'username',
+          displayName: '用户名',
         ),
-        const UserFormField(keyName: 'Name'),
-        const UserFormField(keyName: 'Surname'),
+        const UserFormField(keyName: 'nickname',displayName: '昵称',          icon: Icon(FontAwesomeIcons.userLarge),),
         UserFormField(
-          keyName: 'phone_number',
-          displayName: 'Phone Number',
-          userType: LoginUserType.phone,
+          keyName: 'email',
+          displayName: '邮箱',
+          icon: const Icon(Icons.email),
           fieldValidator: (value) {
-            final phoneRegExp = RegExp(
-              '^(\\+\\d{1,2}\\s)?\\(?\\d{3}\\)?[\\s.-]?\\d{3}[\\s.-]?\\d{4}\$',
+            final emailRegExp = RegExp(
+              r'^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$',
             );
             if (value != null &&
-                value.length < 7 &&
-                !phoneRegExp.hasMatch(value)) {
-              return "This isn't a valid phone number";
+                !emailRegExp.hasMatch(value)) {
+              return "This isn't a valid email address";
             }
             return null;
           },
+        ),
+        const UserFormField(
+          keyName: 'password',
+          displayName: '密码',
+          icon: Icon(FontAwesomeIcons.lock),
+          obscureText: true
+        ),
+        const UserFormField(
+          keyName: 'confirmpassword',
+          displayName: '确认密码',
+          icon: Icon(FontAwesomeIcons.lock),
+          obscureText: true
         ),
       ],
     );

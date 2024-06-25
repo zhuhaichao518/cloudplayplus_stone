@@ -43,23 +43,23 @@ class LoginMessages with ChangeNotifier {
   static const defaultForgotPasswordButton = '忘记密码?';
   static const defaultLoginButton = '登录';
   static const defaultSignupButton = '注册';
-  static const defaultRecoverPasswordButton = 'RECOVER';
+  static const defaultRecoverPasswordButton = '发送验证消息';
   static const defaultRecoverPasswordIntro = 'Reset your password here';
   static const defaultRecoverPasswordDescription =
       'We will send your plain-text password to this email account.';
   static const defaultRecoverCodePasswordDescription =
       'We will send a password recovery code to your email.';
-  static const defaultGoBackButton = 'BACK';
+  static const defaultGoBackButton = '返回';
   static const defaultConfirmPasswordError = 'Password do not match!';
   static const defaultRecoverPasswordSuccess = 'An email has been sent';
   static const defaultflushbarTitleSuccess = 'Success';
   static const defaultflushbarTitleError = 'Error';
-  static const defaultSignUpSuccess = 'An activation link has been sent';
+  static const defaultSignUpSuccess = '注册成功。';
   static const defaultProvidersTitleFirst = 'or login with';
   static const defaultProvidersTitleSecond = 'or';
   static const defaultAdditionalSignUpSubmitButton = '注册账号';
   static const defaultAdditionalSignUpFormDescription =
-      'Please fill in this form to complete the signup';
+      '请完善表格以注册账号';
 
   static const defaultConfirmRecoverIntro =
       'The recovery code to set a new password was sent to your email.';
