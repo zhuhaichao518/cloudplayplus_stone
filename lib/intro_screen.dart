@@ -219,7 +219,7 @@ class _IntroScreenState extends State<IntroScreen> {
           SharedPreferencesManager.setBool('appintroFinished', true);
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (context) => LoginScreen()),
+            MaterialPageRoute(builder: (context) => const LoginScreen()),
           );
         },
         showBackButton: true,

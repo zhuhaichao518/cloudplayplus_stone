@@ -1,7 +1,10 @@
+import 'package:cloudplayplus/services/secure_storage_manager.dart';
+import 'package:cloudplayplus/services/shared_preferences_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_login/flutter_login.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
+import '../dev_settings.dart/develop_settings.dart';
 import '../services/login_service.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -12,7 +15,6 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-
   // 1: login succeed.
   int _loginstate = 0;
 
@@ -67,58 +69,92 @@ class _LoginScreenState extends State<LoginScreen> {
     return null;
   }
 
+  String? _savedEmail;
+  String? _savedPassword;
+  bool _isLoading = true;
+  @override
+  void initState() {
+    super.initState();
+    if (DevelopSettings.useSecureStorage) {
+      SecureStorageManager.getString('username').then((value) {
+        setState(() {
+          _savedEmail = value;
+          _isLoading = false;
+        });
+      });
+      SecureStorageManager.getString('password').then((value) {
+        setState(() {
+          _savedPassword = value;
+          _isLoading = false;
+        });
+      });
+    } else {
+      setState(() {
+        _savedEmail = SharedPreferencesManager.getString('username');
+        _savedPassword = SharedPreferencesManager.getString('password');
+        _isLoading = false;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    return FlutterLogin(
-      title: 'CloudPlay Plus',
-      logo: const AssetImage('assets/images/cpp_logo.png'),
-      userType: LoginUserType.name,
-      onLogin: _authUser,
-      onSignup: _signupUser,
-      userValidator: _userValidator,
-      onSubmitAnimationCompleted: () {
-        if (_loginstate == 1) {
-          Navigator.of(context).pushReplacement(MaterialPageRoute(
-            builder: (context) => Container(),
-          ));
-        }
-      },
-      onRecoverPassword: _recoverPassword,
-      additionalSignupFields: [
-        const UserFormField(
-          keyName: 'username',
-          displayName: '用户名',
-        ),
-        const UserFormField(
-          keyName: 'nickname',
-          displayName: '昵称',
-          icon: Icon(FontAwesomeIcons.userLarge),
-        ),
-        UserFormField(
-          keyName: 'email',
-          displayName: '邮箱',
-          icon: const Icon(Icons.email),
-          fieldValidator: (value) {
-            final emailRegExp = RegExp(
-              r'^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$',
-            );
-            if (value != null && !emailRegExp.hasMatch(value)) {
-              return "This isn't a valid email address";
-            }
-            return null;
-          },
-        ),
-        const UserFormField(
-            keyName: 'password',
-            displayName: '密码',
-            icon: Icon(FontAwesomeIcons.lock),
-            obscureText: true),
-        const UserFormField(
-            keyName: 'confirmpassword',
-            displayName: '确认密码',
-            icon: Icon(FontAwesomeIcons.lock),
-            obscureText: true),
-      ],
-    );
+    if (_isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    } else {
+      return FlutterLogin(
+        savedEmail: _savedEmail ?? "",
+        savedPassword: _savedPassword ?? "",
+        title: 'CloudPlay Plus',
+        logo: const AssetImage('assets/images/cpp_logo.png'),
+        userType: LoginUserType.name,
+        onLogin: _authUser,
+        onSignup: _signupUser,
+        userValidator: _userValidator,
+        onSubmitAnimationCompleted: () {
+          if (_loginstate == 1) {
+            Navigator.of(context).pushReplacement(MaterialPageRoute(
+              builder: (context) => Container(),
+            ));
+          }
+        },
+        onRecoverPassword: _recoverPassword,
+        additionalSignupFields: [
+          const UserFormField(
+            keyName: 'username',
+            displayName: '用户名',
+          ),
+          const UserFormField(
+            keyName: 'nickname',
+            displayName: '昵称',
+            icon: Icon(FontAwesomeIcons.userLarge),
+          ),
+          UserFormField(
+            keyName: 'email',
+            displayName: '邮箱',
+            icon: const Icon(Icons.email),
+            fieldValidator: (value) {
+              final emailRegExp = RegExp(
+                r'^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$',
+              );
+              if (value != null && !emailRegExp.hasMatch(value)) {
+                return "This isn't a valid email address";
+              }
+              return null;
+            },
+          ),
+          const UserFormField(
+              keyName: 'password',
+              displayName: '密码',
+              icon: Icon(FontAwesomeIcons.lock),
+              obscureText: true),
+          const UserFormField(
+              keyName: 'confirmpassword',
+              displayName: '确认密码',
+              icon: Icon(FontAwesomeIcons.lock),
+              obscureText: true),
+        ],
+      );
+    }
   }
 }
