@@ -321,7 +321,8 @@ class LoginService {
     }
   }
 
-  static Future<Map<String, dynamic>> login(String username, String password) async {
+  static Future<Map<String, dynamic>> login(
+      String username, String password) async {
     //final Uri url = Uri.https('www.cloudplayplus.com', '/api/login/');
     Uri url = Uri.parse('$_baseUrl/api/login/');
     if (DevelopSettings.useLocalServer) {

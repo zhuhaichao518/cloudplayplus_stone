@@ -58,8 +58,7 @@ class LoginMessages with ChangeNotifier {
   static const defaultProvidersTitleFirst = 'or login with';
   static const defaultProvidersTitleSecond = 'or';
   static const defaultAdditionalSignUpSubmitButton = '注册账号';
-  static const defaultAdditionalSignUpFormDescription =
-      '请完善表格以注册账号';
+  static const defaultAdditionalSignUpFormDescription = '请完善表格以注册账号';
 
   static const defaultConfirmRecoverIntro =
       'The recovery code to set a new password was sent to your email.';

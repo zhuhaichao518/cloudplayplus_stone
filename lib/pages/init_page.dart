@@ -54,7 +54,7 @@ class InitPage extends StatelessWidget {
           if (appStatus == 0) {
             return const IntroScreen();
           } else if (appStatus == 1) {
-            return const LoginScreen();
+            return LoginScreen();
           } else {
             return const Text('devices');
           }

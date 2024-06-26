@@ -215,12 +215,32 @@ class _AdditionalSignUpCardState extends State<_AdditionalSignUpCard>
   }
 
   Widget _buildSubmitButton(ThemeData theme, LoginMessages messages) {
-    return ScaleTransition(
+    //(TODO:bug002): AnimatedButton在控件中偏哪个地方，上面的字就会朝哪边偏。暂时不用它。)
+    /*return ScaleTransition(
       scale: _buttonScaleAnimation,
       child: AnimatedButton(
         controller: _submitController,
         text: messages.additionalSignUpSubmitButton,
         onPressed: !_isSubmitting ? _submit : null,
+      ),
+    );*/
+    final calculatedTextColor =
+        (theme.cardTheme.color!.computeLuminance() < 0.5)
+            ? Colors.white
+            : theme.primaryColor;
+    return ScaleTransition(
+      scale: _buttonScaleAnimation,
+      child: MaterialButton(
+        onPressed: !_isSubmitting
+            ? () {
+                _submit();
+              }
+            : null,
+        padding: const EdgeInsets.symmetric(horizontal: 30.0, vertical: 4),
+        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        textColor:
+            widget.loginTheme?.switchAuthTextColor ?? calculatedTextColor,
+        child: Text(messages.additionalSignUpSubmitButton),
       ),
     );
   }
