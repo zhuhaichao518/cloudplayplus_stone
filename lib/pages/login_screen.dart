@@ -1,3 +1,4 @@
+import 'package:cloudplayplus/pages/main_page.dart';
 import 'package:cloudplayplus/services/secure_storage_manager.dart';
 import 'package:cloudplayplus/services/shared_preferences_manager.dart';
 import 'package:flutter/material.dart';
@@ -114,7 +115,7 @@ class _LoginScreenState extends State<LoginScreen> {
         onSubmitAnimationCompleted: () {
           if (_loginstate == 1) {
             Navigator.of(context).pushReplacement(MaterialPageRoute(
-              builder: (context) => Container(),
+              builder: (context) => const MainScreen(),
             ));
           }
         },
