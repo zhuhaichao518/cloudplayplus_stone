@@ -51,6 +51,10 @@ dependencies:
   animated_text_kit: ^4.2.2
   flutter_secure_storage: ^9.2.2
   http: ^1.2.0
+  flutter_sticky_header: ^0.6.5
+  animations: ^2.0.11
+  responsive_builder: ^0.7.0
+  stacked: ^3.4.3
 
 dev_dependencies:
   flutter_test:

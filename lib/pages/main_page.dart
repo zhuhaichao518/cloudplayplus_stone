@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 
+import 'master_detail/views/grouped.dart';
+import 'master_detail/views/ungrouped.dart';
+
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
 
@@ -16,8 +19,8 @@ class _MainScreenState extends State<MainScreen> {
     //Window.setEffect(
     //effect: WindowEffect.transparent,color:Colors.transparent);
     _children = [
-      const GamesPage(),
-      const GamesPage(),
+      const Ungrouped(),
+      const Grouped(),
       const GamesPage(),
       const GamesPage(),
     ];
