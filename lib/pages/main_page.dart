@@ -1,5 +1,6 @@
+import 'package:cloudplayplus/services/websocket_service.dart';
 import 'package:flutter/material.dart';
-
+import 'devices_page.dart';
 import 'master_detail/views/grouped.dart';
 import 'master_detail/views/ungrouped.dart';
 
@@ -16,12 +17,11 @@ class _MainScreenState extends State<MainScreen> {
   @override
   initState() {
     super.initState();
-    //Window.setEffect(
-    //effect: WindowEffect.transparent,color:Colors.transparent);
+    //WebSocketService().init();
     _children = [
-      const Ungrouped(),
+      const DevicesPage(),
       const Grouped(),
-      const GamesPage(),
+      const Ungrouped(),
       const GamesPage(),
     ];
   }
