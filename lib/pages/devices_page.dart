@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import '../../../plugins/flutter_master_detail/flutter_master_detail.dart';
 import 'master_detail/data/fantasy_list.dart';

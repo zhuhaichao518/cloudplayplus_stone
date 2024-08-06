@@ -17,7 +17,7 @@ class _MainScreenState extends State<MainScreen> {
   @override
   initState() {
     super.initState();
-    //WebSocketService().init();
+    WebSocketService.init();
     _children = [
       const DevicesPage(),
       const Grouped(),

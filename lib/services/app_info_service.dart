@@ -1,4 +1,45 @@
 //掉线连接管理.md
+import 'dart:io';
+import 'package:flutter/foundation.dart';
+import '../entities/user.dart';
+
+class ApplicationInfo{
+  static late User user;
+  static bool connectable = false;
+
+  static String get deviceName {
+    if (AppPlatform.isWeb) {
+      return '云玩家网页端';
+    }
+    return Platform.localHostname;
+  }
+
+  static String get deviceTypeName {
+    if (AppPlatform.isWeb) {
+      return 'Web';
+    }
+    if (Platform.isWindows) {
+      return 'Windows';
+    }
+    if (Platform.isMacOS) {
+      return 'MacOS';
+    }
+    if (Platform.isAndroid) {
+      return 'Android';
+    }
+    if (Platform.isIOS) {
+      return 'IOS';
+    } else {
+      return 'unknown';
+    }
+  }
+
+  static Map toJson() {
+    return {
+    };
+  }
+}
+
 enum ControlState { normal, controlRequested, answerSent, conneted }
 enum HostState { normal, offerSent, answerReceived, conneted }
 
@@ -10,6 +51,14 @@ class AppStateService {
   static ControlState controlState = ControlState.normal;
   static HostState hostState = HostState.normal;
   //static bool visible = true;
-  
-  
+}
+
+//TODO: find the platform when isWeb.
+class AppPlatform {
+static const bool isWeb = kIsWeb;
+static final bool isAndroid = !kIsWeb && Platform.isAndroid;
+static final bool isIOS = !kIsWeb && Platform.isIOS;
+static final bool isWindows = !kIsWeb && Platform.isWindows;
+static final bool isMacos = !kIsWeb && Platform.isMacOS;
+static final bool isLinux = !kIsWeb && Platform.isLinux;
 }
