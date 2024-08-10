@@ -3,6 +3,8 @@ import 'dart:math';
 import 'dart:convert';
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
+
 //import 'package:web_socket_channel/io.dart';
 
 class SimpleWebSocket {
@@ -20,7 +22,10 @@ class SimpleWebSocket {
     HttpClient client = HttpClient(context: SecurityContext());
     client.badCertificateCallback =
         (X509Certificate cert, String host, int port) {
-      return true; // trust the certificate
+      if (kDebugMode){
+        return true; // trust the certificate
+      }
+      return false;
     };
 
     // Connect to the WebSocket

@@ -21,7 +21,7 @@ class WebSocketService {
   static SimpleWebSocket? _socket;
   static String _baseUrl = 'wss://www.cloudplayplus.com/ws/';
   
-  static const JsonEncoder _encoder = const JsonEncoder();
+  static const JsonEncoder _encoder = JsonEncoder();
   static const JsonDecoder _decoder = JsonDecoder();
 
   static WebSocketConnectionState connectionState = WebSocketConnectionState.none;
@@ -42,16 +42,56 @@ class WebSocketService {
     _socket = SimpleWebSocket(url);
     connectionState = WebSocketConnectionState.connecting;
     _socket?.onOpen = () {
-      connectionState = WebSocketConnectionState.connected;
-      send('newconnection', {
-        'devicename': ApplicationInfo.deviceName,
-        'devicetype': ApplicationInfo.deviceTypeName,
-        /*'appid': ApplicationInfo.appId,*/
-        'connective': ApplicationInfo.connectable
-      });
+      onConnected();
     };
+
+    _socket?.onMessage = (message) async {
+      await onMessage(_decoder.convert(message));
+    };
+    await _socket?.connect();
   }
 
+  static Future<void> onMessage(message) async {
+    if (kDebugMode){
+      print("--got message from server------------------------");
+      print(message);
+    }
+    Map<String, dynamic> mapData = message;
+    var data = mapData['data'];
+    switch (mapData['type']) {
+      case 'connection_id':
+        {
+          //This is first response from server. update device info.
+          AppStateService.websocketSessionid = data;
+          send('updateDeviceInfo', {
+            'deviceName': ApplicationInfo.deviceName,
+            'deviceType': ApplicationInfo.deviceTypeName,
+            'appid': AppStateService.websocketSessionid,
+            'connective': ApplicationInfo.connectable
+          });
+        }
+      case 'connected_devices':{
+        int b = 0;
+      }
+      default:
+        {
+          print("warning:get unknown message from server");
+          break;
+        }
+    }
+  }
+
+  static void onConnected(){
+    connectionState = WebSocketConnectionState.connected;
+    //connected and waiting for our connection uuid.
+    /*send('newconnection', {
+      'devicename': ApplicationInfo.deviceName,
+      'devicetype': ApplicationInfo.deviceTypeName,
+      /*'appid': ApplicationInfo.appId,*/
+      'connective': ApplicationInfo.connectable
+    });*/
+  }
+  
   static void send(event, data) {
     if (kDebugMode) {
       print("sending----------");

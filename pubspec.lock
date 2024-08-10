@@ -355,26 +355,26 @@ packages:
     dependency: transitive
     description:
       name: leak_tracker
-      sha256: f8cdf1383f5b4672a2693d875f1f239af6bd7e4a8925a17ef7219226db932624
+      sha256: "78eb209deea09858f5269f5a5b02be4049535f568c07b275096836f01ea323fa"
       url: "https://pub.flutter-io.cn"
     source: hosted
-    version: "10.0.1"
+    version: "10.0.0"
   leak_tracker_flutter_testing:
     dependency: transitive
     description:
       name: leak_tracker_flutter_testing
-      sha256: a2055640bf5bc903475e4bbdb34e04f8bf698542bee41edec47d337a5939e1ae
+      sha256: b46c5e37c19120a8a01918cfaf293547f47269f7cb4b0058f21531c2465d6ef0
       url: "https://pub.flutter-io.cn"
     source: hosted
-    version: "2.0.3"
+    version: "2.0.1"
   leak_tracker_testing:
     dependency: transitive
     description:
       name: leak_tracker_testing
-      sha256: e62042d479c4c139dd774125ed4dfbde646b8f07ac228e3c1b57a3d91d6d9df4
+      sha256: a597f72a664dbd293f3bfc51f9ba69816f84dcd403cdac7066cb3f6003f3ab47
       url: "https://pub.flutter-io.cn"
     source: hosted
-    version: "2.0.2"
+    version: "2.0.1"
   libphonenumber_platform_interface:
     dependency: transitive
     description:
@@ -805,5 +805,5 @@ packages:
     source: hosted
     version: "1.0.4"
 sdks:
-  dart: ">=3.4.0-11.0.dev <4.0.0"
-  flutter: ">=3.18.0-18.0.pre.54"
+  dart: ">=3.3.0 <4.0.0"
+  flutter: ">=3.16.6"

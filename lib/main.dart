@@ -7,8 +7,8 @@ import 'services/shared_preferences_manager.dart';
 import 'theme/theme_provider.dart';
 
 void main() async {
-  await SharedPreferencesManager.init();
   await AppInitService.init();
+  await SharedPreferencesManager.init();
   SecureStorageManager.init();
   runApp(const MyApp());
 }

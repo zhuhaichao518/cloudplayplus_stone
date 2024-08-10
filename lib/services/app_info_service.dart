@@ -29,9 +29,11 @@ class ApplicationInfo{
     }
     if (Platform.isIOS) {
       return 'IOS';
-    } else {
-      return 'unknown';
     }
+    if (Platform.isLinux) {
+      return 'Linux';
+    }
+    return 'Unknown';
   }
 
   static Map toJson() {

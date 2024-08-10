@@ -1,6 +1,7 @@
 import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:cloudplayplus/intro_screen.dart';
 import 'package:cloudplayplus/pages/login_screen.dart';
+import 'package:cloudplayplus/pages/main_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 
@@ -56,7 +57,7 @@ class InitPage extends StatelessWidget {
           } else if (appStatus == 1) {
             return const LoginScreen();
           } else {
-            return const Text('devices');
+            return const MainScreen();
           }
         }
       },
