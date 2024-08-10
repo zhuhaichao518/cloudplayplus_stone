@@ -19,7 +19,7 @@ class _MainScreenState extends State<MainScreen> {
     super.initState();
     WebSocketService.init();
     _children = [
-      const DevicesPage(),
+      DevicesPage(),
       const Grouped(),
       const Ungrouped(),
       const GamesPage(),

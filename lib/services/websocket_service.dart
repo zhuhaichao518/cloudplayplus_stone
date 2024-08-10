@@ -25,6 +25,10 @@ class WebSocketService {
   static const JsonDecoder _decoder = JsonDecoder();
 
   static WebSocketConnectionState connectionState = WebSocketConnectionState.none;
+
+  static Function(dynamic list)? onDeviceListchanged;
+
+
   static void init() async{
     if (DevelopSettings.useLocalServer) {
       _baseUrl = 'ws://127.0.0.1:8000/ws/';
@@ -71,11 +75,13 @@ class WebSocketService {
           });
         }
       case 'connected_devices':{
-        int b = 0;
+        onDeviceListchanged?.call(data);
       }
       default:
         {
-          print("warning:get unknown message from server");
+          if (kDebugMode) {
+            print("warning:get unknown message from server");
+          }
           break;
         }
     }

@@ -16,3 +16,9 @@ class Device {
       required this.websocketSessionid,
       required this.connective});
 }
+
+final defaultDeviceList = [
+  Device(
+    uid: 0, nickname: 'initializing...', devicename: 'initializing...', devicetype: 'initializing...', websocketSessionid: '', connective: false,
+  )
+];

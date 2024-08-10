@@ -1,6 +1,7 @@
 import 'package:cloudplayplus/services/login_service.dart';
 
 import '../dev_settings.dart/develop_settings.dart';
+import 'app_info_service.dart';
 import 'shared_preferences_manager.dart';
 
 //这个类决定了app启动的时候进入哪一个页面。
@@ -29,5 +30,6 @@ class AppInitService {
 
   static Future<void> init() async {
     appInitState = getAppState();
+    ApplicationInfo.connectable = SharedPreferencesManager.getBool('connectable') ?? true;
   }
 }
