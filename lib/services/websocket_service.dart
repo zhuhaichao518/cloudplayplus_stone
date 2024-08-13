@@ -4,6 +4,7 @@ import 'package:cloudplayplus/services/shared_preferences_manager.dart';
 import 'package:flutter/foundation.dart';
 
 import '../dev_settings.dart/develop_settings.dart';
+import '../entities/user.dart';
 import '../utils/websocket.dart'
     if (dart.library.js) '../utils/websocket_web.dart';
 import 'app_info_service.dart';
@@ -63,10 +64,11 @@ class WebSocketService {
     Map<String, dynamic> mapData = message;
     var data = mapData['data'];
     switch (mapData['type']) {
-      case 'connection_id':
+      case 'connection_info':
         {
           //This is first response from server. update device info.
-          AppStateService.websocketSessionid = data;
+          AppStateService.websocketSessionid = data['connection_id'];
+          ApplicationInfo.user = User(uid:data['uid'],nickname:data['nickname']);
           send('updateDeviceInfo', {
             'deviceName': ApplicationInfo.deviceName,
             'deviceType': ApplicationInfo.deviceTypeName,

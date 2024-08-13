@@ -2,7 +2,9 @@ import 'package:cloudplayplus/entities/device.dart';
 import 'package:cloudplayplus/services/websocket_service.dart';
 import 'package:flutter/material.dart';
 import '../../../plugins/flutter_master_detail/flutter_master_detail.dart';
+import '../services/app_info_service.dart';
 import '../utils/icon_builder.dart';
+import '../utils/widgets/device_tile_page.dart';
 import 'master_detail/data/fantasy_list.dart';
 import 'master_detail/types/fantasy.dart';
 
@@ -20,6 +22,10 @@ class _DevicesPageState extends State<DevicesPage> {
       // 假设我们添加了一个新的Fantasy对象到列表
       _deviceList.clear();
       for (Map device in devicelist){
+        if (device['owner_id'] == ApplicationInfo.user.uid){
+          //We set owner id to -1 to identify it is the device of ourself.
+          device['owner_id'] = -1;
+        }
         _deviceList.add(Device(uid: device['owner_id'], nickname: device['owner_nickname'], devicename: device['device_name'], devicetype: device['device_type'], websocketSessionid: device['connection_id'], connective: device['connective']));
       }
     });
@@ -53,12 +59,54 @@ class _DevicesPageState extends State<DevicesPage> {
       groupedBy: (data) => data.uid,
       groupHeaderBuilder:(context, key, itemsCount) {
         if (key == 0) {
-          return Text("initializing");
+          return Theme(
+            // 使用当前主题
+            data: Theme.of(context),
+            child: ListTile(
+              title: Text(
+                "初始化...",
+                style: TextStyle(
+                  color: Theme.of(context).textTheme.bodyText1?.color, // 使用主题中定义的文本颜色
+                  fontSize: 18, // 根据需要设置字体大小
+                  fontWeight: FontWeight.bold, // 加粗文本
+                ),
+              ),
+              tileColor: Theme.of(context).primaryColor, // 使用主题中定义的主要颜色作为背景
+            ),
+          );
         }
-        if (key == 27) {
-          return Text("my own devices");
+        if (key.value[0].uid == -1) {
+          return Theme(
+            // 使用当前主题
+            data: Theme.of(context),
+            child: ListTile(
+              title: Text(
+                "我的设备",
+                style: TextStyle(
+                  color: Theme.of(context).textTheme.bodyLarge?.color, // 使用主题中定义的文本颜色
+                  fontSize: 18, // 根据需要设置字体大小
+                  fontWeight: FontWeight.bold, // 加粗文本
+                ),
+              ),
+              tileColor: Theme.of(context).primaryColor, // 使用主题中定义的主要颜色作为背景
+            ),
+          );
         }
-        return Text("shared by");
+        return Theme(
+            // 使用当前主题
+            data: Theme.of(context),
+            child: ListTile(
+              title: Text(
+                key.value[0].nickname + "的分享",
+                style: TextStyle(
+                  color: Theme.of(context).textTheme.bodyLarge?.color, // 使用主题中定义的文本颜色
+                  fontSize: 18, // 根据需要设置字体大小
+                  fontWeight: FontWeight.bold, // 加粗文本
+                ),
+              ),
+              tileColor: Theme.of(context).primaryColor, // 使用主题中定义的主要颜色作为背景
+            ),
+          );
       },
       masterItemBuilder: _buildListTile,
       detailsTitleBuilder: (context, data) => FlexibleSpaceBar(
@@ -66,11 +114,12 @@ class _DevicesPageState extends State<DevicesPage> {
         centerTitle: false,
       ),
       detailsItemBuilder: (context, data) => Center(
-        child: Text(data.devicename),
+        child: DeviceDetailPage(device:data),
       ),
-      sortBy: (data) => data.devicename,
+      sortBy: (data) => data.uid,
+      //TODO(haichao): how it is used?
       title: const FlexibleSpaceBar(
-        title: Text("Contacts"),
+        title: Text("Cloud Play Plus"),
       ),
       masterViewFraction: 0.5,
     );

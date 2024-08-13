@@ -61,7 +61,7 @@ class ElementList<T> extends StatelessWidget {
   List<SliverStickyHeader> _buildGroupedListView(BuildContext context) {
     var grouped = groupBy(items, groupedBy!);
     return grouped.entries
-        .map((e) => _buildGroupedElement(context, e.key, e.value))
+        .map((e) => _buildGroupedElement(context, e, e.value))
         .toList();
   }
 
