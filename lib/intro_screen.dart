@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:cloudplayplus/pages/login_screen.dart';
 import 'package:flutter/material.dart';
@@ -231,7 +233,7 @@ class _IntroScreenState extends State<IntroScreen> {
         top: 0,
         left: 0,
         child: CustomPaint(
-          size: const Size(200, 200), // Size of the triangle
+          size: Size(min(MediaQuery.of(context).size.width/4, MediaQuery.of(context).size.height/4),min(MediaQuery.of(context).size.width/4, MediaQuery.of(context).size.height/4)), // Size of the triangle
           painter: TrianglePainter(
               color: _themeColor, direction: TriangleDirection.topLeft),
         ),
@@ -240,7 +242,7 @@ class _IntroScreenState extends State<IntroScreen> {
         bottom: 0,
         right: 0,
         child: CustomPaint(
-          size: const Size(50, 50), // Size of the triangle
+          size: Size(min(MediaQuery.of(context).size.width/8, MediaQuery.of(context).size.height/8),min(MediaQuery.of(context).size.width/8, MediaQuery.of(context).size.height/8)),// Size of the triangle
           painter: TrianglePainter(
               color: _themeColor, direction: TriangleDirection.bottomRight),
         ),

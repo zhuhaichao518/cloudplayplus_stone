@@ -28,3 +28,8 @@ sudo pacman -S kwalletmanager
 sudo pacman -S kwallet
 
 sudo pacman -S tpm2-tss for secure_storage.
+
+chrome debug:
+set chrome path to 
+var/lib/flatpak/app/com.google.Chrome/current/active/export/bin/com.google.Chrome
+if using flatpak

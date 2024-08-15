@@ -32,7 +32,11 @@ class WebSocketService {
 
   static void init() async{
     if (DevelopSettings.useLocalServer) {
-      _baseUrl = 'ws://127.0.0.1:8000/ws/';
+      if (AppPlatform.isAndroid){
+        _baseUrl = "ws://10.0.2.2:8000/ws/";
+      }else{
+        _baseUrl = "ws://127.0.0.1:8000/ws/";
+      }
     }
     String? accessToken;
     if (DevelopSettings.useSecureStorage) {

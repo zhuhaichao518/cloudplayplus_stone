@@ -1,15 +1,34 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:cloudplayplus/dev_settings.dart/develop_settings.dart';
+import 'package:cloudplayplus/services/app_info_service.dart';
 import 'package:cloudplayplus/services/secure_storage_manager.dart';
 import 'package:cloudplayplus/services/shared_preferences_manager.dart';
 import 'package:http/http.dart' as http;
 import '../../entities/user.dart' as cpp_user;
 
+//build commands:
+//flutter run -d chrome --web-browser-flag "--disable-web-security"
+//flutter build web --local-web-sdk=host_debug --no-tree-shake-icons
+//flutter build web --local-web-sdk=host_debug --no-tree-shake-icons --release --web-renderer canvaskit --dart-define=FLUTTER_WEB_CANVASKIT_URL=https://cdn.jsdelivr.net/npm/canvaskit-wasm@0.39.1/bin/
+//flutter builflutter build web --local-web-sdk=host_debug --no-tree-shake-icons --release --web-renderer canvaskit --dart-define=FLUTTER_WEB_CANVASKIT_URL=/canvaskit/
+
+//flutter run -d chrome --web-browser-flag "--disable-web-security"
+
 class LoginService {
   //run python manage.py runserver 8000 before testing.
   //sudo service redis-server start before run server on windows WSL.
-  static const String _baseUrl = 'https://www.cloudplayplus.com';
+  static String _baseUrl = 'https://www.cloudplayplus.com';
+
+  static void init(){
+    if (DevelopSettings.useLocalServer) {
+      if (AppPlatform.isAndroid){
+        _baseUrl = "http://10.0.2.2:8000";
+      }else{
+        _baseUrl = "http://127.0.0.1:8000";
+      }
+    }
+  }
 
   Future<http.Response> customHttpPost(
     Uri url, {
@@ -50,14 +69,6 @@ class LoginService {
 
   static Future<String?> _refreshToken(String refreshToken) async {
     Uri refreshTokenEndpoint = Uri.parse('$_baseUrl/api/token/refresh/');
-    if (DevelopSettings.useLocalServer) {
-      //flutter run -d chrome --web-browser-flag "--disable-web-security"
-      //flutter build web --local-web-sdk=host_debug --no-tree-shake-icons
-      //flutter build web --local-web-sdk=host_debug --no-tree-shake-icons --release --web-renderer canvaskit --dart-define=FLUTTER_WEB_CANVASKIT_URL=https://cdn.jsdelivr.net/npm/canvaskit-wasm@0.39.1/bin/
-      //flutter builflutter build web --local-web-sdk=host_debug --no-tree-shake-icons --release --web-renderer canvaskit --dart-define=FLUTTER_WEB_CANVASKIT_URL=/canvaskit/
-      refreshTokenEndpoint =
-          Uri.parse('http://127.0.0.1:8000/api/token/refresh/');
-    }
     final response = await http.post(
       refreshTokenEndpoint,
       headers: <String, String>{
@@ -81,10 +92,6 @@ class LoginService {
 
   Future<String> requestNickName(String uid) async {
     Uri url = Uri.parse('$_baseUrl/api/requestnickname/');
-    if (DevelopSettings.useLocalServer) {
-      //flutter run -d chrome --web-browser-flag "--disable-web-security"
-      url = Uri.parse('http://127.0.0.1:8000/api/requestnickname/');
-    }
     http.Response response;
     try {
       if (!DevelopSettings.useLocalServer) {
@@ -130,10 +137,6 @@ class LoginService {
       accessToken = SharedPreferencesManager.getString('access_token');
     }
 
-    if (DevelopSettings.useLocalServer) {
-      //flutter run -d chrome --web-browser-flag "--disable-web-security"
-      url = Uri.parse('http://127.0.0.1:8000/api/updateuserinfo/');
-    }
     http.Response response;
     try {
       if (!DevelopSettings.useLocalServer) {
@@ -173,10 +176,6 @@ class LoginService {
 
   static Future<bool> loginWithToken(String accessToken) async {
     Uri url = Uri.parse('$_baseUrl/api/tokenlogin/');
-    if (DevelopSettings.useLocalServer) {
-      //flutter run -d chrome --web-browser-flag "--disable-web-security"
-      url = Uri.parse('http://127.0.0.1:8000/api/tokenlogin/');
-    }
     http.Response response;
     try {
       if (!DevelopSettings.useLocalServer) {

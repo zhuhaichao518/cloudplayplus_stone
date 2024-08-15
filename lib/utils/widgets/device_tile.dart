@@ -1,8 +1,6 @@
-import 'dart:math';
-
 import 'package:flutter/material.dart';
-
 import '../../entities/device.dart';
+import '../../services/app_info_service.dart';
 import 'device_tile_page.dart';
 
 class DeviceTile extends StatelessWidget {
@@ -12,55 +10,61 @@ class DeviceTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    IconData iconData;
-    switch (device.devicetype) {
-      case 'Windows':
-        iconData = Icons.computer; // 示例，你可能需要自定义图标
-        break;
-      case 'Android':
-        iconData = Icons.phone_android;
-      case 'MacOS':
-        iconData = Icons.laptop_mac;
-      case 'IOS':
-        iconData = Icons.phone_iphone;
-      case "Web":
-        iconData = Icons.web;
-      default:
-        iconData = Icons.device_unknown;
-    }
-
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: <Widget>[
-        InkWell(
+    return Card(
+      elevation: 8.0, // 卡片阴影
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(10.0), // 圆角
+      ),
+      child: InkWell(
         onTap: () {
-          showDialog(
-            context: context,
-            builder: (BuildContext context) {
-              return Dialog(
-                child: Container(
-                  // 设定一个合适的高度和宽度
-                  height: MediaQuery.of(context).size.height * 0.8,
-                  width: MediaQuery.of(context).size.width * 0.8,
-                  child: DeviceDetailPage(device: device),
-                ),
-              );
-            },
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (context) => DeviceDetailPage(device: device),
+            ),
           );
         },
-          child: Icon(iconData, size: 150),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            Icon(getIconData(device.devicetype), size: 60),
+            SizedBox(height: 8), // 间距
+            Text(
+              "sb",
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+            SizedBox(height: 4), // 间距
+            Text(
+              device.uid == ApplicationInfo.user.uid
+                  ? "(Yourself)"
+                  : device.uid == ApplicationInfo.user.uid
+                      ? ""
+                      : "(Shared by ${device.nickname})",
+              style: TextStyle(color: Colors.grey),
+            ),
+            Text(
+              "App ID: ${device.websocketSessionid}",
+              style: TextStyle(color: Colors.grey, fontSize: 12),
+            ),
+          ],
         ),
-        /*Text(device.devicename +
-            (
-              (device.appid == ApplicationInfoServiceImpl().appid)
-                ? "(yourself)"
-                : "")
-                +  
-                ((device.uid == ApplicationInfoServiceImpl().user.uid)? "":"(来自 ${device.nickname} 的分享)")
-                ),
-        Text("应用id:${device.appid.substring(min(30, device.appid.length))}"),*/
-      ],
+      ),
     );
+  }
+
+  IconData getIconData(String deviceType) {
+    switch (deviceType) {
+      case 'Windows':
+        return Icons.computer;
+      case 'Android':
+        return Icons.phone_android;
+      case 'MacOS':
+        return Icons.laptop_mac;
+      case 'IOS':
+        return Icons.phone_iphone;
+      case 'Web':
+        return Icons.web;
+      default:
+        return Icons.device_unknown;
+    }
   }
 }

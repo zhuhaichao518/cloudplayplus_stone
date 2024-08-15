@@ -5,8 +5,6 @@ import '../../../plugins/flutter_master_detail/flutter_master_detail.dart';
 import '../services/app_info_service.dart';
 import '../utils/icon_builder.dart';
 import '../utils/widgets/device_tile_page.dart';
-import 'master_detail/data/fantasy_list.dart';
-import 'master_detail/types/fantasy.dart';
 
 class DevicesPage extends StatefulWidget {
   @override
@@ -97,7 +95,7 @@ class _DevicesPageState extends State<DevicesPage> {
             data: Theme.of(context),
             child: ListTile(
               title: Text(
-                key.value[0].nickname + "的分享",
+                key.value[0].nickname,
                 style: TextStyle(
                   color: Theme.of(context).textTheme.bodyLarge?.color, // 使用主题中定义的文本颜色
                   fontSize: 18, // 根据需要设置字体大小
@@ -110,18 +108,16 @@ class _DevicesPageState extends State<DevicesPage> {
       },
       masterItemBuilder: _buildListTile,
       detailsTitleBuilder: (context, data) => FlexibleSpaceBar(
-        title: Text(data.devicetype),
+        title: Text(data.devicename,style: const TextStyle(color: Colors.black),),
         centerTitle: false,
       ),
-      detailsItemBuilder: (context, data) => Center(
-        child: DeviceDetailPage(device:data),
-      ),
+      detailsItemBuilder: (context, data) => DeviceDetailPage(device:data),
       sortBy: (data) => data.uid,
       //TODO(haichao): how it is used?
-      title: const FlexibleSpaceBar(
+      /*title: const FlexibleSpaceBar(
         title: Text("Cloud Play Plus"),
-      ),
-      masterViewFraction: 0.5,
+      ),*/
+      masterViewFraction: 0.8,
     );
   }
 
