@@ -20,9 +20,6 @@ class Grouped extends StatelessWidget {
         child: Text(data.name),
       ),
       sortBy: (data) => data.name,
-      title: const FlexibleSpaceBar(
-        title: Text("Contacts"),
-      ),
       masterViewFraction: 0.5,
     );
   }
