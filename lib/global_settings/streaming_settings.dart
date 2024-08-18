@@ -12,10 +12,10 @@ class StreamingSettings{
   static String? turnServerPassword;
 
   void init(){
-
+    //TODO(Haichao):load settings from perf manager.
   }
 
-  Map<String, dynamic> toJson() {
+  static Map<String, dynamic> toJson() {
     Map<String, dynamic> data = {
       'framerate': framerate,
       'bitrate': bitrate,

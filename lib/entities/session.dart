@@ -2,6 +2,7 @@ import 'package:cloudplayplus/entities/device.dart';
 import 'package:cloudplayplus/services/websocket_service.dart';
 
 import '../base/logging.dart';
+import '../global_settings/streaming_settings.dart';
 import '../services/app_info_service.dart';
 
 /*
@@ -24,24 +25,23 @@ enum StreamingSessionConnectionState {
   disconnected,
 }
 class StreamingSession{
-  StreamingSessionConnectionState connestionState = StreamingSessionConnectionState.free;
-  late Device controller, controlled;
-  StreamingSession(Device from, Device to){
-    controller = from;
-    controlled = to;
-    connestionState = StreamingSessionConnectionState.free;
+  StreamingSessionConnectionState connectionState = StreamingSessionConnectionState.free;
+  Device controller, controlled;
+
+  StreamingSession(this.controller, this.controlled){
+    connectionState = StreamingSessionConnectionState.free;
   }
 
-  void start() async{
+  void start(){
     if (controller.websocketSessionid!=AppStateService.websocketSessionid){
       VLOG0("requiring connection on wrong device. Please debug.");
       return;
     }
     WebSocketService.send('requestRemoteControl',
     {
-      'target': controlled.websocketSessionid,
-      'deviceType': ApplicationInfo.deviceTypeName,
-      'connective': ApplicationInfo.connectable
+      'target_uid': controlled.uid == -1? ApplicationInfo.user.uid:controlled.uid,
+      'target_connectionid': controlled.websocketSessionid,
+      'settings': StreamingSettings.toJson(),
     });
   }
 

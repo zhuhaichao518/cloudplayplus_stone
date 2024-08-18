@@ -22,10 +22,10 @@ class _DevicesPageState extends State<DevicesPage> {
       // 假设我们添加了一个新的Fantasy对象到列表
       _deviceList.clear();
       for (Map device in devicelist){
-        if (device['owner_id'] == ApplicationInfo.user.uid){
+        //if (device['owner_id'] == ApplicationInfo.user.uid){
           //We set owner id to -1 to identify it is the device of ourself.
-          device['owner_id'] = -1;
-        }
+          //device['owner_id'] = -1;
+        //}
         _deviceList.add(Device(uid: device['owner_id'], nickname: device['owner_nickname'], devicename: device['device_name'], devicetype: device['device_type'], websocketSessionid: device['connection_id'], connective: device['connective']));
       }
     });
@@ -115,7 +115,12 @@ class _DevicesPageState extends State<DevicesPage> {
         title: Text(data.devicename,style: const TextStyle(color: Colors.black),),
       ),
       detailsItemBuilder: (context, data) => DeviceDetailPage(device:data),
-      sortBy: (data) => data.uid,
+      sortBy: (data) {
+        if (data.uid == ApplicationInfo.user.uid){
+          return 0;
+        }
+        return data.uid;
+      },
       title: FlexibleSpaceBar(
         titlePadding: const EdgeInsetsDirectional.only(start: 0, bottom: 16),
         centerTitle: true,

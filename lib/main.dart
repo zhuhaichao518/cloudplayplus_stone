@@ -7,7 +7,7 @@ import 'services/login_service.dart';
 import 'services/secure_storage_manager.dart';
 import 'services/shared_preferences_manager.dart';
 import 'theme/theme_provider.dart';
-import'package:bitsdojo_window/bitsdojo_window.dart';
+import 'package:bitsdojo_window/bitsdojo_window.dart';
 
 void main() async {
   LoginService.init();

@@ -1,9 +1,11 @@
 //掉线连接管理.md
 import 'dart:io';
 import 'package:flutter/foundation.dart';
+import '../entities/device.dart';
 import '../entities/user.dart';
 
 class ApplicationInfo{
+  static late Device thisDevice;
   static late User user;
   static bool connectable = false;
 

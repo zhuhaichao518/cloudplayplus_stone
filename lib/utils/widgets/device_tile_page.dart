@@ -1,4 +1,7 @@
+import 'package:cloudplayplus/services/app_init_service.dart';
+import 'package:cloudplayplus/services/streaming_manager.dart';
 import 'package:flutter/material.dart';
+import '../../base/logging.dart';
 import '../../entities/device.dart';
 import '../../services/app_info_service.dart'; // 假设你的Device实体在这里定义
 
@@ -31,9 +34,9 @@ class DeviceDetailPage extends StatelessWidget {
             ),
             SizedBox(height: 48), // 增加垂直间距
             // 使用按钮来提供连接设备的交互
-            ElevatedButton(
+            device.websocketSessionid != ApplicationInfo.thisDevice.websocketSessionid?ElevatedButton(
               onPressed: () => _connectDevice(context),
-              child: Text('连接设备', style: TextStyle(fontSize: 18)),
+              child: const Text('连接设备', style: TextStyle(fontSize: 18)),
               style: ElevatedButton.styleFrom(
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(10),
@@ -41,13 +44,13 @@ class DeviceDetailPage extends StatelessWidget {
                 //primary: Theme.of(context).colorScheme.secondary, // 使用主题的次要颜色
                 //onPrimary: Theme.of(context).colorScheme.onSecondary, // 文字颜色
               ),
-            ),
+            ):Container(),
             SizedBox(height: 24), // 增加垂直间距
             // 如果设备是用户的，显示分享组件
             if (device.uid == ApplicationInfo.user.uid) ...[
               TextField(
                 decoration: InputDecoration(
-                  labelText: '用户ID',
+                  labelText: '分享给...',
                   border: OutlineInputBorder(),
                 ),
               ),
@@ -84,7 +87,8 @@ class DeviceDetailPage extends StatelessWidget {
 
   void _connectDevice(BuildContext context) {
     // 连接设备的逻辑
-    print('连接设备: ${device.devicename}');
+    StreamingManager.startStreaming(device);
+    VLOG0('连接设备: ${device.devicename}');
   }
 
   void _shareDevice(BuildContext context) {

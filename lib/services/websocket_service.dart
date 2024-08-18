@@ -4,6 +4,7 @@ import 'package:cloudplayplus/services/shared_preferences_manager.dart';
 import 'package:flutter/foundation.dart';
 
 import '../dev_settings.dart/develop_settings.dart';
+import '../entities/device.dart';
 import '../entities/user.dart';
 import '../utils/websocket.dart'
     if (dart.library.js) '../utils/websocket_web.dart';
@@ -80,9 +81,13 @@ class WebSocketService {
             'deviceType': ApplicationInfo.deviceTypeName,
             'connective': ApplicationInfo.connectable
           });
+          ApplicationInfo.thisDevice = (Device(uid: ApplicationInfo.user.uid, nickname: ApplicationInfo.user.nickname, devicename: ApplicationInfo.deviceName, devicetype: ApplicationInfo.deviceTypeName, websocketSessionid: AppStateService.websocketSessionid!, connective: ApplicationInfo.connectable));
         }
       case 'connected_devices':{
         onDeviceListchanged?.call(data);
+      }
+      case 'remoteSessionRequested':{
+        int go = 1;
       }
       default:
         {
