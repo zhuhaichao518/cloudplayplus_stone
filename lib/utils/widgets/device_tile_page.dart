@@ -13,21 +13,21 @@ class DeviceDetailPage extends StatelessWidget {
       SingleChildScrollView(
         padding: EdgeInsets.symmetric(horizontal: 24.0, vertical: 48.0), // 增加内边距
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: <Widget>[
             // 使用更大的字体和粗体来突出设备类型
             Text(
-              "device name:${device.devicename}",
+              "设备名称:${device.devicename}",
             ),
             SizedBox(height: 16), // 增加垂直间距
             // 使用更大的字体和粗体来突出设备类型
             Text(
-              "platform:${device.devicetype}",
+              "设备平台:${device.devicetype}",
             ),
             SizedBox(height: 16), // 增加垂直间距
             // 使用装饰文本来展示应用ID
             Text(
-              "应用ID: ${device.websocketSessionid.toString().substring(device.websocketSessionid.toString().length - 6)}",
+              "会话ID: ${device.websocketSessionid.toString().substring(device.websocketSessionid.toString().length - 6)}",
             ),
             SizedBox(height: 48), // 增加垂直间距
             // 使用按钮来提供连接设备的交互

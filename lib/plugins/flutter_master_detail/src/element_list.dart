@@ -41,12 +41,18 @@ class ElementList<T> extends StatelessWidget {
     if (groupedBy != null) {
       return CustomScrollView(
         slivers: [
+          SliverAppBar(
+            flexibleSpace: title,
+          ),
           ..._buildGroupedListView(context)
         ],
       );
     }
     return CustomScrollView(
       slivers: [
+        SliverAppBar(
+          flexibleSpace: title,
+        ),
         _buildNonGroupedListView(items)
       ],
     );

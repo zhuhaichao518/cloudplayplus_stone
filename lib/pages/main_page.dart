@@ -1,5 +1,6 @@
 import 'package:cloudplayplus/services/websocket_service.dart';
 import 'package:flutter/material.dart';
+import '../settings_screen.dart';
 import 'devices_page.dart';
 import 'master_detail/views/grouped.dart';
 import 'master_detail/views/ungrouped.dart';
@@ -20,9 +21,10 @@ class _MainScreenState extends State<MainScreen> {
     WebSocketService.init();
     _children = [
       DevicesPage(),
+      //Grouped(),
       const Text("test"),//Grouped(),
       const Text("test"),//Ungrouped(),
-      const Text("test"),//GamesPage(),
+      const SettingsScreen(),//GamesPage(),
     ];
   }
 

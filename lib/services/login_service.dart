@@ -23,7 +23,9 @@ class LoginService {
   static void init(){
     if (DevelopSettings.useLocalServer) {
       if (AppPlatform.isAndroid){
-        _baseUrl = "http://10.0.2.2:8000";
+        //_baseUrl = "http://10.0.2.2:8000";
+        // run adb reverse tcp:8000 tcp:8000 to forward request to 127.0.0.1
+        _baseUrl = "http://127.0.0.1:8000";
       }else{
         _baseUrl = "http://127.0.0.1:8000";
       }
@@ -324,10 +326,6 @@ class LoginService {
       String username, String password) async {
     //final Uri url = Uri.https('www.cloudplayplus.com', '/api/login/');
     Uri url = Uri.parse('$_baseUrl/api/login/');
-    if (DevelopSettings.useLocalServer) {
-      //flutter run -d chrome --web-browser-flag "--disable-web-security"
-      url = Uri.parse('http://127.0.0.1:8000/api/login/');
-    }
     http.Response response;
 
     try {

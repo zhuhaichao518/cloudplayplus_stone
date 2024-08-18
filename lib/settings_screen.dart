@@ -55,22 +55,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ExpansionTile(
             title: const Text('主题设置'),
             children: [
-              SizedBox(
-                width: 250.0,
-                child: AnimatedTextKit(
-                  animatedTexts: [
-                    ColorizeAnimatedText(
-                      'Cloud Play Plus',
-                      textStyle: colorizeTextStyle,
-                      colors: colorizeColors,
-                    ),
-                  ],
-                  isRepeatingAnimation: false,
-                  onTap: () {
-                    //print("Tap Event");
-                  },
-                ),
-              ),
               Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: ToggleButtons(

@@ -33,7 +33,8 @@ class WebSocketService {
   static void init() async{
     if (DevelopSettings.useLocalServer) {
       if (AppPlatform.isAndroid){
-        _baseUrl = "ws://10.0.2.2:8000/ws/";
+        //_baseUrl = "ws://10.0.2.2:8000/ws/";
+        _baseUrl = "ws://127.0.0.1:8000/ws/";
       }else{
         _baseUrl = "ws://127.0.0.1:8000/ws/";
       }
@@ -68,6 +69,7 @@ class WebSocketService {
     Map<String, dynamic> mapData = message;
     var data = mapData['data'];
     switch (mapData['type']) {
+      //当ws连上时 服务器会发给你你的id 并要求你更新信息。你也可以主动更新信息
       case 'connection_info':
         {
           //This is first response from server. update device info.
@@ -76,7 +78,6 @@ class WebSocketService {
           send('updateDeviceInfo', {
             'deviceName': ApplicationInfo.deviceName,
             'deviceType': ApplicationInfo.deviceTypeName,
-            'appid': AppStateService.websocketSessionid,
             'connective': ApplicationInfo.connectable
           });
         }

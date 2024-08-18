@@ -17,7 +17,7 @@ void main() async {
   //AppInitService depends on SharedPreferencesManager
   await AppInitService.init();
   runApp(const MyApp());
-    if (AppPlatform.isWindows || AppPlatform.isMacos || AppPlatform.isWindows) {
+  if (AppPlatform.isWindows || AppPlatform.isMacos || AppPlatform.isLinux) {
     doWhenWindowReady(() {
       const initialSize = Size(400, 450);
       appWindow.minSize = initialSize;

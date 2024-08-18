@@ -1,8 +1,10 @@
+import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:cloudplayplus/entities/device.dart';
 import 'package:cloudplayplus/services/websocket_service.dart';
 import 'package:flutter/material.dart';
 import '../../../plugins/flutter_master_detail/flutter_master_detail.dart';
 import '../services/app_info_service.dart';
+import '../theme/fixed_colors.dart';
 import '../utils/icon_builder.dart';
 import '../utils/widgets/device_tile_page.dart';
 
@@ -108,15 +110,30 @@ class _DevicesPageState extends State<DevicesPage> {
       },
       masterItemBuilder: _buildListTile,
       detailsTitleBuilder: (context, data) => FlexibleSpaceBar(
+        titlePadding: const EdgeInsetsDirectional.only(start: 0, bottom: 16),
+        centerTitle: true,
         title: Text(data.devicename,style: const TextStyle(color: Colors.black),),
-        centerTitle: false,
       ),
       detailsItemBuilder: (context, data) => DeviceDetailPage(device:data),
       sortBy: (data) => data.uid,
-      //TODO(haichao): how it is used?
-      /*title: const FlexibleSpaceBar(
-        title: Text("Cloud Play Plus"),
-      ),*/
+      title: FlexibleSpaceBar(
+        titlePadding: const EdgeInsetsDirectional.only(start: 0, bottom: 16),
+        centerTitle: true,
+        // Remove theb dafault Padding
+        title: AnimatedTextKit(
+                    animatedTexts: [
+                      ColorizeAnimatedText(
+                        'Cloud Play Plus',
+                        textStyle: colorizeTextStyleTitle,
+                        colors: colorizeColors,
+                      ),
+                    ],
+                    isRepeatingAnimation: false,
+                    onTap: () {
+                      //print("Tap Event");
+                    },
+                  ),
+      ),
       masterViewFraction: 0.8,
     );
   }
