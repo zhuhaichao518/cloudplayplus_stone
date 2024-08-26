@@ -37,7 +37,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Future<void> _loadSettings() async {
     _haveAudio = SharedPreferencesManager.getBool('haveAudio') ?? true;
-    _bitrate = SharedPreferencesManager.getString('bitRate') ?? '80000';
+    _bitrate = SharedPreferencesManager.getString('bitRate2') ?? '80000';
     _frameRate = SharedPreferencesManager.getInt('frameRate') ?? 60;
     _renderRemoteCursor =
         SharedPreferencesManager.getBool('renderRemoteCursor') ?? false;

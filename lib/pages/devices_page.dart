@@ -58,7 +58,7 @@ class _DevicesPageState extends State<DevicesPage> {
       items: _deviceList, // 使用_fantasyList作为数据源
       groupedBy: (data) => data.uid,
       groupHeaderBuilder:(context, key, itemsCount) {
-        if (key == 0) {
+        if (key == 0 || key.key == 0) {
           return Theme(
             // 使用当前主题
             data: Theme.of(context),
@@ -66,7 +66,7 @@ class _DevicesPageState extends State<DevicesPage> {
               title: Text(
                 "初始化...",
                 style: TextStyle(
-                  color: Theme.of(context).textTheme.bodyText1?.color, // 使用主题中定义的文本颜色
+                  color: Theme.of(context).textTheme.bodyMedium?.color, // 使用主题中定义的文本颜色
                   fontSize: 18, // 根据需要设置字体大小
                   fontWeight: FontWeight.bold, // 加粗文本
                 ),
@@ -75,7 +75,7 @@ class _DevicesPageState extends State<DevicesPage> {
             ),
           );
         }
-        if (key.value[0].uid == -1) {
+        if (key.value[0].uid == ApplicationInfo.user.uid) {
           return Theme(
             // 使用当前主题
             data: Theme.of(context),

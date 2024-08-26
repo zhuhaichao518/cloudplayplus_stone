@@ -33,6 +33,8 @@ dependencies:
 
   flutter_login:
     path: plugins/flutter_login
+  flutter_webrtc:
+    path: plugins/flutter-webrtc
 
   # First time usage introduction
   introduction_screen: ^3.1.14
@@ -56,6 +58,7 @@ dependencies:
   responsive_builder: ^0.7.0
   stacked: ^3.4.3
   bitsdojo_window: ^0.1.6
+  qr_flutter: ^4.1.0
 
 dev_dependencies:
   flutter_test:

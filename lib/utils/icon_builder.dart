@@ -3,7 +3,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 class IconBuilder{
    static Icon findIconByName(String name){
-    if (name == 'windows'){
+    if (name == 'Windows'){
       return const Icon(
         FontAwesomeIcons.windows,
         size: 20.0,

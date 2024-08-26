@@ -1,5 +1,6 @@
 import 'package:cloudplayplus/entities/device.dart';
 import 'package:cloudplayplus/services/websocket_service.dart';
+import 'package:flutter_webrtc/flutter_webrtc.dart';
 
 import '../base/logging.dart';
 import '../global_settings/streaming_settings.dart';
@@ -27,12 +28,16 @@ enum StreamingSessionConnectionState {
 class StreamingSession{
   StreamingSessionConnectionState connectionState = StreamingSessionConnectionState.free;
   Device controller, controlled;
+  late RTCPeerConnection video;
+  late RTCPeerConnection audio;
+  late RTCDataChannel channel;
 
   StreamingSession(this.controller, this.controlled){
     connectionState = StreamingSessionConnectionState.free;
   }
 
   void start(){
+    assert(connectionState == StreamingSessionConnectionState.free);
     if (controller.websocketSessionid!=AppStateService.websocketSessionid){
       VLOG0("requiring connection on wrong device. Please debug.");
       return;
@@ -43,6 +48,11 @@ class StreamingSession{
       'target_connectionid': controlled.websocketSessionid,
       'settings': StreamingSettings.toJson(),
     });
+    connectionState = StreamingSessionConnectionState.requestSent;
+  }
+
+  void onOfferReceived(Map description){
+    
   }
 
   void stop() async{

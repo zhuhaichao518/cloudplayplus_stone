@@ -91,12 +91,12 @@ class MobileView<T> extends StatelessWidget {
     Animation<double> primaryAnimation,
     Animation<double> secondaryAnimation,
   ) {
-    return pageTransitionBuilder.buildTransitions(
+    return /*pageTransitionBuilder.buildTransitions(
       null,
       null,
       primaryAnimation,
       secondaryAnimation,
       child,
-    );
+    );*/ Container();
   }
 }

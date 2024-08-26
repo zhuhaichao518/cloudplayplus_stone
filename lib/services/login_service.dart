@@ -246,7 +246,7 @@ class LoginService {
       accessToken = SharedPreferencesManager.getString('access_token');
       refreshToken = SharedPreferencesManager.getString('refresh_token');
     }
-    if (accessToken == null) {
+    if (accessToken == null || refreshToken == null) {
       return false;
     } else if (isTokenValid(accessToken)) {
       return await loginWithToken(accessToken);

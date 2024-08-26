@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import '../../base/logging.dart';
 import '../../entities/device.dart';
 import '../../services/app_info_service.dart'; // 假设你的Device实体在这里定义
+import 'package:qr_flutter/qr_flutter.dart';
 
 class DeviceDetailPage extends StatelessWidget {
   final Device device;
@@ -55,6 +56,11 @@ class DeviceDetailPage extends StatelessWidget {
                 ),
               ),
               SizedBox(height: 24), // 增加垂直间距
+              QrImageView(
+                data: 'https://www.cloudplayplus.com',
+                version: QrVersions.auto,
+                size: 200.0,
+              ),
               ElevatedButton(
                 onPressed: () => _shareDevice(context),
                 child: Text('共享设备', style: TextStyle(fontSize: 18)),
