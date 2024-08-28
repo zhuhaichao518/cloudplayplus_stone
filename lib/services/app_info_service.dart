@@ -4,7 +4,7 @@ import 'package:flutter/foundation.dart';
 import '../entities/device.dart';
 import '../entities/user.dart';
 
-class ApplicationInfo{
+class ApplicationInfo {
   static late Device thisDevice;
   static late User user;
   static bool connectable = false;
@@ -39,12 +39,12 @@ class ApplicationInfo{
   }
 
   static Map toJson() {
-    return {
-    };
+    return {};
   }
 }
 
 enum ControlState { normal, controlRequested, answerSent, conneted }
+
 enum HostState { normal, offerSent, answerReceived, conneted }
 
 //这个类负责管理当前运行的app的状态 见 如何管理用户登录状态.md
@@ -60,10 +60,10 @@ class AppStateService {
 
 //TODO: find the platform when isWeb.
 class AppPlatform {
-static const bool isWeb = kIsWeb;
-static final bool isAndroid = !kIsWeb && Platform.isAndroid;
-static final bool isIOS = !kIsWeb && Platform.isIOS;
-static final bool isWindows = !kIsWeb && Platform.isWindows;
-static final bool isMacos = !kIsWeb && Platform.isMacOS;
-static final bool isLinux = !kIsWeb && Platform.isLinux;
+  static const bool isWeb = kIsWeb;
+  static final bool isAndroid = !kIsWeb && Platform.isAndroid;
+  static final bool isIOS = !kIsWeb && Platform.isIOS;
+  static final bool isWindows = !kIsWeb && Platform.isWindows;
+  static final bool isMacos = !kIsWeb && Platform.isMacOS;
+  static final bool isLinux = !kIsWeb && Platform.isLinux;
 }

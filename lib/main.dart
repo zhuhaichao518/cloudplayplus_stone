@@ -1,6 +1,7 @@
 import 'package:cloudplayplus/services/app_init_service.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'global_settings/streaming_settings.dart';
 import 'pages/init_page.dart';
 import 'services/app_info_service.dart';
 import 'services/login_service.dart';
@@ -16,6 +17,7 @@ void main() async {
   SecureStorageManager.init();
   //AppInitService depends on SharedPreferencesManager
   await AppInitService.init();
+  StreamingSettings.init();
   runApp(const MyApp());
   if (AppPlatform.isWindows || AppPlatform.isMacos || AppPlatform.isLinux) {
     doWhenWindowReady(() {

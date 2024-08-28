@@ -15,10 +15,26 @@ class Device {
       required this.devicetype,
       required this.websocketSessionid,
       required this.connective});
+
+  static Device fromJson(Map<String, dynamic> deviceinfo) {
+    return Device(
+      uid: deviceinfo['owner_id'] as int,
+      nickname: deviceinfo['owner_nickname'] as String,
+      devicename: deviceinfo['device_name'] as String,
+      devicetype: deviceinfo['device_type'] as String,
+      websocketSessionid: deviceinfo['connection_id'] as String,
+      connective: deviceinfo['connective'] as bool,
+    );
+  }
 }
 
 final defaultDeviceList = [
   Device(
-    uid: 0, nickname: 'initializing...', devicename: 'initializing...', devicetype: 'initializing...', websocketSessionid: '', connective: false,
+    uid: 0,
+    nickname: 'initializing...',
+    devicename: 'initializing...',
+    devicetype: 'initializing...',
+    websocketSessionid: '',
+    connective: false,
   )
 ];

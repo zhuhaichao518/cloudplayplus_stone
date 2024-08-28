@@ -97,6 +97,7 @@ class MobileView<T> extends StatelessWidget {
       primaryAnimation,
       secondaryAnimation,
       child,
-    );*/ Container();
+    );*/
+        Container();
   }
 }

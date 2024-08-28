@@ -22,7 +22,7 @@ class SimpleWebSocket {
     HttpClient client = HttpClient(context: SecurityContext());
     client.badCertificateCallback =
         (X509Certificate cert, String host, int port) {
-      if (kDebugMode){
+      if (kDebugMode) {
         return true; // trust the certificate
       }
       return false;

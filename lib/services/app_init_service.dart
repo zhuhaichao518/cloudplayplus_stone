@@ -30,6 +30,7 @@ class AppInitService {
 
   static Future<void> init() async {
     appInitState = getAppState();
-    ApplicationInfo.connectable = SharedPreferencesManager.getBool('connectable') ?? true;
+    ApplicationInfo.connectable =
+        SharedPreferencesManager.getBool('connectable') ?? true;
   }
 }

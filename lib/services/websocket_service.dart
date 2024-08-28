@@ -1,6 +1,9 @@
 import 'dart:convert';
 
+import 'package:cloudplayplus/global_settings/streaming_settings.dart';
 import 'package:cloudplayplus/services/shared_preferences_manager.dart';
+import 'package:cloudplayplus/services/streamed_manager.dart';
+import 'package:cloudplayplus/services/streaming_manager.dart';
 import 'package:flutter/foundation.dart';
 
 import '../dev_settings.dart/develop_settings.dart';
@@ -22,21 +25,21 @@ enum WebSocketConnectionState {
 class WebSocketService {
   static SimpleWebSocket? _socket;
   static String _baseUrl = 'wss://www.cloudplayplus.com/ws/';
-  
+
   static const JsonEncoder _encoder = JsonEncoder();
   static const JsonDecoder _decoder = JsonDecoder();
 
-  static WebSocketConnectionState connectionState = WebSocketConnectionState.none;
+  static WebSocketConnectionState connectionState =
+      WebSocketConnectionState.none;
 
   static Function(dynamic list)? onDeviceListchanged;
 
-
-  static void init() async{
+  static void init() async {
     if (DevelopSettings.useLocalServer) {
-      if (AppPlatform.isAndroid){
+      if (AppPlatform.isAndroid) {
         //_baseUrl = "ws://10.0.2.2:8000/ws/";
         _baseUrl = "ws://127.0.0.1:8000/ws/";
-      }else{
+      } else {
         _baseUrl = "ws://127.0.0.1:8000/ws/";
       }
     }
@@ -63,7 +66,7 @@ class WebSocketService {
   }
 
   static Future<void> onMessage(message) async {
-    if (kDebugMode){
+    if (kDebugMode) {
       print("--got message from server------------------------");
       print(message);
     }
@@ -75,20 +78,31 @@ class WebSocketService {
         {
           //This is first response from server. update device info.
           AppStateService.websocketSessionid = data['connection_id'];
-          ApplicationInfo.user = User(uid:data['uid'],nickname:data['nickname']);
+          ApplicationInfo.user =
+              User(uid: data['uid'], nickname: data['nickname']);
           send('updateDeviceInfo', {
             'deviceName': ApplicationInfo.deviceName,
             'deviceType': ApplicationInfo.deviceTypeName,
             'connective': ApplicationInfo.connectable
           });
-          ApplicationInfo.thisDevice = (Device(uid: ApplicationInfo.user.uid, nickname: ApplicationInfo.user.nickname, devicename: ApplicationInfo.deviceName, devicetype: ApplicationInfo.deviceTypeName, websocketSessionid: AppStateService.websocketSessionid!, connective: ApplicationInfo.connectable));
+          ApplicationInfo.thisDevice = (Device(
+              uid: ApplicationInfo.user.uid,
+              nickname: ApplicationInfo.user.nickname,
+              devicename: ApplicationInfo.deviceName,
+              devicetype: ApplicationInfo.deviceTypeName,
+              websocketSessionid: AppStateService.websocketSessionid!,
+              connective: ApplicationInfo.connectable));
         }
-      case 'connected_devices':{
-        onDeviceListchanged?.call(data);
-      }
-      case 'remoteSessionRequested':{
-        int go = 1;
-      }
+      case 'connected_devices':
+        {
+          onDeviceListchanged?.call(data);
+        }
+      case 'remoteSessionRequested':
+        {
+          StreamedManager.startStreaming(
+              Device.fromJson(data['requester_info']),
+              StreamedSettings.fromJson(data['settings']));
+        }
       default:
         {
           if (kDebugMode) {
@@ -99,7 +113,7 @@ class WebSocketService {
     }
   }
 
-  static void onConnected(){
+  static void onConnected() {
     connectionState = WebSocketConnectionState.connected;
     //connected and waiting for our connection uuid.
     /*send('newconnection', {
@@ -109,7 +123,7 @@ class WebSocketService {
       'connective': ApplicationInfo.connectable
     });*/
   }
-  
+
   static void send(event, data) {
     if (kDebugMode) {
       print("sending----------");
@@ -121,9 +135,7 @@ class WebSocketService {
     _socket?.send(_encoder.convert(request));
   }
 
-  void onDisConnected(){
+  void onDisConnected() {
     connectionState = WebSocketConnectionState.disconnected;
   }
-
-  
 }

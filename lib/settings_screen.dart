@@ -33,17 +33,28 @@ class _SettingsScreenState extends State<SettingsScreen> {
   void initState() {
     super.initState();
     _loadSettings();
+    //_saveSettings();
   }
 
   Future<void> _loadSettings() async {
     _haveAudio = SharedPreferencesManager.getBool('haveAudio') ?? true;
-    _bitrate = SharedPreferencesManager.getString('bitRate2') ?? '80000';
+    _bitrate = SharedPreferencesManager.getString('bitRate') ?? '80000';
     _frameRate = SharedPreferencesManager.getInt('frameRate') ?? 60;
     _renderRemoteCursor =
         SharedPreferencesManager.getBool('renderRemoteCursor') ?? false;
     _themeIndex = SharedPreferencesManager.getInt('themeIndex') ?? 0;
     _streamingmode = SharedPreferencesManager.getInt('streamingMode') ?? 0;
     setState(() {});
+  }
+
+  Future<void> _saveSettings() async {
+    await SharedPreferencesManager.setBool('haveAudio', _haveAudio);
+    await SharedPreferencesManager.setString('bitRate', _bitrate);
+    await SharedPreferencesManager.setInt('frameRate', _frameRate);
+    await SharedPreferencesManager.setBool(
+        'renderRemoteCursor', _renderRemoteCursor);
+    await SharedPreferencesManager.setInt('themeIndex', _themeIndex);
+    await SharedPreferencesManager.setInt('streamingMode', _streamingmode);
   }
 
   @override

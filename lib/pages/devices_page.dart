@@ -21,22 +21,28 @@ class _DevicesPageState extends State<DevicesPage> {
     setState(() {
       // 假设我们添加了一个新的Fantasy对象到列表
       _deviceList.clear();
-      for (Map device in devicelist){
+      for (Map device in devicelist) {
         //if (device['owner_id'] == ApplicationInfo.user.uid){
-          //We set owner id to -1 to identify it is the device of ourself.
-          //device['owner_id'] = -1;
+        //We set owner id to -1 to identify it is the device of ourself.
+        //device['owner_id'] = -1;
         //}
-        _deviceList.add(Device(uid: device['owner_id'], nickname: device['owner_nickname'], devicename: device['device_name'], devicetype: device['device_type'], websocketSessionid: device['connection_id'], connective: device['connective']));
+        _deviceList.add(Device(
+            uid: device['owner_id'],
+            nickname: device['owner_nickname'],
+            devicename: device['device_name'],
+            devicetype: device['device_type'],
+            websocketSessionid: device['connection_id'],
+            connective: device['connective']));
       }
     });
   }
-  
-  _registerCallbacks(){
-    // It is nearly impossible WS receive response before we register here. So fell free. 
+
+  _registerCallbacks() {
+    // It is nearly impossible WS receive response before we register here. So fell free.
     WebSocketService.onDeviceListchanged = _updateList;
   }
 
-  _unregisterCallbacks(){
+  _unregisterCallbacks() {
     WebSocketService.onDeviceListchanged = null;
   }
 
@@ -57,7 +63,7 @@ class _DevicesPageState extends State<DevicesPage> {
     return MasterDetailsList<Device>(
       items: _deviceList, // 使用_fantasyList作为数据源
       groupedBy: (data) => data.uid,
-      groupHeaderBuilder:(context, key, itemsCount) {
+      groupHeaderBuilder: (context, key, itemsCount) {
         if (key == 0 || key.key == 0) {
           return Theme(
             // 使用当前主题
@@ -66,7 +72,10 @@ class _DevicesPageState extends State<DevicesPage> {
               title: Text(
                 "初始化...",
                 style: TextStyle(
-                  color: Theme.of(context).textTheme.bodyMedium?.color, // 使用主题中定义的文本颜色
+                  color: Theme.of(context)
+                      .textTheme
+                      .bodyMedium
+                      ?.color, // 使用主题中定义的文本颜色
                   fontSize: 18, // 根据需要设置字体大小
                   fontWeight: FontWeight.bold, // 加粗文本
                 ),
@@ -83,7 +92,10 @@ class _DevicesPageState extends State<DevicesPage> {
               title: Text(
                 "我的设备",
                 style: TextStyle(
-                  color: Theme.of(context).textTheme.bodyLarge?.color, // 使用主题中定义的文本颜色
+                  color: Theme.of(context)
+                      .textTheme
+                      .bodyLarge
+                      ?.color, // 使用主题中定义的文本颜色
                   fontSize: 18, // 根据需要设置字体大小
                   fontWeight: FontWeight.bold, // 加粗文本
                 ),
@@ -93,30 +105,36 @@ class _DevicesPageState extends State<DevicesPage> {
           );
         }
         return Theme(
-            // 使用当前主题
-            data: Theme.of(context),
-            child: ListTile(
-              title: Text(
-                key.value[0].nickname,
-                style: TextStyle(
-                  color: Theme.of(context).textTheme.bodyLarge?.color, // 使用主题中定义的文本颜色
-                  fontSize: 18, // 根据需要设置字体大小
-                  fontWeight: FontWeight.bold, // 加粗文本
-                ),
+          // 使用当前主题
+          data: Theme.of(context),
+          child: ListTile(
+            title: Text(
+              key.value[0].nickname,
+              style: TextStyle(
+                color: Theme.of(context)
+                    .textTheme
+                    .bodyLarge
+                    ?.color, // 使用主题中定义的文本颜色
+                fontSize: 18, // 根据需要设置字体大小
+                fontWeight: FontWeight.bold, // 加粗文本
               ),
-              tileColor: Theme.of(context).primaryColor, // 使用主题中定义的主要颜色作为背景
             ),
-          );
+            tileColor: Theme.of(context).primaryColor, // 使用主题中定义的主要颜色作为背景
+          ),
+        );
       },
       masterItemBuilder: _buildListTile,
       detailsTitleBuilder: (context, data) => FlexibleSpaceBar(
         titlePadding: const EdgeInsetsDirectional.only(start: 0, bottom: 16),
         centerTitle: true,
-        title: Text(data.devicename,style: const TextStyle(color: Colors.black),),
+        title: Text(
+          data.devicename,
+          style: const TextStyle(color: Colors.black),
+        ),
       ),
-      detailsItemBuilder: (context, data) => DeviceDetailPage(device:data),
+      detailsItemBuilder: (context, data) => DeviceDetailPage(device: data),
       sortBy: (data) {
-        if (data.uid == ApplicationInfo.user.uid){
+        if (data.uid == ApplicationInfo.user.uid) {
           return 0;
         }
         return data.uid;
@@ -126,23 +144,22 @@ class _DevicesPageState extends State<DevicesPage> {
         centerTitle: true,
         // Remove theb dafault Padding
         title: AnimatedTextKit(
-                    animatedTexts: [
-                      ColorizeAnimatedText(
-                        'Cloud Play Plus',
-                        textStyle: colorizeTextStyleTitle,
-                        colors: colorizeColors,
-                      ),
-                    ],
-                    isRepeatingAnimation: false,
-                    onTap: () {
-                      //print("Tap Event");
-                    },
-                  ),
+          animatedTexts: [
+            ColorizeAnimatedText(
+              'Cloud Play Plus',
+              textStyle: colorizeTextStyleTitle,
+              colors: colorizeColors,
+            ),
+          ],
+          isRepeatingAnimation: false,
+          onTap: () {
+            //print("Tap Event");
+          },
+        ),
       ),
       masterViewFraction: 0.8,
     );
   }
-
 
   Widget _buildListTile(
     BuildContext context,

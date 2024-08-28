@@ -22,9 +22,9 @@ class _MainScreenState extends State<MainScreen> {
     _children = [
       DevicesPage(),
       //Grouped(),
-      const Text("test"),//Grouped(),
-      const Text("test"),//Ungrouped(),
-      const SettingsScreen(),//GamesPage(),
+      const Text("test"), //Grouped(),
+      const Text("test"), //Ungrouped(),
+      const SettingsScreen(), //GamesPage(),
     ];
   }
 
@@ -85,7 +85,7 @@ class GamesPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return const Center(
-      child: CircularProgressIndicator(),//Text('GamesPage Page'),
+      child: CircularProgressIndicator(), //Text('GamesPage Page'),
     );
   }
 }

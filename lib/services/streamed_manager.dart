@@ -1,21 +1,23 @@
-//这个文件负责管理所有由本app远程控制别的app的状态。
+//这个文件负责管理所有别的app控制本电脑的状态。
+import 'package:cloudplayplus/global_settings/streaming_settings.dart';
+
 import '../base/logging.dart';
 import '../entities/device.dart';
 import '../entities/session.dart';
 import 'app_info_service.dart';
 
-class StreamingManager {
+class StreamedManager {
   static Map<String, StreamingSession> sessions = {};
 
-  static void startStreaming(Device target) {
+  static void startStreaming(Device target, StreamedSettings settings) {
     if (sessions.containsKey(target.websocketSessionid)) {
       VLOG0(
-          "Initializing session which is already initialized: $target.websocketSessionid");
+          "Starting session which is already started: $target.websocketSessionid");
       return;
     }
     StreamingSession session =
-        StreamingSession(ApplicationInfo.thisDevice, target);
-    session.startRequest();
+        StreamingSession(target, ApplicationInfo.thisDevice);
+    session.acceptRequest(settings);
     sessions[target.websocketSessionid] = session;
   }
 

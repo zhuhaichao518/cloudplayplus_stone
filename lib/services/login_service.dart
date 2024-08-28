@@ -20,13 +20,13 @@ class LoginService {
   //sudo service redis-server start before run server on windows WSL.
   static String _baseUrl = 'https://www.cloudplayplus.com';
 
-  static void init(){
+  static void init() {
     if (DevelopSettings.useLocalServer) {
-      if (AppPlatform.isAndroid){
+      if (AppPlatform.isAndroid) {
         //_baseUrl = "http://10.0.2.2:8000";
         // run adb reverse tcp:8000 tcp:8000 to forward request to 127.0.0.1
         _baseUrl = "http://127.0.0.1:8000";
-      }else{
+      } else {
         _baseUrl = "http://127.0.0.1:8000";
       }
     }

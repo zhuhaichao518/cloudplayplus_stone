@@ -20,42 +20,166 @@ B收到answer后                B hoststate = answerreceived
 enum StreamingSessionConnectionState {
   free,
   requestSent,
-  offerSent, 
-  answerSent, 
+  offerSent,
+  answerSent,
   answerReceived,
   disconnected,
 }
-class StreamingSession{
-  StreamingSessionConnectionState connectionState = StreamingSessionConnectionState.free;
+
+class StreamingSession {
+  StreamingSessionConnectionState connectionState =
+      StreamingSessionConnectionState.free;
   Device controller, controlled;
   late RTCPeerConnection video;
   late RTCPeerConnection audio;
+
+  MediaStream? _localVideoStream;
+  MediaStream? _localAudioStream;
+
+  RTCRtpSender? videoSender;
+  RTCRtpSender? audioSender;
   late RTCDataChannel channel;
 
-  StreamingSession(this.controller, this.controlled){
+  StreamingSession(this.controller, this.controlled) {
     connectionState = StreamingSessionConnectionState.free;
   }
 
-  void start(){
+  void startRequest() {
     assert(connectionState == StreamingSessionConnectionState.free);
-    if (controller.websocketSessionid!=AppStateService.websocketSessionid){
+    if (controller.websocketSessionid != AppStateService.websocketSessionid) {
       VLOG0("requiring connection on wrong device. Please debug.");
       return;
     }
-    WebSocketService.send('requestRemoteControl',
-    {
-      'target_uid': controlled.uid == -1? ApplicationInfo.user.uid:controlled.uid,
+    WebSocketService.send('requestRemoteControl', {
+      'target_uid':
+          controlled.uid == -1 ? ApplicationInfo.user.uid : controlled.uid,
       'target_connectionid': controlled.websocketSessionid,
       'settings': StreamingSettings.toJson(),
     });
     connectionState = StreamingSessionConnectionState.requestSent;
   }
 
-  void onOfferReceived(Map description){
-    
+  //accept request and send offer to the peer. you should verify this is authorized before calling this funciton.
+  void acceptRequest(StreamedSettings settings) async {
+    assert(connectionState == StreamingSessionConnectionState.free);
+    if (controlled.websocketSessionid != AppStateService.websocketSessionid) {
+      VLOG0("requiring connection on wrong device. Please debug.");
+      return;
+    }
+
+    final Map<String, dynamic> mediaConstraints;
+    if (AppPlatform.isWeb) {
+      mediaConstraints = {
+        'audio': false,
+        'video': {
+          'frameRate': {'ideal': settings.framerate, 'max': settings.framerate}
+        }
+      };
+    } else {
+      var sources =
+          await desktopCapturer.getSources(types: [SourceType.Screen]);
+      //Todo(haichao): currently this should have no effect. we should change it to be right.
+      final source = sources[0];
+      mediaConstraints = <String, dynamic>{
+        'video': {
+          'deviceId': {'exact': source.id},
+          'mandatory': {
+            'frameRate': settings.framerate,
+            'hideCursor': (settings.showRemoteCursor == false)
+          }
+        },
+        'audio': false
+      };
+    }
+
+    _localVideoStream =
+        await navigator.mediaDevices.getDisplayMedia(mediaConstraints);
+
+    Map<String, dynamic> iceServers;
+    if (settings.turnServerSettings == 0) {
+      iceServers = {
+        'iceServers': [
+          {
+            'urls': settings.turnServerAddress,
+            'username': settings.turnServerUsername,
+            'credential': settings.turnServerPassword
+          },
+        ]
+      };
+    } else {
+      iceServers = {
+        'iceServers': [
+          {
+            'urls': settings.turnServerAddress,
+            'username': settings.turnServerUsername,
+            'credential': settings.turnServerPassword
+          },
+        ]
+      };
+    }
+
+    final Map<String, dynamic> config = {
+      'mandatory': {},
+      'optional': [
+        {'DtlsSrtpKeyAgreement': true},
+      ]
+    };
+
+    video = await createPeerConnection({
+      ...iceServers,
+      ...{'sdpSemantics': 'unified-plan'}
+    }, config);
+
+    if (_localVideoStream != null) {
+      // one track expected.
+      _localVideoStream!.getTracks().forEach((track) async {
+        videoSender = (await video.addTrack(track, _localVideoStream!));
+      });
+    }
+
+    var transceivers = await video.getTransceivers();
+    var vcaps = await getRtpSenderCapabilities('video');
+    for (var transceiver in transceivers) {
+      var codecs = vcaps.codecs
+              ?.where(
+                  (element) => element.mimeType.toLowerCase().contains('h264'))
+              .toList() ??
+          [];
+      transceiver.setCodecPreferences(codecs);
+    }
+
+    video.onIceCandidate = (candidate) async {
+      if (settings.turnServerSettings == 2) {
+        if (!candidate.candidate!.contains("srflx")) {
+          return;
+        }
+      }
+      if (settings.turnServerSettings == 1) {
+        if (candidate.candidate!.contains("srflx")) {
+          return;
+        }
+      }
+      await Future.delayed(
+          const Duration(seconds: 1),
+          () => WebSocketService.send('candidate', {
+                'to': controller.websocketSessionid,
+                'from': controlled.websocketSessionid,
+                'candidate': {
+                  'sdpMLineIndex': candidate.sdpMLineIndex,
+                  'sdpMid': candidate.sdpMid,
+                  'candidate': candidate.candidate,
+                },
+              }));
+    };
+
+    //TODO:Create offer
+
+    connectionState = StreamingSessionConnectionState.offerSent;
   }
 
-  void stop() async{
+  void onOfferReceived(Map description) {}
 
-  }
+  void onCandidateReceived() {}
+
+  void stop() async {}
 }
