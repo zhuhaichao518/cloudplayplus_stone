@@ -103,6 +103,23 @@ class WebSocketService {
               Device.fromJson(data['requester_info']),
               StreamedSettings.fromJson(data['settings']));
         }
+      case 'offer':
+        {
+          StreamingManager.onOfferReceived(data['source_connectionid'],data['description']);
+        }
+      case 'answer':
+        {
+          StreamedManager.onAnswerReceived(data['source_connectionid'],data['description']);
+        }
+      case 'candidate':
+        {
+          StreamingManager.onCandidateReceived(data['source_connectionid'],data['candidate']);
+        }
+      //sent from controller to controlled
+      case 'candidate2':
+        {
+          StreamedManager.onCandidateReceived(data['source_connectionid'],data['candidate']);
+        }
       default:
         {
           if (kDebugMode) {

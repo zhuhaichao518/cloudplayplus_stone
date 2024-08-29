@@ -1,10 +1,9 @@
 import 'package:cloudplayplus/services/shared_preferences_manager.dart';
 
-var officialStuns = [
+var officialStun1 = 
   {
     'urls': "stun:stun.l.google.com:19302",
-  },
-];
+  };
 
 class StreamingSettings {
   static int? framerate;
@@ -18,6 +17,7 @@ class StreamingSettings {
   //1: Only use Stun
   //2: Only use Turn.
   static int? turnServerSettings;
+  static bool? useCustomTurnServer;
   static String? turnServerAddress;
   static String? turnServerUsername;
   static String? turnServerPassword;
@@ -34,6 +34,8 @@ class StreamingSettings {
     turnServerSettings =
         SharedPreferencesManager.getInt('turnServerSettings') ??
             0; // Default to false
+    useCustomTurnServer = SharedPreferencesManager.getBool('useCustomTurnServer') ??
+        false; // Default to false
     turnServerAddress =
         SharedPreferencesManager.getString('turnServerAddress') ??
             ''; // Default to empty string
@@ -52,6 +54,7 @@ class StreamingSettings {
       'showRemoteCursor': showRemoteCursor,
       'streamAudio': streamAudio,
       'turnServerSettings': turnServerSettings,
+      'useCustomTurnServer': useCustomTurnServer,
       'turnServerAddress': turnServerAddress,
       'turnServerUsername': turnServerUsername,
       'turnServerPassword': turnServerPassword
@@ -73,6 +76,7 @@ class StreamedSettings {
   //1: Only use Peer to Peer
   //2: Only use Turn.
   int? turnServerSettings;
+  bool? useCustomTurnServer;
   String? turnServerAddress;
   String? turnServerUsername;
   String? turnServerPassword;
@@ -83,6 +87,7 @@ class StreamedSettings {
       ..showRemoteCursor = settings['showRemoteCursor'] as bool?
       ..streamAudio = settings['streamAudio'] as bool?
       ..turnServerSettings = settings['turnServerSettings'] as int?
+      ..useCustomTurnServer = settings['useCustomTurnServer'] as bool?
       ..turnServerAddress = settings['turnServerAddress'] as String?
       ..turnServerUsername = settings['turnServerUsername'] as String?
       ..turnServerPassword = settings['turnServerPassword'] as String?;
