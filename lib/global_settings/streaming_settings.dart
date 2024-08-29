@@ -1,9 +1,8 @@
 import 'package:cloudplayplus/services/shared_preferences_manager.dart';
 
-var officialStun1 = 
-  {
-    'urls': "stun:stun.l.google.com:19302",
-  };
+var officialStun1 = {
+  'urls': "stun:stun.l.google.com:19302",
+};
 
 class StreamingSettings {
   static int? framerate;
@@ -34,8 +33,9 @@ class StreamingSettings {
     turnServerSettings =
         SharedPreferencesManager.getInt('turnServerSettings') ??
             0; // Default to false
-    useCustomTurnServer = SharedPreferencesManager.getBool('useCustomTurnServer') ??
-        false; // Default to false
+    useCustomTurnServer =
+        SharedPreferencesManager.getBool('useCustomTurnServer') ??
+            false; // Default to false
     turnServerAddress =
         SharedPreferencesManager.getString('turnServerAddress') ??
             ''; // Default to empty string

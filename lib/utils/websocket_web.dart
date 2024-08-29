@@ -34,7 +34,6 @@ class SimpleWebSocket {
   send(data) {
     if (_socket != null && _socket.readyState == WebSocket.OPEN) {
       _socket.send(data);
-      print('send: $data');
     } else {
       print('WebSocket not connected, message $data not sent');
     }

@@ -1,4 +1,6 @@
 //这个文件负责管理所有由本app远程控制别的app的状态。
+import 'package:flutter_webrtc/flutter_webrtc.dart';
+
 import '../base/logging.dart';
 import '../entities/device.dart';
 import '../entities/session.dart';
@@ -15,6 +17,10 @@ class StreamingManager {
     }
     StreamingSession session =
         StreamingSession(ApplicationInfo.thisDevice, target);
+    if (rendererCallbacks.containsKey(target.websocketSessionid)) {
+      session
+          .updateRendererCallback(rendererCallbacks[target.websocketSessionid]);
+    }
     session.startRequest();
     sessions[target.websocketSessionid] = session;
   }
@@ -29,21 +35,35 @@ class StreamingManager {
     }
   }
 
-  static void onOfferReceived(String targetConnectionid, Map offer){
+  static void onOfferReceived(String targetConnectionid, Map offer) {
     if (sessions.containsKey(targetConnectionid)) {
       StreamingSession? session = sessions[targetConnectionid];
       session?.onOfferReceived(offer);
-    }else {
+    } else {
       VLOG0("No session found with sessionId: $targetConnectionid");
     }
   }
 
-  static void onCandidateReceived(String targetConnectionid, Map<String,dynamic> candidate){
+  static void onCandidateReceived(
+      String targetConnectionid, Map<String, dynamic> candidate) {
     if (sessions.containsKey(targetConnectionid)) {
       StreamingSession? session = sessions[targetConnectionid];
       session?.onCandidateReceived(candidate);
-    }else {
+    } else {
       VLOG0("No session found with sessionId: $targetConnectionid");
+    }
+  }
+
+  static Map<String, Function(String mediatype, MediaStream stream)>
+      rendererCallbacks = {};
+
+  static void updateRendererCallback(
+      Device device, Function(String mediatype, MediaStream stream) callback) {
+    if (sessions.containsKey(device.websocketSessionid)) {
+      StreamingSession? session = sessions[device.websocketSessionid];
+      session?.updateRendererCallback(callback);
+    } else {
+      rendererCallbacks[device.websocketSessionid] = callback;
     }
   }
 }

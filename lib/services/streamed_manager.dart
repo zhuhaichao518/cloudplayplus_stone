@@ -31,20 +31,22 @@ class StreamedManager {
     }
   }
 
-  static void onAnswerReceived(String targetConnectionid, Map<String,dynamic> answer){
+  static void onAnswerReceived(
+      String targetConnectionid, Map<String, dynamic> answer) {
     if (sessions.containsKey(targetConnectionid)) {
       StreamingSession? session = sessions[targetConnectionid];
       session?.onAnswerReceived(answer);
-    }else {
+    } else {
       VLOG0("No session found with sessionId: $targetConnectionid");
     }
   }
 
-  static void onCandidateReceived(String targetConnectionid, Map<String,dynamic> candidate){
+  static void onCandidateReceived(
+      String targetConnectionid, Map<String, dynamic> candidate) {
     if (sessions.containsKey(targetConnectionid)) {
       StreamingSession? session = sessions[targetConnectionid];
       session?.onCandidateReceived(candidate);
-    }else {
+    } else {
       VLOG0("No session found with sessionId: $targetConnectionid");
     }
   }

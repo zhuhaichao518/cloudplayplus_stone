@@ -105,20 +105,24 @@ class WebSocketService {
         }
       case 'offer':
         {
-          StreamingManager.onOfferReceived(data['source_connectionid'],data['description']);
+          StreamingManager.onOfferReceived(
+              data['source_connectionid'], data['description']);
         }
       case 'answer':
         {
-          StreamedManager.onAnswerReceived(data['source_connectionid'],data['description']);
+          StreamedManager.onAnswerReceived(
+              data['source_connectionid'], data['description']);
         }
       case 'candidate':
         {
-          StreamingManager.onCandidateReceived(data['source_connectionid'],data['candidate']);
+          StreamingManager.onCandidateReceived(
+              data['source_connectionid'], data['candidate']);
         }
       //sent from controller to controlled
       case 'candidate2':
         {
-          StreamedManager.onCandidateReceived(data['source_connectionid'],data['candidate']);
+          StreamedManager.onCandidateReceived(
+              data['source_connectionid'], data['candidate']);
         }
       default:
         {
@@ -144,7 +148,9 @@ class WebSocketService {
   static void send(event, data) {
     if (kDebugMode) {
       print("sending----------");
+      print(event);
       print(data);
+      print("end of sending------");
     }
     var request = {};
     request["type"] = event;

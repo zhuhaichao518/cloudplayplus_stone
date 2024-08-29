@@ -66,7 +66,6 @@ class SimpleWebSocket {
   send(data) {
     if (_socket != null) {
       _socket.add(data);
-      print('send: $data');
     }
   }
 
