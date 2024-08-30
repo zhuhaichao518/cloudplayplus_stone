@@ -93,8 +93,8 @@ class AuthCardState extends State<AuthCard> with TickerProviderStateMixin {
   final GlobalKey _confirmRecoverCardKey = GlobalKey();
   final GlobalKey _confirmSignUpCardKey = GlobalKey();
 
-  static const int _loginPageIndex = 0;
-  static const int _recoveryIndex = 1;
+  static const int _loginPageIndex = 1;
+  static const int _recoveryIndex = 0;
   static const int _additionalSignUpIndex = 2;
   static const int _confirmSignup = 3;
   static const int _confirmRecover = 4;
@@ -104,7 +104,7 @@ class AuthCardState extends State<AuthCard> with TickerProviderStateMixin {
   var _isLoadingFirstTime = true;
   static const cardSizeScaleEnd = .2;
 
-  final TransformerPageController _pageController = TransformerPageController();
+  final TransformerPageController _pageController = TransformerPageController(initialPage: 1);
   late AnimationController _formLoadingController;
   late AnimationController _routeTransitionController;
   final _scrollController = ScrollController();
