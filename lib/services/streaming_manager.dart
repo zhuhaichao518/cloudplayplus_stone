@@ -66,4 +66,12 @@ class StreamingManager {
       rendererCallbacks[device.websocketSessionid] = callback;
     }
   }
+
+
+  static StreamingSessionConnectionState getStreamingStateto(Device device) {
+    if (!sessions.containsKey(device.websocketSessionid)) {
+      return StreamingSessionConnectionState.free;
+    }
+    return sessions[device.websocketSessionid]!.connectionState;
+  }
 }

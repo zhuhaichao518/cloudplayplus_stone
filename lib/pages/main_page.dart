@@ -1,9 +1,8 @@
 import 'package:cloudplayplus/services/websocket_service.dart';
 import 'package:flutter/material.dart';
 import '../settings_screen.dart';
+import '../utils/widgets/rtc_video_page.dart';
 import 'devices_page.dart';
-import 'master_detail/views/grouped.dart';
-import 'master_detail/views/ungrouped.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -47,6 +46,7 @@ class _MainScreenState extends State<MainScreen> {
               index: _currentIndex,
               children: _children,
             ),
+            //RTCVideoOverlayWidget(key: rtcvideoKey),
           ],
         ),
         bottomNavigationBar: true

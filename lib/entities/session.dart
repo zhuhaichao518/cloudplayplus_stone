@@ -1,11 +1,14 @@
 import 'package:cloudplayplus/dev_settings.dart/develop_settings.dart';
 import 'package:cloudplayplus/entities/device.dart';
+import 'package:cloudplayplus/services/streaming_manager.dart';
 import 'package:cloudplayplus/services/websocket_service.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 
 import '../base/logging.dart';
 import '../global_settings/streaming_settings.dart';
 import '../services/app_info_service.dart';
+import '../services/webrtc_service.dart';
+import '../utils/widgets/rtc_video_page.dart';
 import '../webrtctest/rtc_service_impl.dart';
 
 /*
@@ -54,7 +57,7 @@ class StreamingSession {
 
   Function(String mediatype, MediaStream stream)? onAddRemoteStream;
 
-  void startRequest() async{
+  void startRequest() async {
     assert(connectionState == StreamingSessionConnectionState.free);
     if (controller.websocketSessionid != AppStateService.websocketSessionid) {
       VLOG0("requiring connection on wrong device. Please debug.");
@@ -101,7 +104,12 @@ class StreamingSession {
 
     pc!.onTrack = (event) {
       connectionState = StreamingSessionConnectionState.connected;
-      onAddRemoteStream?.call(event.track.kind!, event.streams[0]);
+      //tell the device tile page to render the rtc video.
+      //StreamingManager.runUserViewCallback();
+      WebrtcService.addStream(controlled.websocketSessionid,event);
+      //rtcvideoKey.currentState?.updateVideoRenderer(event.track.kind!, event.streams[0]);
+      //We used to this function to render the control. Currently we use overlay for convenience.
+      //onAddRemoteStream?.call(event.track.kind!, event.streams[0]);
     };
     RTCDataChannelInit dataChannelDict = RTCDataChannelInit()
       ..maxRetransmits = 30
@@ -164,8 +172,8 @@ class StreamingSession {
         {'DtlsSrtpKeyAgreement': true},
       ]
     };
-    
-    if (DevelopSettings.useRTCTestServer){
+
+    if (DevelopSettings.useRTCTestServer) {
       iceServers = await RTCServiceImpl().iceservers;
     }
 
