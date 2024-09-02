@@ -283,7 +283,7 @@ void FlutterScreenCapture::GetDisplayMedia(
     std::unique_ptr<MethodResultProxy> result) {
   std::string source_id = "0";
   // todo(haichao): we should extract from constraints. Add this setting on the flutter layer.
-  double fps = 60.0;
+  double fps = 30.0;
   bool has_cursor = false;
   const EncodableMap video = findMap(constraints, "video");
   if (video != EncodableMap()) {
@@ -347,10 +347,17 @@ void FlutterScreenCapture::GetDisplayMedia(
         result->Error("Bad Arguments", "source not found!");
         return;
       }
-
+#if defined(_WINDOWS)
       scoped_refptr<RTCDesktopCapturer> desktop_capturer =
           base_->desktop_device_->CreateDesktopCapturer(source, has_cursor);
-
+#else
+      if (has_cursor) {
+        result->Error("has not implement it in linux", "not implemented!");
+        return;
+      }
+      scoped_refptr<RTCDesktopCapturer> desktop_capturer =
+          base_->desktop_device_->CreateDesktopCapturer(source);
+#endif
       if (!desktop_capturer.get()) {
         result->Error("Bad Arguments", "CreateDesktopCapturer failed!");
         return;

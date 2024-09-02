@@ -16,9 +16,11 @@ class RTCDesktopDevice : public RefCountInterface {
   // It is tricky here we define as pure virtual here but not in
   // libwebrtc because it is used by other places and we do not
   // want to change that.
+#if defined(_WINDOWS)
   virtual scoped_refptr<RTCDesktopCapturer> CreateDesktopCapturer(
       scoped_refptr<MediaSource> source,
       bool has_cursor) = 0;
+#endif
   virtual scoped_refptr<RTCDesktopMediaList> GetDesktopMediaList(
       DesktopType type) = 0;
 

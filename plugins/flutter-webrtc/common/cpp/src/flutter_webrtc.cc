@@ -3,8 +3,9 @@
 #include "flutter_webrtc/flutter_web_r_t_c_plugin.h"
 
 namespace flutter_webrtc_plugin {
-
+#if defined(WIN32) || defined(_WINDOWS)
 HWND g_main_hwnd_ = nullptr;
+#endif
 
 FlutterWebRTC::FlutterWebRTC(FlutterWebRTCPlugin* plugin)
     : FlutterWebRTCBase::FlutterWebRTCBase(plugin->messenger(),

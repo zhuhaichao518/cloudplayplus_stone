@@ -10,6 +10,25 @@
             "type": "dart"
         },
         {
+            "name": "Debug Native",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/linux/x64/debug/bundle/cloudplayplus",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}/build/linux/x64/debug/bundle",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+            {
+            "description": "Enable pretty-printing for gdb",
+            "text": "-enable-pretty-printing",
+            "ignoreFailures": true
+            }
+            ]
+        },
+        {
             "name": "cloudplayplus_stone (profile mode)",
             "request": "launch",
             "type": "dart",

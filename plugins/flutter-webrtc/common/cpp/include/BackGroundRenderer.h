@@ -1,3 +1,4 @@
+#if defined(WIN32) || defined(_WINDOWS)
 #ifndef _BACKGROUNDRENDERER_H_
 #define _BACKGROUNDRENDERER_H_
 #include <d3d11_1.h>
@@ -31,4 +32,5 @@ private:
 	//~BackGroundRenderer();
 };
 
+#endif
 #endif

@@ -88,7 +88,7 @@ DWORD WINAPI ThreadFunc(LPVOID lpParam) {
 
     return 0;
 }
-#endif
+
 
 void RunOnUIThread(std::function<void()> callback)
 {
@@ -96,6 +96,7 @@ void RunOnUIThread(std::function<void()> callback)
     PostMessage(g_main_hwnd_, (WM_APP + 996), reinterpret_cast<WPARAM>(task),
                 0);
 }
+#endif
 
 /*
 void RunOnBackGroundRenderThread(std::function<void()> callback) {
@@ -251,6 +252,7 @@ void FlutterVideoRendererManager::SetMediaStream(int64_t texture_id,
 void FlutterVideoRendererManager::VideoRendererDispose(
     int64_t texture_id,
     std::unique_ptr<MethodResultProxy> result) {
+#if defined(_WINDOWS)
   RunOnUIThread([]
   {
       if (backgroundrenderer_) {
@@ -260,13 +262,12 @@ void FlutterVideoRendererManager::VideoRendererDispose(
       }
   }
   );
-
   if (hThread){
     thread_running = false;
     WaitForSingleObject(hThread, 1000);
     CloseHandle(hThread);
   }
-
+#endif
   auto it = renderers_.find(texture_id);
   if (it != renderers_.end()) {
     base_->textures_->UnregisterTexture(texture_id);
