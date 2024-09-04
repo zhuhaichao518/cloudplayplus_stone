@@ -38,12 +38,13 @@ class WebrtcService {
     }
   }
   
+  //当用户切换设备页面时 告诉我们现在应该渲染那个设备（如果那个设备也在stream）
   static void updateRenderer(String deviceId,Function() callback){
     currentDeviceId = deviceId;
     userViewCallback = callback;
     if (streams.containsKey(deviceId)){
         globalVideoRenderer?.srcObject = streams[deviceId];
-        runUserViewCallback();
+        //runUserViewCallback();
     }
   }
 }

@@ -2,6 +2,7 @@ import 'package:cloudplayplus/services/app_init_service.dart';
 import 'package:cloudplayplus/services/streaming_manager.dart';
 import 'package:cloudplayplus/webrtctest/rtc_service.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 import '../../base/logging.dart';
 import '../../entities/device.dart';
@@ -11,6 +12,61 @@ import 'package:qr_flutter/qr_flutter.dart';
 
 import '../../services/webrtc_service.dart';
 import 'rtc_video_page.dart';
+
+//render the global remote screen in an infinite vertical scroll view.
+class GlobalRemoteScreenRenderer extends StatefulWidget {
+  const GlobalRemoteScreenRenderer({super.key});
+
+  @override
+  State<GlobalRemoteScreenRenderer> createState() => _VideoScreenState();
+}
+
+class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
+  // 使用 ValueNotifier 来动态存储宽高比
+  ValueNotifier<double> aspectRatioNotifier = ValueNotifier<double>(1.6); // 初始宽高比为 1.6
+
+  @override
+  Widget build(BuildContext context) {
+    return ConstrainedBox(
+      constraints: BoxConstraints(
+        maxWidth: MediaQuery.of(context).size.width, // 限制最大宽度为区域宽度
+      ),
+      child: ValueListenableBuilder<double>(
+        valueListenable: aspectRatioNotifier, // 监听宽高比的变化
+        builder: (context, aspectRatio, child) {
+          return LayoutBuilder(
+            builder: (context, constraints) {
+              final double videoWidth = constraints.maxWidth;
+              final double videoHeight = videoWidth / aspectRatio; // 根据 aspectRatio 动态计算高度
+
+              return SizedBox(
+                width: videoWidth,
+                height: videoHeight,
+                child: RTCVideoView(
+                  WebrtcService.globalVideoRenderer!,
+                  setAspectRatio: (newAspectRatio) {
+                    // 延迟更新 aspectRatio，避免在构建过程中触发 setState
+                    WidgetsBinding.instance.addPostFrameCallback((_) {
+                      if (aspectRatioNotifier.value == newAspectRatio) return;
+                      aspectRatioNotifier.value = newAspectRatio;
+                    });
+                  },
+                ),
+              );
+            },
+          );
+        },
+      ),
+    );
+  }
+
+  @override
+  void dispose() {
+    aspectRatioNotifier.dispose(); // 销毁时清理 ValueNotifier
+    super.dispose();
+  }
+}
+
 
 class DeviceDetailPage extends StatefulWidget {
   final Device device;
@@ -26,7 +82,7 @@ class _DeviceDetailPageState extends State<DeviceDetailPage> {
   bool _showVideo = false;
   RTCVideoRenderer? _videoRenderer;
 
-  void updateVideoRenderer(String mediatype, MediaStream stream) {
+  /*void updateVideoRenderer(String mediatype, MediaStream stream) {
     setState(() {
       _videoRenderer = RTCVideoRenderer();
       _videoRenderer?.initialize().then((data) {
@@ -36,13 +92,13 @@ class _DeviceDetailPageState extends State<DeviceDetailPage> {
         VLOG0('Error: failed to create RTCVideoRenderer');
       });
     });
-  }
+  }*/
 
   @override
   void initState() {
     super.initState();
     _shareController = TextEditingController();
-    StreamingManager.updateRendererCallback(widget.device, updateVideoRenderer);
+    //StreamingManager.updateRendererCallback(widget.device, updateVideoRenderer);
   }
 
   @override
@@ -51,37 +107,36 @@ class _DeviceDetailPageState extends State<DeviceDetailPage> {
     super.dispose();
   }
 
-  double aspectRatio = 1920 / 1080;
-  void setAspectRatio(double ratio) {
+  double aspectRatio = 16 / 9;
+  bool inbuilding = true;
+  bool needSetstate = false;
+  /*void setAspectRatio(double ratio) {
+    if (aspectRatio == ratio) return;
     aspectRatio = ratio;
-  }
-
+    if (inbuilding) {
+      needSetstate = true;
+    }else{
+      setState(() {
+      });
+    }
+  }*/
+  
+  // callback and trigger rebuild when StreamingSessionConnectionState is updated.
   void updateRenderer() {
     setState(() {});
   }
 
   @override
   Widget build(BuildContext context) {
-    /*WidgetsBinding.instance.addPostFrameCallback((_) {
-      final RenderBox renderBox = context.findRenderObject() as RenderBox;
-      rtcvideoKey.currentState?.updateRenderBox(renderBox);
-    });*/
+    inbuilding = true;
+
     WebrtcService.updateRenderer(widget.device.websocketSessionid,updateRenderer);
 
     if (StreamingManager.getStreamingStateto(widget.device) ==
         StreamingSessionConnectionState.connected) {
-      return SizedBox(
-        height: MediaQuery.of(context).size.height, // 给 Column 明确的高度
-        child: Column(
-          children: [
-            Expanded(
-              child: RTCVideoView(WebrtcService.globalVideoRenderer!,
-                  setAspectRatio: setAspectRatio),
-            ),
-          ],
-        ),
-      );
+     return const GlobalRemoteScreenRenderer();
     }
+    
     return SingleChildScrollView(
       padding: EdgeInsets.symmetric(horizontal: 24.0, vertical: 48.0), // 增加内边距
       child: Column(
