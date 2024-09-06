@@ -1,5 +1,3 @@
-import 'package:flutter_webrtc/flutter_webrtc.dart';
-
 import 'turn.dart' if (dart.library.js) 'turn_web.dart';
 
 class RTCServiceImpl {

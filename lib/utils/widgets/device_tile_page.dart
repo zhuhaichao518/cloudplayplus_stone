@@ -122,7 +122,7 @@ class _DeviceDetailPageState extends State<DeviceDetailPage> {
   }*/
   
   // callback and trigger rebuild when StreamingSessionConnectionState is updated.
-  void updateRenderer() {
+  void onRemoteScreenReceived() {
     setState(() {});
   }
 
@@ -130,7 +130,7 @@ class _DeviceDetailPageState extends State<DeviceDetailPage> {
   Widget build(BuildContext context) {
     inbuilding = true;
 
-    WebrtcService.updateRenderer(widget.device.websocketSessionid,updateRenderer);
+    WebrtcService.updateCurrentRenderingDevice(widget.device.websocketSessionid,onRemoteScreenReceived);
 
     if (StreamingManager.getStreamingStateto(widget.device) ==
         StreamingSessionConnectionState.connected) {
