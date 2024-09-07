@@ -25,6 +25,7 @@ class FloatingMenuPanel extends StatefulWidget {
   final Curve? panelAnimCurve;
   final DockType? dockType;
   final double? dockOffset;
+  final bool? forceDock;
   final int? dockAnimDuration;
   final Curve? dockAnimCurve;
   final List<IconData>? buttons;
@@ -49,6 +50,7 @@ class FloatingMenuPanel extends StatefulWidget {
     this.panelShape,
     this.dockType,
     this.dockOffset,
+    this.forceDock,
     this.dockAnimCurve,
     this.dockAnimDuration,
     required this.onPressed,
@@ -77,11 +79,17 @@ class _FloatBoxState extends State<FloatingMenuPanel> {
   // e.g: When panel opened or closed, the position should change in a different
   // speed than when the panel is being dragged;
   int _movementSpeed = 0;
-
+  late double _pageWidth;
+  late double _pageHeight;
   @override
   void initState() {
     _positionTop = widget.positionTop ?? 0;
     _positionLeft = widget.positionLeft ?? 0;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final RenderBox? parentRenderBox = context.findAncestorRenderObjectOfType<RenderBox>();
+      _pageWidth = parentRenderBox!.size.width;
+      _pageHeight = parentRenderBox.size.height;
+    });
 
     super.initState();
   }
@@ -89,8 +97,13 @@ class _FloatBoxState extends State<FloatingMenuPanel> {
   @override
   Widget build(BuildContext context) {
     // Width and height of page is required for the dragging the panel;
-    double _pageWidth = MediaQuery.of(context).size.width;
-    double _pageHeight = MediaQuery.of(context).size.height;
+    //_pageWidth = MediaQuery.of(context).size.width;
+    //_pageHeight = MediaQuery.of(context).size.height;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final RenderBox? parentRenderBox = context.findAncestorRenderObjectOfType<RenderBox>();
+      _pageWidth = parentRenderBox!.size.width;
+      _pageHeight = parentRenderBox.size.height;
+    });
 
     // All Buttons;
     List<IconData> _buttons = widget.buttons!;
@@ -233,6 +246,9 @@ class _FloatBoxState extends State<FloatingMenuPanel> {
               onPanEnd: (event) {
                 setState(
                   () {
+                    if (widget.forceDock==null || widget.forceDock == false){
+                      return;
+                    }
                     _forceDock();
                   },
                 );
@@ -292,7 +308,9 @@ class _FloatBoxState extends State<FloatingMenuPanel> {
                     if (_panelState == PanelState.open) {
                       // If panel state is "open", set it to "closed";
                       _panelState = PanelState.closed;
-
+                      if (widget.forceDock==null || widget.forceDock == false){
+                        return;
+                      }
                       // Reset panel position, dock it to nearest edge;
                       _forceDock();
                       //widget.isOpen(false);
@@ -302,6 +320,9 @@ class _FloatBoxState extends State<FloatingMenuPanel> {
                       _panelState = PanelState.open;
 
                       // Set the left side position;
+                      if (widget.forceDock==null || widget.forceDock == false){
+                        return;
+                      }
                       _positionLeft = _openDockLeft();
                       //widget.isOpen(true);
 
@@ -336,7 +357,9 @@ class _FloatBoxState extends State<FloatingMenuPanel> {
                             if (_panelState == PanelState.open) {
                               // If panel state is "open", set it to "closed";
                               _panelState = PanelState.closed;
-
+                              if (widget.forceDock==null || widget.forceDock == false){
+                                return;
+                              }
                               // Reset panel position, dock it to nearest edge;
                               _forceDock();
                               //widget.isOpen(false);
@@ -344,7 +367,9 @@ class _FloatBoxState extends State<FloatingMenuPanel> {
                             } else {
                               // If panel state is "closed", set it to "open";
                               _panelState = PanelState.open;
-
+                              if (widget.forceDock==null || widget.forceDock == false){
+                                return;
+                              }
                               // Set the left side position;
                               _positionLeft = _openDockLeft();
                               // widget.isOpen(true);

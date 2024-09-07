@@ -28,18 +28,14 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
 
   @override
   Widget build(BuildContext context) {
-    return ConstrainedBox(
-      constraints: BoxConstraints(
-        maxWidth: MediaQuery.of(context).size.width, // 限制最大宽度为区域宽度
-      ),
-      child: ValueListenableBuilder<double>(
+    return 
+      ValueListenableBuilder<double>(
         valueListenable: aspectRatioNotifier, // 监听宽高比的变化
         builder: (context, aspectRatio, child) {
           return LayoutBuilder(
             builder: (context, constraints) {
               final double videoWidth = constraints.maxWidth;
               final double videoHeight = videoWidth / aspectRatio; // 根据 aspectRatio 动态计算高度
-
               return SizedBox(
                 width: videoWidth,
                 height: videoHeight,
@@ -57,8 +53,7 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
             },
           );
         },
-      ),
-    );
+      );
   }
 
   @override

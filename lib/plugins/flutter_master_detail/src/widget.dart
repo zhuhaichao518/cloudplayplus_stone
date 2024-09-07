@@ -70,7 +70,8 @@ class MasterDetailsList<T> extends StatelessWidget {
       sortBy,
     ]);
   }
-
+  //(TODO:Haichao): This has performance issue which results in rebuild when resizing the window.
+  //We only need to resize when screen type changes.
   @override
   Widget build(BuildContext context) {
     return ViewModelBuilder<ElementsViewModel<T>>.reactive(

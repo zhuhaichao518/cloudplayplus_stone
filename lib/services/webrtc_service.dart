@@ -40,6 +40,7 @@ class WebrtcService {
   
   //当用户切换设备页面时 告诉我们现在应该渲染那个设备（如果那个设备也在stream）
   static void updateCurrentRenderingDevice(String deviceId,Function() callback){
+    if (currentDeviceId == deviceId) return;
     currentDeviceId = deviceId;
     userViewCallback = callback;
     if (streams.containsKey(deviceId)){
