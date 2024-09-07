@@ -1,6 +1,7 @@
 import 'package:cloudplayplus/services/app_init_service.dart';
 import 'package:cloudplayplus/services/streaming_manager.dart';
 import 'package:cloudplayplus/webrtctest/rtc_service.dart';
+import 'package:floating_menu_panel/floating_menu_panel.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
@@ -134,7 +135,21 @@ class _DeviceDetailPageState extends State<DeviceDetailPage> {
 
     if (StreamingManager.getStreamingStateto(widget.device) ==
         StreamingSessionConnectionState.connected) {
-     return const GlobalRemoteScreenRenderer();
+        return Stack(
+          children: [
+            const GlobalRemoteScreenRenderer(),
+            FloatingMenuPanel(
+              onPressed: (index) {
+                print('SELECT__: $index');
+              },
+              buttons: [
+                Icons.star_border_outlined,
+                Icons.add_comment,
+                Icons.music_note
+              ],
+            ),
+          ],
+        );
     }
     
     return SingleChildScrollView(

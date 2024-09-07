@@ -193,6 +193,13 @@ packages:
       url: "https://pub.flutter-io.cn"
     source: hosted
     version: "1.5.0"
+  floating_menu_panel:
+    dependency: "direct main"
+    description:
+      path: "plugins/floating_menu_panel"
+      relative: true
+    source: path
+    version: "0.0.2"
   flutter:
     dependency: "direct main"
     description: flutter

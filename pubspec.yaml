@@ -35,6 +35,8 @@ dependencies:
     path: plugins/flutter_login
   flutter_webrtc:
     path: plugins/flutter-webrtc
+  floating_menu_panel: 
+    path: plugins/floating_menu_panel
 
   # First time usage introduction
   introduction_screen: ^3.1.14
