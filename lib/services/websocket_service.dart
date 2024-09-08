@@ -5,6 +5,7 @@ import 'package:cloudplayplus/services/shared_preferences_manager.dart';
 import 'package:cloudplayplus/services/streamed_manager.dart';
 import 'package:cloudplayplus/services/streaming_manager.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter_webrtc/flutter_webrtc.dart';
 
 import '../dev_settings.dart/develop_settings.dart';
 import '../entities/device.dart';
@@ -80,10 +81,17 @@ class WebSocketService {
           AppStateService.websocketSessionid = data['connection_id'];
           ApplicationInfo.user =
               User(uid: data['uid'], nickname: data['nickname']);
+          if (AppPlatform.isWindows || AppPlatform.isMacos || AppPlatform.isLinux){
+            List<DesktopCapturerSource> sources = await desktopCapturer.getSources(types: [SourceType.Screen]);
+            ApplicationInfo.screencount = sources.length;
+          }else{
+            ApplicationInfo.screencount = 1;
+          }
           send('updateDeviceInfo', {
             'deviceName': ApplicationInfo.deviceName,
             'deviceType': ApplicationInfo.deviceTypeName,
-            'connective': ApplicationInfo.connectable
+            'connective': ApplicationInfo.connectable,
+            'screenCount': ApplicationInfo.screenCount,
           });
           ApplicationInfo.thisDevice = (Device(
               uid: ApplicationInfo.user.uid,
@@ -91,7 +99,8 @@ class WebSocketService {
               devicename: ApplicationInfo.deviceName,
               devicetype: ApplicationInfo.deviceTypeName,
               websocketSessionid: AppStateService.websocketSessionid!,
-              connective: ApplicationInfo.connectable));
+              connective: ApplicationInfo.connectable,
+              screencount: ApplicationInfo.screenCount));
         }
       case 'connected_devices':
         {

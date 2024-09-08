@@ -7,6 +7,7 @@ var officialStun1 = {
 class StreamingSettings {
   static int? framerate;
   static int? bitrate;
+  static int? targetScreenId;
   //the remote peer will render the cursor.
   static bool? showRemoteCursor;
 
@@ -45,6 +46,7 @@ class StreamingSettings {
     turnServerPassword =
         SharedPreferencesManager.getString('turnServerPassword') ??
             ''; // Default to empty string
+    targetScreenId = 0;
   }
 
   static Map<String, dynamic> toJson() {
@@ -57,7 +59,8 @@ class StreamingSettings {
       'useCustomTurnServer': useCustomTurnServer,
       'turnServerAddress': turnServerAddress,
       'turnServerUsername': turnServerUsername,
-      'turnServerPassword': turnServerPassword
+      'turnServerPassword': turnServerPassword,
+      'targetScreenId': targetScreenId,
     };
     data.removeWhere((key, value) => value == null);
     return data;
@@ -71,6 +74,7 @@ class StreamedSettings {
   bool? showRemoteCursor;
 
   bool? streamAudio;
+  int? screenId;
 
   //0: Use both.
   //1: Only use Peer to Peer
@@ -90,6 +94,7 @@ class StreamedSettings {
       ..useCustomTurnServer = settings['useCustomTurnServer'] as bool?
       ..turnServerAddress = settings['turnServerAddress'] as String?
       ..turnServerUsername = settings['turnServerUsername'] as String?
-      ..turnServerPassword = settings['turnServerPassword'] as String?;
+      ..turnServerPassword = settings['turnServerPassword'] as String?
+      ..screenId = settings['targetScreenId'] as int?;
   }
 }

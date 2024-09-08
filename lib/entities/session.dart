@@ -204,7 +204,7 @@ class StreamingSession {
       var sources =
           await desktopCapturer.getSources(types: [SourceType.Screen]);
       //Todo(haichao): currently this should have no effect. we should change it to be right.
-      final source = sources[0];
+      final source = sources[settings.screenId!];
       mediaConstraints = <String, dynamic>{
         'video': {
           'deviceId': {'exact': source.id},

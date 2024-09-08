@@ -32,7 +32,8 @@ class _DevicesPageState extends State<DevicesPage> {
             devicename: device['device_name'],
             devicetype: device['device_type'],
             websocketSessionid: device['connection_id'],
-            connective: device['connective']));
+            connective: device['connective'],
+            screencount: device['screen_count']));
       }
     });
   }

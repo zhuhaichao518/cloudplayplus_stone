@@ -7,7 +7,16 @@ import '../entities/user.dart';
 class ApplicationInfo {
   static late Device thisDevice;
   static late User user;
+  //count of connected monitors.
+  static int? screencount;
   static bool connectable = false;
+
+  static int get screenCount {
+    if (screencount!=null){
+      return screencount!;
+    }
+    return 1;
+  }
 
   static String get deviceName {
     if (AppPlatform.isWeb) {

@@ -1,3 +1,4 @@
+import 'package:cloudplayplus/global_settings/streaming_settings.dart';
 import 'package:cloudplayplus/services/app_init_service.dart';
 import 'package:cloudplayplus/services/streaming_manager.dart';
 import 'package:cloudplayplus/webrtctest/rtc_service.dart';
@@ -106,6 +107,7 @@ class _DeviceDetailPageState extends State<DeviceDetailPage> {
   double aspectRatio = 16 / 9;
   bool inbuilding = true;
   bool needSetstate = false;
+  int _selectedMonitorId = 1;
   /*void setAspectRatio(double ratio) {
     if (aspectRatio == ratio) return;
     aspectRatio = ratio;
@@ -161,6 +163,22 @@ class _DeviceDetailPageState extends State<DeviceDetailPage> {
           Text(
             "设备平台:${widget.device.devicetype}",
           ),
+          SizedBox(height: 16), // 增加垂直间距
+          if (widget.device.screencount > 1) 
+            for (int i = 1; i <= widget.device.screencount; i++)
+              ListTile(
+                title: Text('显示器 $i'),
+                leading: Radio(
+                  value: i,
+                  groupValue: _selectedMonitorId,
+                  onChanged: (int? value) {
+                    setState(() {
+                      _selectedMonitorId = value!;
+                      StreamingSettings.targetScreenId = value - 1;
+                    });
+                  },
+                ),
+              ),
           SizedBox(height: 16), // 增加垂直间距
           // 使用装饰文本来展示应用ID
           Text(
