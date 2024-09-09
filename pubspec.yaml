@@ -64,6 +64,7 @@ dependencies:
   bitsdojo_window: ^0.1.6
   qr_flutter: ^4.1.0
   web: ^0.5.1
+  fullscreen_window: ^1.0.4
 
 dev_dependencies:
   flutter_test:
