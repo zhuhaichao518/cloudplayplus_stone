@@ -37,6 +37,8 @@ dependencies:
     path: plugins/flutter-webrtc
   floating_menu_panel: 
     path: plugins/floating_menu_panel
+  window_manager:
+    path: plugins/window_manager
 
   # First time usage introduction
   introduction_screen: ^3.1.14
@@ -61,7 +63,6 @@ dependencies:
   stacked: ^3.4.3
   bitsdojo_window: ^0.1.6
   qr_flutter: ^4.1.0
-  window_manager: ^0.4.2
   web: ^0.5.1
 
 dev_dependencies:
