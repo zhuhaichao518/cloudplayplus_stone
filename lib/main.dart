@@ -1,6 +1,7 @@
 import 'package:cloudplayplus/services/app_init_service.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'controller/screen_controller.dart';
 import 'global_settings/streaming_settings.dart';
 import 'pages/init_page.dart';
 import 'services/app_info_service.dart';
@@ -13,6 +14,7 @@ import 'package:bitsdojo_window/bitsdojo_window.dart';
 void main() async {
   LoginService.init();
   WidgetsFlutterBinding.ensureInitialized();
+  await ScreenController.initialize();
   await SharedPreferencesManager.init();
   SecureStorageManager.init();
   //AppInitService depends on SharedPreferencesManager

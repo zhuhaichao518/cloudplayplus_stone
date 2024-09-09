@@ -1,3 +1,4 @@
+import 'package:cloudplayplus/controller/screen_controller.dart';
 import 'package:cloudplayplus/global_settings/streaming_settings.dart';
 import 'package:cloudplayplus/services/app_init_service.dart';
 import 'package:cloudplayplus/services/streaming_manager.dart';
@@ -25,7 +26,7 @@ class GlobalRemoteScreenRenderer extends StatefulWidget {
 
 class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
   // 使用 ValueNotifier 来动态存储宽高比
-  ValueNotifier<double> aspectRatioNotifier = ValueNotifier<double>(1.6); // 初始宽高比为 1.6
+  ValueNotifier<double> aspectRatioNotifier = ValueNotifier<double>(1.6); // 初始宽高比为 16:10
 
   @override
   Widget build(BuildContext context) {
@@ -136,13 +137,15 @@ class _DeviceDetailPageState extends State<DeviceDetailPage> {
           children: [
             const GlobalRemoteScreenRenderer(),
             FloatingMenuPanel(
-              onPressed: (index) {
-                print('SELECT__: $index');
+              onPressed: (index) async{
+                if (index == 0){
+                  await ScreenController.setIsFullScreen(!ScreenController.isFullScreen);
+                }
               },
-              buttons: [
-                Icons.star_border_outlined,
-                Icons.add_comment,
-                Icons.music_note
+              buttons: const [
+                Icons.fullscreen,
+                Icons.keyboard,
+                Icons.settings,
               ],
             ),
           ],

@@ -61,6 +61,8 @@ dependencies:
   stacked: ^3.4.3
   bitsdojo_window: ^0.1.6
   qr_flutter: ^4.1.0
+  window_manager: ^0.4.2
+  web: ^0.5.1
 
 dev_dependencies:
   flutter_test:
