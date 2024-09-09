@@ -67,7 +67,6 @@ class StreamingManager {
     }
   }
 
-
   static StreamingSessionConnectionState getStreamingStateto(Device device) {
     if (!sessions.containsKey(device.websocketSessionid)) {
       return StreamingSessionConnectionState.free;

@@ -86,7 +86,8 @@ class _FloatBoxState extends State<FloatingMenuPanel> {
     _positionTop = widget.positionTop ?? 0;
     _positionLeft = widget.positionLeft ?? 0;
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final RenderBox? parentRenderBox = context.findAncestorRenderObjectOfType<RenderBox>();
+      final RenderBox? parentRenderBox =
+          context.findAncestorRenderObjectOfType<RenderBox>();
       _pageWidth = parentRenderBox!.size.width;
       _pageHeight = parentRenderBox.size.height;
     });
@@ -100,7 +101,8 @@ class _FloatBoxState extends State<FloatingMenuPanel> {
     //_pageWidth = MediaQuery.of(context).size.width;
     //_pageHeight = MediaQuery.of(context).size.height;
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final RenderBox? parentRenderBox = context.findAncestorRenderObjectOfType<RenderBox>();
+      final RenderBox? parentRenderBox =
+          context.findAncestorRenderObjectOfType<RenderBox>();
       _pageWidth = parentRenderBox!.size.width;
       _pageHeight = parentRenderBox.size.height;
     });
@@ -246,7 +248,7 @@ class _FloatBoxState extends State<FloatingMenuPanel> {
               onPanEnd: (event) {
                 setState(
                   () {
-                    if (widget.forceDock==null || widget.forceDock == false){
+                    if (widget.forceDock == null || widget.forceDock == false) {
                       return;
                     }
                     _forceDock();
@@ -308,7 +310,8 @@ class _FloatBoxState extends State<FloatingMenuPanel> {
                     if (_panelState == PanelState.open) {
                       // If panel state is "open", set it to "closed";
                       _panelState = PanelState.closed;
-                      if (widget.forceDock==null || widget.forceDock == false){
+                      if (widget.forceDock == null ||
+                          widget.forceDock == false) {
                         return;
                       }
                       // Reset panel position, dock it to nearest edge;
@@ -320,7 +323,8 @@ class _FloatBoxState extends State<FloatingMenuPanel> {
                       _panelState = PanelState.open;
 
                       // Set the left side position;
-                      if (widget.forceDock==null || widget.forceDock == false){
+                      if (widget.forceDock == null ||
+                          widget.forceDock == false) {
                         return;
                       }
                       _positionLeft = _openDockLeft();
@@ -357,7 +361,8 @@ class _FloatBoxState extends State<FloatingMenuPanel> {
                             if (_panelState == PanelState.open) {
                               // If panel state is "open", set it to "closed";
                               _panelState = PanelState.closed;
-                              if (widget.forceDock==null || widget.forceDock == false){
+                              if (widget.forceDock == null ||
+                                  widget.forceDock == false) {
                                 return;
                               }
                               // Reset panel position, dock it to nearest edge;
@@ -367,7 +372,8 @@ class _FloatBoxState extends State<FloatingMenuPanel> {
                             } else {
                               // If panel state is "closed", set it to "open";
                               _panelState = PanelState.open;
-                              if (widget.forceDock==null || widget.forceDock == false){
+                              if (widget.forceDock == null ||
+                                  widget.forceDock == false) {
                                 return;
                               }
                               // Set the left side position;

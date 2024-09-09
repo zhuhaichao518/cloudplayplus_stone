@@ -5,7 +5,5 @@ class KeyboardSettings {
   static Color keyFontColor = Colors.black;
   static int keyWidth = 10;
   static int keyHeight = 10;
-  static void initialize(){
-    
-  }
+  static void initialize() {}
 }

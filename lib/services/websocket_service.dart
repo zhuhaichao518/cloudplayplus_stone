@@ -81,10 +81,13 @@ class WebSocketService {
           AppStateService.websocketSessionid = data['connection_id'];
           ApplicationInfo.user =
               User(uid: data['uid'], nickname: data['nickname']);
-          if (AppPlatform.isWindows || AppPlatform.isMacos || AppPlatform.isLinux){
-            List<DesktopCapturerSource> sources = await desktopCapturer.getSources(types: [SourceType.Screen]);
+          if (AppPlatform.isWindows ||
+              AppPlatform.isMacos ||
+              AppPlatform.isLinux) {
+            List<DesktopCapturerSource> sources =
+                await desktopCapturer.getSources(types: [SourceType.Screen]);
             ApplicationInfo.screencount = sources.length;
-          }else{
+          } else {
             ApplicationInfo.screencount = 1;
           }
           send('updateDeviceInfo', {

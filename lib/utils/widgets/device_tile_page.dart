@@ -26,36 +26,37 @@ class GlobalRemoteScreenRenderer extends StatefulWidget {
 
 class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
   // 使用 ValueNotifier 来动态存储宽高比
-  ValueNotifier<double> aspectRatioNotifier = ValueNotifier<double>(1.6); // 初始宽高比为 16:10
+  ValueNotifier<double> aspectRatioNotifier =
+      ValueNotifier<double>(1.6); // 初始宽高比为 16:10
 
   @override
   Widget build(BuildContext context) {
-    return 
-      ValueListenableBuilder<double>(
-        valueListenable: aspectRatioNotifier, // 监听宽高比的变化
-        builder: (context, aspectRatio, child) {
-          return LayoutBuilder(
-            builder: (context, constraints) {
-              final double videoWidth = constraints.maxWidth;
-              final double videoHeight = videoWidth / aspectRatio; // 根据 aspectRatio 动态计算高度
-              return SizedBox(
-                width: videoWidth,
-                height: videoHeight,
-                child: RTCVideoView(
-                  WebrtcService.globalVideoRenderer!,
-                  setAspectRatio: (newAspectRatio) {
-                    // 延迟更新 aspectRatio，避免在构建过程中触发 setState
-                    WidgetsBinding.instance.addPostFrameCallback((_) {
-                      if (aspectRatioNotifier.value == newAspectRatio) return;
-                      aspectRatioNotifier.value = newAspectRatio;
-                    });
-                  },
-                ),
-              );
-            },
-          );
-        },
-      );
+    return ValueListenableBuilder<double>(
+      valueListenable: aspectRatioNotifier, // 监听宽高比的变化
+      builder: (context, aspectRatio, child) {
+        return LayoutBuilder(
+          builder: (context, constraints) {
+            final double videoWidth = constraints.maxWidth;
+            final double videoHeight =
+                videoWidth / aspectRatio; // 根据 aspectRatio 动态计算高度
+            return SizedBox(
+              width: videoWidth,
+              height: videoHeight,
+              child: RTCVideoView(
+                WebrtcService.globalVideoRenderer!,
+                setAspectRatio: (newAspectRatio) {
+                  // 延迟更新 aspectRatio，避免在构建过程中触发 setState
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    if (aspectRatioNotifier.value == newAspectRatio) return;
+                    aspectRatioNotifier.value = newAspectRatio;
+                  });
+                },
+              ),
+            );
+          },
+        );
+      },
+    );
   }
 
   @override
@@ -64,7 +65,6 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
     super.dispose();
   }
 }
-
 
 class DeviceDetailPage extends StatefulWidget {
   final Device device;
@@ -119,7 +119,7 @@ class _DeviceDetailPageState extends State<DeviceDetailPage> {
       });
     }
   }*/
-  
+
   // callback and trigger rebuild when StreamingSessionConnectionState is updated.
   void onRemoteScreenReceived() {
     setState(() {});
@@ -129,29 +129,31 @@ class _DeviceDetailPageState extends State<DeviceDetailPage> {
   Widget build(BuildContext context) {
     inbuilding = true;
 
-    WebrtcService.updateCurrentRenderingDevice(widget.device.websocketSessionid,onRemoteScreenReceived);
+    WebrtcService.updateCurrentRenderingDevice(
+        widget.device.websocketSessionid, onRemoteScreenReceived);
 
     if (StreamingManager.getStreamingStateto(widget.device) ==
         StreamingSessionConnectionState.connected) {
-        return Stack(
-          children: [
-            const GlobalRemoteScreenRenderer(),
-            FloatingMenuPanel(
-              onPressed: (index) async{
-                if (index == 0){
-                  await ScreenController.setIsFullScreen(!ScreenController.isFullScreen);
-                }
-              },
-              buttons: const [
-                Icons.fullscreen,
-                Icons.keyboard,
-                Icons.settings,
-              ],
-            ),
-          ],
-        );
+      return Stack(
+        children: [
+          const GlobalRemoteScreenRenderer(),
+          FloatingMenuPanel(
+            onPressed: (index) async {
+              if (index == 0) {
+                await ScreenController.setIsFullScreen(
+                    !ScreenController.isFullScreen);
+              }
+            },
+            buttons: const [
+              Icons.fullscreen,
+              Icons.keyboard,
+              Icons.settings,
+            ],
+          ),
+        ],
+      );
     }
-    
+
     return SingleChildScrollView(
       padding: EdgeInsets.symmetric(horizontal: 24.0, vertical: 48.0), // 增加内边距
       child: Column(
@@ -167,7 +169,7 @@ class _DeviceDetailPageState extends State<DeviceDetailPage> {
             "设备平台:${widget.device.devicetype}",
           ),
           SizedBox(height: 16), // 增加垂直间距
-          if (widget.device.screencount > 1) 
+          if (widget.device.screencount > 1)
             for (int i = 1; i <= widget.device.screencount; i++)
               ListTile(
                 title: Text('显示器 $i'),

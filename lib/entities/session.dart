@@ -106,7 +106,7 @@ class StreamingSession {
       connectionState = StreamingSessionConnectionState.connected;
       //tell the device tile page to render the rtc video.
       //StreamingManager.runUserViewCallback();
-      WebrtcService.addStream(controlled.websocketSessionid,event);
+      WebrtcService.addStream(controlled.websocketSessionid, event);
       //rtcvideoKey.currentState?.updateVideoRenderer(event.track.kind!, event.streams[0]);
       //We used to this function to render the control. Currently we use overlay for convenience.
       //onAddRemoteStream?.call(event.track.kind!, event.streams[0]);

@@ -23,7 +23,7 @@ class WebrtcService {
     if (globalVideoRenderer == null) {
       globalVideoRenderer = RTCVideoRenderer();
       globalVideoRenderer?.initialize().then((data) {
-        if(currentDeviceId == deviceId){
+        if (currentDeviceId == deviceId) {
           globalVideoRenderer!.srcObject = event.streams[0];
           runUserViewCallback();
         }
@@ -31,21 +31,22 @@ class WebrtcService {
         VLOG0('Error: failed to create RTCVideoRenderer');
       });
     } else {
-      if(currentDeviceId == deviceId){
+      if (currentDeviceId == deviceId) {
         globalVideoRenderer!.srcObject = event.streams[0];
         runUserViewCallback();
       }
     }
   }
-  
+
   //当用户切换设备页面时 告诉我们现在应该渲染那个设备（如果那个设备也在stream）
-  static void updateCurrentRenderingDevice(String deviceId,Function() callback){
+  static void updateCurrentRenderingDevice(
+      String deviceId, Function() callback) {
     if (currentDeviceId == deviceId) return;
     currentDeviceId = deviceId;
     userViewCallback = callback;
-    if (streams.containsKey(deviceId)){
-        globalVideoRenderer?.srcObject = streams[deviceId];
-        //runUserViewCallback();
+    if (streams.containsKey(deviceId)) {
+      globalVideoRenderer?.srcObject = streams[deviceId];
+      //runUserViewCallback();
     }
   }
 }
