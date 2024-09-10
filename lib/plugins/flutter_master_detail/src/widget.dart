@@ -83,7 +83,8 @@ class MasterDetailsList<T> extends StatelessWidget {
         return ScreenTypeLayout.builder(
           mobile: (ctx) => _buildMobileView(viewModel),
           desktop: (ctx) => _buildDesktopView(viewModel),
-          tablet: (ctx) => _buildTabletView(viewModel),
+          //We don't use tablet view.
+          tablet: (ctx) => _buildDesktopView(viewModel),
         );
       },
     );

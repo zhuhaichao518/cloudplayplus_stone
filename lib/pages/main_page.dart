@@ -1,3 +1,4 @@
+import 'package:cloudplayplus/controller/screen_controller.dart';
 import 'package:cloudplayplus/services/websocket_service.dart';
 import 'package:flutter/material.dart';
 import '../settings_screen.dart';
@@ -37,20 +38,24 @@ class _MainScreenState extends State<MainScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Stack(children: [
-      Scaffold(
-        backgroundColor: Colors.transparent,
-        body: Stack(
-          children: [
-            IndexedStack(
-              index: _currentIndex,
-              children: _children,
-            ),
-            //RTCVideoOverlayWidget(key: rtcvideoKey),
-          ],
-        ),
-        bottomNavigationBar: true
-            ? BottomNavigationBar(
+    return Stack(
+      children: [
+        Scaffold(
+          backgroundColor: Colors.transparent,
+          body: Stack(
+            children: [
+              IndexedStack(
+                index: _currentIndex,
+                children: _children,
+              ),
+            ],
+          ),
+          // 使用 ValueListenableBuilder 监听 showBottomNav 的状态
+          bottomNavigationBar: ValueListenableBuilder<bool>(
+            valueListenable: ScreenController.showBottomNav,
+            builder: (context, showNavBar, child) {
+              if (!showNavBar) return const SizedBox();
+              return BottomNavigationBar(
                 type: BottomNavigationBarType.fixed,
                 onTap: onTabTapped,
                 currentIndex: _currentIndex,
@@ -72,10 +77,12 @@ class _MainScreenState extends State<MainScreen> {
                     label: 'Settings',
                   ),
                 ],
-              )
-            : null,
-      ),
-    ]);
+              );
+            },
+          ),
+        ),
+      ],
+    );
   }
 }
 

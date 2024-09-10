@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:cloudplayplus/controller/screen_controller.dart';
 import 'package:flutter/material.dart';
 
 import 'detail_view.dart';
@@ -72,7 +73,12 @@ class DesktopView<T> extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           mainAxisSize: MainAxisSize.max,
           children: [
-            _buildMasterPanel(constraints),
+            ValueListenableBuilder<bool>(
+                valueListenable: ScreenController.showMasterList,
+                builder: (context, showMasterList, child) {
+                  if (!showMasterList) return const SizedBox();
+                  return _buildMasterPanel(constraints);
+                }),
             _buildDetailsPanel(context),
           ],
         ),

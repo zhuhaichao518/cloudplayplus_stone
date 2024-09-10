@@ -1,3 +1,4 @@
+import 'package:cloudplayplus/controller/screen_controller.dart';
 import 'package:flutter/material.dart';
 
 import 'elements_view_model.dart';
@@ -40,20 +41,27 @@ class DetailView<T> extends StatelessWidget {
   CustomScrollView _buildScrollView(BuildContext context) {
     return CustomScrollView(
       slivers: [
-        SliverAppBar(
-          leading: leading,
-          flexibleSpace: detailsTitleBuilder(
-            context,
-            viewModel.selectedItem as T,
-          ),
-          titleSpacing: detailsTitleConfig.titleSpacing,
-          collapsedHeight: detailsTitleConfig.collapsedHeight,
-          expandedHeight: detailsTitleConfig.expandedHeight,
-          floating: detailsTitleConfig.floating,
-          pinned: detailsTitleConfig.pinned,
-          snap: detailsTitleConfig.snap,
-          stretch: detailsTitleConfig.stretch,
-        ),
+        ValueListenableBuilder<bool>(
+            valueListenable: ScreenController.showDetailTitle,
+            builder: (context, showMasterList, child) {
+              if (!showMasterList) {
+                return const SliverToBoxAdapter(child: SizedBox.shrink());
+              }
+              return SliverAppBar(
+                leading: leading,
+                flexibleSpace: detailsTitleBuilder(
+                  context,
+                  viewModel.selectedItem as T,
+                ),
+                titleSpacing: detailsTitleConfig.titleSpacing,
+                collapsedHeight: detailsTitleConfig.collapsedHeight,
+                expandedHeight: detailsTitleConfig.expandedHeight,
+                floating: detailsTitleConfig.floating,
+                pinned: detailsTitleConfig.pinned,
+                snap: detailsTitleConfig.snap,
+                stretch: detailsTitleConfig.stretch,
+              );
+            }),
         SliverList(
             delegate: SliverChildBuilderDelegate(
           _buildDetailElement,

@@ -37,8 +37,16 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
         return LayoutBuilder(
           builder: (context, constraints) {
             final double videoWidth = constraints.maxWidth;
-            final double videoHeight =
-                videoWidth / aspectRatio; // 根据 aspectRatio 动态计算高度
+            double videoHeight = 0;
+            if (ScreenController.videoRendererExpandToWidth) {
+              videoHeight = videoWidth / aspectRatio;
+            } else {
+              videoHeight = MediaQuery.of(context).size.height;
+              if (ScreenController.showBottomNav.value) {
+                //I don't know why it is 2 from default height.
+                videoHeight -= ScreenController.bottomNavHeight + 2;
+              }
+            }
             return SizedBox(
               width: videoWidth,
               height: videoHeight,
@@ -47,7 +55,8 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
                 setAspectRatio: (newAspectRatio) {
                   // 延迟更新 aspectRatio，避免在构建过程中触发 setState
                   WidgetsBinding.instance.addPostFrameCallback((_) {
-                    if (aspectRatioNotifier.value == newAspectRatio) return;
+                    if (aspectRatioNotifier.value == newAspectRatio ||
+                        !ScreenController.videoRendererExpandToWidth) return;
                     aspectRatioNotifier.value = newAspectRatio;
                   });
                 },
@@ -77,8 +86,6 @@ class DeviceDetailPage extends StatefulWidget {
 
 class _DeviceDetailPageState extends State<DeviceDetailPage> {
   late TextEditingController _shareController;
-  bool _showVideo = false;
-  RTCVideoRenderer? _videoRenderer;
 
   /*void updateVideoRenderer(String mediatype, MediaStream stream) {
     setState(() {
@@ -105,7 +112,6 @@ class _DeviceDetailPageState extends State<DeviceDetailPage> {
     super.dispose();
   }
 
-  double aspectRatio = 16 / 9;
   bool inbuilding = true;
   bool needSetstate = false;
   int _selectedMonitorId = 1;
@@ -134,6 +140,9 @@ class _DeviceDetailPageState extends State<DeviceDetailPage> {
 
     if (StreamingManager.getStreamingStateto(widget.device) ==
         StreamingSessionConnectionState.connected) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        ScreenController.setShowDetailTitle(false);
+      });
       return Stack(
         children: [
           const GlobalRemoteScreenRenderer(),
@@ -143,9 +152,17 @@ class _DeviceDetailPageState extends State<DeviceDetailPage> {
                 await ScreenController.setIsFullScreen(
                     !ScreenController.isFullScreen);
               }
+              if (index == 1) {
+                /*ScreenController.setShowNavBar(
+                    !ScreenController.showBottomNav.value);
+                ScreenController.setShowMasterList(!ScreenController.showMasterList.value);*/
+                ScreenController.setOnlyShowRemoteScreen(
+                    !ScreenController.onlyShowRemoteScreen);
+              }
             },
             buttons: const [
-              Icons.fullscreen,
+              Icons.crop_free,
+              Icons.open_in_full,
               Icons.keyboard,
               Icons.settings,
             ],
@@ -153,7 +170,9 @@ class _DeviceDetailPageState extends State<DeviceDetailPage> {
         ],
       );
     }
-
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ScreenController.setShowDetailTitle(true);
+    });
     return SingleChildScrollView(
       padding: EdgeInsets.symmetric(horizontal: 24.0, vertical: 48.0), // 增加内边距
       child: Column(
