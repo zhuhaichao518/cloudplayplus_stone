@@ -1,0 +1,3 @@
+[submodule "plugins/flutter_gamecontroller"]
+	path = plugins/flutter_gamecontroller
+	url = https://github.com/zhuhaichao518/flutter_gamecontroller
