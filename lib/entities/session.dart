@@ -1,6 +1,8 @@
+import 'dart:async';
+import 'dart:typed_data';
+
 import 'package:cloudplayplus/dev_settings.dart/develop_settings.dart';
 import 'package:cloudplayplus/entities/device.dart';
-import 'package:cloudplayplus/services/streaming_manager.dart';
 import 'package:cloudplayplus/services/websocket_service.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 
@@ -8,8 +10,8 @@ import '../base/logging.dart';
 import '../global_settings/streaming_settings.dart';
 import '../services/app_info_service.dart';
 import '../services/webrtc_service.dart';
-import '../utils/widgets/rtc_video_page.dart';
 import '../webrtctest/rtc_service_impl.dart';
+import 'messages.dart';
 
 /*
 每个启动的app均有两个state controlstate是作为控制端的state hoststate是作为被控端的state
@@ -56,7 +58,8 @@ class StreamingSession {
   }
 
   Function(String mediatype, MediaStream stream)? onAddRemoteStream;
-
+  
+  //We are the controller
   void startRequest() async {
     assert(connectionState == StreamingSessionConnectionState.free);
     if (controller.websocketSessionid != AppStateService.websocketSessionid) {
@@ -114,9 +117,9 @@ class StreamingSession {
     pc!.onDataChannel = (newchannel) {
       channel = newchannel;
       channel?.onMessage = (msg) {
-        print(msg.text);
+        processDataChannelMessageFromHost(msg);
       };
-      channel?.send(RTCDataChannelMessage("text"));
+      channel?.send(RTCDataChannelMessage.fromBinary(Uint8List.fromList([LP_PING,RP_PING])));
     };
     // read the latest settings from user settings.
     WebSocketService.send('requestRemoteControl', {
@@ -265,20 +268,8 @@ class StreamingSession {
       ..ordered = true;
     channel = await pc!.createDataChannel('userInput', dataChannelDict);
 
-    channel?.onMessage = (RTCDataChannelMessage data) {
-      if (data.isBinary) {
-        //cursor hash: 0 + size(8bit) + hash(4bit) + data
-        VLOG0('Got binary [${data.binary}]');
-      } else {
-        /*if (kIsWeb) {
-          return;
-        }
-        if (!Platform.isWindows) {
-          return;
-        }
-        request.functionName = data.text;
-        nativeApi.simulateNativeControl(request);*/
-      }
+    channel?.onMessage = (RTCDataChannelMessage msg) {
+      processDataChannelMessageFromClient(msg);
     };
 
     //For web, RTCDataChannel.readyState is not 'open', and this should only for windows
@@ -383,5 +374,41 @@ class StreamingSession {
 
   void stop() async {
     candidates.clear();
+  }
+
+  void processDataChannelMessageFromClient(RTCDataChannelMessage message){
+    if (message.isBinary){
+      switch (message.binary[0]) {
+        case LP_PING:
+          if (message.binary.length == 2 && message.binary[1] == RP_PING){
+            VLOG0("ping received from client");
+            Timer(const Duration(seconds: 1), () {
+            channel?.send(RTCDataChannelMessage.fromBinary(Uint8List.fromList([LP_PING, RP_PONG])));
+            });
+            break;
+          }
+        case LP_MOUSE:
+          break;
+        default:
+          VLOG0("unhandled message.please debug");
+      }
+    }else{
+      
+    }
+  }
+
+  void processDataChannelMessageFromHost(RTCDataChannelMessage message){
+    if (message.isBinary){
+      if (message.binary[0] == LP_PING) {
+        if (message.binary.length == 2 && message.binary[1] == RP_PONG){
+          VLOG0("pong received from host");
+          Timer(const Duration(seconds: 1), () {
+            channel?.send(RTCDataChannelMessage.fromBinary(Uint8List.fromList([LP_PING, RP_PING])));
+          });
+        }
+      }
+    }else{
+      
+    }
   }
 }
