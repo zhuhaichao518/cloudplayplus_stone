@@ -39,6 +39,8 @@ dependencies:
     path: plugins/floating_menu_panel
   window_manager:
     path: plugins/window_manager
+  vk:
+    path: plugins/virtual.keyboard.dart
 
   # First time usage introduction
   introduction_screen: ^3.1.14

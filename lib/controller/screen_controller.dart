@@ -35,6 +35,13 @@ class ScreenController {
     }
   }
 
+  static ValueNotifier<bool> showVirtualKeyboard = ValueNotifier(false);
+  static void setShowVirtualKeyboard(bool value) {
+    if (showVirtualKeyboard.value != value) {
+      showVirtualKeyboard.value = value;
+    }
+  }
+
   //1: Expand To Width
   //2: Expand to Both
   /*static ValueNotifier<int> detailViewExpandMode = ValueNotifier(1);

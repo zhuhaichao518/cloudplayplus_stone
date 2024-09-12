@@ -882,6 +882,13 @@ packages:
       url: "https://pub.flutter-io.cn"
     source: hosted
     version: "2.1.4"
+  vk:
+    dependency: "direct main"
+    description:
+      path: "plugins/virtual.keyboard.dart"
+      relative: true
+    source: path
+    version: "0.2.1"
   vm_service:
     dependency: transitive
     description:

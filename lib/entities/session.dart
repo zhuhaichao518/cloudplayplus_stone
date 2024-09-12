@@ -111,26 +111,12 @@ class StreamingSession {
       //We used to this function to render the control. Currently we use overlay for convenience.
       //onAddRemoteStream?.call(event.track.kind!, event.streams[0]);
     };
-    RTCDataChannelInit dataChannelDict = RTCDataChannelInit()
-      ..maxRetransmits = 30
-      ..ordered = true;
-    RTCDataChannel channel =
-        await pc!.createDataChannel('userInput', dataChannelDict);
-
-    channel.onMessage = (RTCDataChannelMessage data) {
-      if (data.isBinary) {
-        //cursor hash: 0 + size(8bit) + hash(4bit) + data
-        VLOG0('Got binary [${data.binary}]');
-      } else {
-        /*if (kIsWeb) {
-          return;
-        }
-        if (!Platform.isWindows) {
-          return;
-        }
-        request.functionName = data.text;
-        nativeApi.simulateNativeControl(request);*/
-      }
+    pc!.onDataChannel = (newchannel) {
+      channel = newchannel;
+      channel?.onMessage = (msg) {
+        print(msg.text);
+      };
+      channel?.send(RTCDataChannelMessage("text"));
     };
     // read the latest settings from user settings.
     WebSocketService.send('requestRemoteControl', {
@@ -277,10 +263,9 @@ class StreamingSession {
     RTCDataChannelInit dataChannelDict = RTCDataChannelInit()
       ..maxRetransmits = 30
       ..ordered = true;
-    RTCDataChannel channel =
-        await pc!.createDataChannel('userInput', dataChannelDict);
+    channel = await pc!.createDataChannel('userInput', dataChannelDict);
 
-    channel.onMessage = (RTCDataChannelMessage data) {
+    channel?.onMessage = (RTCDataChannelMessage data) {
       if (data.isBinary) {
         //cursor hash: 0 + size(8bit) + hash(4bit) + data
         VLOG0('Got binary [${data.binary}]');
