@@ -5,6 +5,7 @@ import '../base/logging.dart';
 import '../entities/device.dart';
 import '../entities/session.dart';
 import 'app_info_service.dart';
+import 'webrtc_service.dart';
 
 class StreamingManager {
   static Map<String, StreamingSession> sessions = {};
@@ -30,6 +31,7 @@ class StreamingManager {
       StreamingSession? session = sessions[target.websocketSessionid];
       session?.stop();
       sessions.remove(target.websocketSessionid);
+      WebrtcService.removeStream(target.websocketSessionid);
     } else {
       VLOG0("No session found with sessionId: $target.websocketSessionid");
     }

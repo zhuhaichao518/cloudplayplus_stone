@@ -100,12 +100,15 @@ class _DeviceDetailPageState extends State<DeviceDetailPage> {
                 ScreenController.setShowVirtualKeyboard(
                     !ScreenController.showVirtualKeyboard.value);
               }
+              if (index == 3) {
+                StreamingManager.stopStreaming(widget.device);
+              }
             },
             buttons: const [
               Icons.crop_free,
               Icons.open_in_full,
               Icons.keyboard,
-              Icons.settings,
+              Icons.close,
             ],
           ),
         ],
@@ -113,6 +116,7 @@ class _DeviceDetailPageState extends State<DeviceDetailPage> {
     }
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ScreenController.setShowDetailTitle(true);
+      ScreenController.setOnlyShowRemoteScreen(false);
     });
     return SingleChildScrollView(
       padding: EdgeInsets.symmetric(horizontal: 24.0, vertical: 48.0), // 增加内边距

@@ -38,6 +38,14 @@ class WebrtcService {
     }
   }
 
+  static void removeStream(String deviceId) {
+    streams.remove(deviceId);
+    if (currentDeviceId == deviceId) {
+      globalVideoRenderer!.srcObject = null;
+      runUserViewCallback();
+    }
+  }
+
   //当用户切换设备页面时 告诉我们现在应该渲染那个设备（如果那个设备也在stream）
   static void updateCurrentRenderingDevice(
       String deviceId, Function() callback) {

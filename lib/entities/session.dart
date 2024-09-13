@@ -3,6 +3,8 @@ import 'dart:typed_data';
 
 import 'package:cloudplayplus/dev_settings.dart/develop_settings.dart';
 import 'package:cloudplayplus/entities/device.dart';
+import 'package:cloudplayplus/services/streamed_manager.dart';
+import 'package:cloudplayplus/services/streaming_manager.dart';
 import 'package:cloudplayplus/services/websocket_service.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 
@@ -31,12 +33,20 @@ enum StreamingSessionConnectionState {
   answerSent,
   answerReceived,
   connected,
+  disconnecting,
   disconnected,
+}
+
+enum SelfSessionType {
+  none,
+  controller,
+  controlled,
 }
 
 class StreamingSession {
   StreamingSessionConnectionState connectionState =
       StreamingSessionConnectionState.free;
+  SelfSessionType selfSessionType = SelfSessionType.none;
   Device controller, controlled;
   RTCPeerConnection? pc;
   //late RTCPeerConnection audio;
@@ -58,15 +68,22 @@ class StreamingSession {
   }
 
   Function(String mediatype, MediaStream stream)? onAddRemoteStream;
-  
+
   //We are the controller
   void startRequest() async {
-    assert(connectionState == StreamingSessionConnectionState.free);
+    if (connectionState != StreamingSessionConnectionState.free &&
+        connectionState != StreamingSessionConnectionState.disconnected) {
+      VLOG0("starting connection on which is already started. Please debug.");
+      return;
+    }
+
     if (controller.websocketSessionid != AppStateService.websocketSessionid) {
       VLOG0("requiring connection on wrong device. Please debug.");
       return;
     }
+    selfSessionType = SelfSessionType.controller;
 
+    await acquireLock();
     streamSettings = StreamedSettings.fromJson(StreamingSettings.toJson());
     connectionState = StreamingSessionConnectionState.requestSent;
     pc = await createRTCPeerConnection();
@@ -119,7 +136,8 @@ class StreamingSession {
       channel?.onMessage = (msg) {
         processDataChannelMessageFromHost(msg);
       };
-      channel?.send(RTCDataChannelMessage.fromBinary(Uint8List.fromList([LP_PING,RP_PING])));
+      channel?.send(RTCDataChannelMessage.fromBinary(
+          Uint8List.fromList([LP_PING, RP_PING])));
     };
     // read the latest settings from user settings.
     WebSocketService.send('requestRemoteControl', {
@@ -127,6 +145,7 @@ class StreamingSession {
       'target_connectionid': controlled.websocketSessionid,
       'settings': StreamingSettings.toJson(),
     });
+    releaseLock();
   }
 
   Future<RTCPeerConnection> createRTCPeerConnection() async {
@@ -175,11 +194,17 @@ class StreamingSession {
   //accept request and send offer to the peer. you should verify this is authorized before calling this funciton.
   //We are the 'controlled'.
   void acceptRequest(StreamedSettings settings) async {
-    assert(connectionState == StreamingSessionConnectionState.free);
+    if (connectionState != StreamingSessionConnectionState.free &&
+        connectionState != StreamingSessionConnectionState.disconnected) {
+      VLOG0("starting connection on which is already started. Please debug.");
+      return;
+    }
     if (controlled.websocketSessionid != AppStateService.websocketSessionid) {
       VLOG0("requiring connection on wrong device. Please debug.");
       return;
     }
+    selfSessionType = SelfSessionType.controlled;
+    await acquireLock();
     streamSettings = settings;
     final Map<String, dynamic> mediaConstraints;
     if (AppPlatform.isWeb) {
@@ -302,6 +327,7 @@ class StreamingSession {
     });
 
     connectionState = StreamingSessionConnectionState.offerSent;
+    releaseLock();
   }
 
   RTCSessionDescription _fixSdp(RTCSessionDescription s, int bitrate) {
@@ -328,6 +354,12 @@ class StreamingSession {
 
   //controller
   void onOfferReceived(Map offer) async {
+    if (connectionState == StreamingSessionConnectionState.disconnecting ||
+        connectionState == StreamingSessionConnectionState.disconnected) {
+      VLOG0("received offer on disconnection. Dropping");
+      return;
+    }
+    await acquireLock();
     await pc!.setRemoteDescription(
         RTCSessionDescription(offer['sdp'], offer['type']));
 
@@ -349,22 +381,38 @@ class StreamingSession {
       'target_connectionid': controlled.websocketSessionid,
       'description': {'sdp': sdp.sdp, 'type': sdp.type},
     });
+    releaseLock();
   }
 
   void onAnswerReceived(Map<String, dynamic> anwser) async {
+    if (connectionState == StreamingSessionConnectionState.disconnecting ||
+        connectionState == StreamingSessionConnectionState.disconnected) {
+      VLOG0("received answer on disconnection. Dropping");
+      return;
+    }
+    await acquireLock();
     await pc!.setRemoteDescription(
         RTCSessionDescription(anwser['sdp'], anwser['type']));
+    releaseLock();
   }
 
-  void onCandidateReceived(Map<String, dynamic> candidateMap) {
+  void onCandidateReceived(Map<String, dynamic> candidateMap) async {
+    if (connectionState == StreamingSessionConnectionState.disconnecting ||
+        connectionState == StreamingSessionConnectionState.disconnected) {
+      VLOG0("received candidate on disconnection. Dropping");
+      return;
+    }
+    await acquireLock();
     // It is possible that the peerconnection has not been inited. add to list and add later for this case.
     RTCIceCandidate candidate = RTCIceCandidate(candidateMap['candidate'],
         candidateMap['sdpMid'], candidateMap['sdpMLineIndex']);
     if (pc == null) {
+      // This can not be triggered after adding lock. Keep this and We may resue this list in the future.
       candidates.add(candidate);
     } else {
-      pc!.addCandidate(candidate);
+      await pc!.addCandidate(candidate);
     }
+    releaseLock();
   }
 
   void updateRendererCallback(
@@ -372,43 +420,133 @@ class StreamingSession {
     onAddRemoteStream = callback;
   }
 
-  void stop() async {
-    candidates.clear();
+  void close() {
+    if (selfSessionType == SelfSessionType.controller) {
+      StreamingManager.stopStreaming(controlled);
+    }
+    if (selfSessionType == SelfSessionType.controlled) {
+      StreamedManager.stopStreaming(controller);
+    }
   }
 
-  void processDataChannelMessageFromClient(RTCDataChannelMessage message){
-    if (message.isBinary){
+  void stop() async {
+    if (connectionState == StreamingSessionConnectionState.disconnecting ||
+        connectionState == StreamingSessionConnectionState.disconnected) {
+      //Another stop request was triggered. return.
+      return;
+    }
+    _pingTimeoutTimer?.cancel(); // 取消之前的Timer
+    connectionState = StreamingSessionConnectionState.disconnecting;
+    // We don't want to see more new connections when it is stopped. So we may want to use a lock.
+    await acquireLock();
+    candidates.clear();
+
+    if (channel != null) {
+      await channel?.send(RTCDataChannelMessage.fromBinary(
+          Uint8List.fromList([LP_DISCONNECT, RP_PING])));
+
+      await channel?.close();
+      channel = null;
+    }
+
+    if (_localVideoStream != null) {
+      _localVideoStream?.getTracks().forEach((track) {
+        track.stop();
+      });
+      await pc?.removeTrack(videoSender!);
+      _localVideoStream = null;
+    }
+
+    pc?.close();
+    pc = null;
+    connectionState = StreamingSessionConnectionState.disconnected;
+
+    releaseLock();
+  }
+
+  Timer? _pingTimeoutTimer;
+
+  // We take 15s as timeout from remote peer.
+  void restartPingTimeoutTimer() {
+    _pingTimeoutTimer?.cancel(); // 取消之前的Timer
+    _pingTimeoutTimer = Timer(const Duration(seconds: 15), () {
+      // 超过15秒没收到pingpong，断开连接
+      VLOG0("No ping message received within 15 seconds, disconnecting...");
+      close();
+    });
+  }
+
+  Completer<void>? _lock;
+
+  Future<void> acquireLock() async {
+    // 如果当前没有锁，创建一个新的锁
+    if (_lock == null) {
+      _lock = Completer<void>();
+      return; // 第一次调用，不阻塞，直接返回
+    }
+
+    // 如果已有锁，等待锁被释放
+    await _lock!.future;
+  }
+
+  void releaseLock() {
+    // 如果锁存在并且未完成，释放锁
+    if (_lock != null && !_lock!.isCompleted) {
+      _lock!.complete();
+      _lock = null; // 释放锁后清空
+    }
+  }
+
+  void processDataChannelMessageFromClient(RTCDataChannelMessage message) {
+    VLOG0("message from Client:${message.binary[0]}");
+    if (message.isBinary) {
       switch (message.binary[0]) {
         case LP_PING:
-          if (message.binary.length == 2 && message.binary[1] == RP_PING){
+          if (message.binary.length == 2 && message.binary[1] == RP_PING) {
             VLOG0("ping received from client");
+            restartPingTimeoutTimer();
             Timer(const Duration(seconds: 1), () {
-            channel?.send(RTCDataChannelMessage.fromBinary(Uint8List.fromList([LP_PING, RP_PONG])));
+              if (connectionState ==
+                  StreamingSessionConnectionState.disconnecting) return;
+              channel?.send(RTCDataChannelMessage.fromBinary(
+                  Uint8List.fromList([LP_PING, RP_PONG])));
             });
-            break;
           }
+          break;
         case LP_MOUSE:
+          break;
+        case LP_DISCONNECT:
+          close();
           break;
         default:
           VLOG0("unhandled message.please debug");
       }
-    }else{
-      
+    } else {
+      VLOG0("Channel message: ${message.text}");
     }
   }
 
-  void processDataChannelMessageFromHost(RTCDataChannelMessage message){
-    if (message.isBinary){
-      if (message.binary[0] == LP_PING) {
-        if (message.binary.length == 2 && message.binary[1] == RP_PONG){
-          VLOG0("pong received from host");
-          Timer(const Duration(seconds: 1), () {
-            channel?.send(RTCDataChannelMessage.fromBinary(Uint8List.fromList([LP_PING, RP_PING])));
-          });
-        }
+  void processDataChannelMessageFromHost(RTCDataChannelMessage message) async {
+    if (message.isBinary) {
+      switch (message.binary[0]) {
+        case LP_PING:
+          if (message.binary.length == 2 && message.binary[1] == RP_PONG) {
+            VLOG0("pong received from host");
+            restartPingTimeoutTimer();
+            Timer(const Duration(seconds: 1), () {
+              if (connectionState ==
+                  StreamingSessionConnectionState.disconnecting) return;
+              channel?.send(RTCDataChannelMessage.fromBinary(
+                  Uint8List.fromList([LP_PING, RP_PING])));
+            });
+          }
+          break;
+        case LP_DISCONNECT:
+          close();
+          break;
+        default:
+          VLOG0("unhandled message from host.please debug");
       }
-    }else{
-      
-    }
+    } else {}
   }
 }
