@@ -101,6 +101,7 @@ class _DeviceDetailPageState extends State<DeviceDetailPage> {
                     !ScreenController.showVirtualKeyboard.value);
               }
               if (index == 3) {
+                ScreenController.setOnlyShowRemoteScreen(false);
                 StreamingManager.stopStreaming(widget.device);
               }
             },

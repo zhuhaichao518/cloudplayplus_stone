@@ -7,6 +7,7 @@ import 'package:cloudplayplus/services/streamed_manager.dart';
 import 'package:cloudplayplus/services/streaming_manager.dart';
 import 'package:cloudplayplus/services/websocket_service.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
+import 'package:mutex/mutex.dart';
 
 import '../base/logging.dart';
 import '../global_settings/streaming_settings.dart';
@@ -43,6 +44,9 @@ enum SelfSessionType {
   controlled,
 }
 
+//目前使用lock来防止我close的过程中使用了peerconnection.
+//还有一种方法是close的一开始就把pc等变量设为null,用一个临时pc存储和继续析构流程
+//这样别的异步调用进来的时候pc？就会是null 所以也应该没问题
 class StreamingSession {
   StreamingSessionConnectionState connectionState =
       StreamingSessionConnectionState.free;
@@ -83,7 +87,7 @@ class StreamingSession {
     }
     selfSessionType = SelfSessionType.controller;
 
-    await acquireLock();
+    acquireLock();
     streamSettings = StreamedSettings.fromJson(StreamingSettings.toJson());
     connectionState = StreamingSessionConnectionState.requestSent;
     pc = await createRTCPeerConnection();
@@ -204,7 +208,7 @@ class StreamingSession {
       return;
     }
     selfSessionType = SelfSessionType.controlled;
-    await acquireLock();
+    acquireLock();
     streamSettings = settings;
     final Map<String, dynamic> mediaConstraints;
     if (AppPlatform.isWeb) {
@@ -359,7 +363,7 @@ class StreamingSession {
       VLOG0("received offer on disconnection. Dropping");
       return;
     }
-    await acquireLock();
+    acquireLock();
     await pc!.setRemoteDescription(
         RTCSessionDescription(offer['sdp'], offer['type']));
 
@@ -390,7 +394,7 @@ class StreamingSession {
       VLOG0("received answer on disconnection. Dropping");
       return;
     }
-    await acquireLock();
+    acquireLock();
     await pc!.setRemoteDescription(
         RTCSessionDescription(anwser['sdp'], anwser['type']));
     releaseLock();
@@ -402,7 +406,7 @@ class StreamingSession {
       VLOG0("received candidate on disconnection. Dropping");
       return;
     }
-    await acquireLock();
+    acquireLock();
     // It is possible that the peerconnection has not been inited. add to list and add later for this case.
     RTCIceCandidate candidate = RTCIceCandidate(candidateMap['candidate'],
         candidateMap['sdpMid'], candidateMap['sdpMLineIndex']);
@@ -438,7 +442,7 @@ class StreamingSession {
     _pingTimeoutTimer?.cancel(); // 取消之前的Timer
     connectionState = StreamingSessionConnectionState.disconnecting;
     // We don't want to see more new connections when it is stopped. So we may want to use a lock.
-    await acquireLock();
+    acquireLock();
     candidates.clear();
 
     if (channel != null) {
@@ -476,25 +480,14 @@ class StreamingSession {
     });
   }
 
-  Completer<void>? _lock;
+  final locker = Mutex();
 
-  Future<void> acquireLock() async {
-    // 如果当前没有锁，创建一个新的锁
-    if (_lock == null) {
-      _lock = Completer<void>();
-      return; // 第一次调用，不阻塞，直接返回
-    }
-
-    // 如果已有锁，等待锁被释放
-    await _lock!.future;
+  void acquireLock() {
+    locker.acquire();
   }
 
   void releaseLock() {
-    // 如果锁存在并且未完成，释放锁
-    if (_lock != null && !_lock!.isCompleted) {
-      _lock!.complete();
-      _lock = null; // 释放锁后清空
-    }
+    locker.release();
   }
 
   void processDataChannelMessageFromClient(RTCDataChannelMessage message) {
