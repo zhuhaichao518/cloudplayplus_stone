@@ -199,17 +199,20 @@ class StreamingSession {
   //accept request and send offer to the peer. you should verify this is authorized before calling this funciton.
   //We are the 'controlled'.
   void acceptRequest(StreamedSettings settings) async {
+    acquireLock();
     if (connectionState != StreamingSessionConnectionState.free &&
         connectionState != StreamingSessionConnectionState.disconnected) {
       VLOG0("starting connection on which is already started. Please debug.");
+      releaseLock();
       return;
     }
     if (controlled.websocketSessionid != AppStateService.websocketSessionid) {
       VLOG0("requiring connection on wrong device. Please debug.");
+      releaseLock();
       return;
     }
     selfSessionType = SelfSessionType.controlled;
-    acquireLock();
+    restartPingTimeoutTimer();
     streamSettings = settings;
 
     pc = await createRTCPeerConnection();
