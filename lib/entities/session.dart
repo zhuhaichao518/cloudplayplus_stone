@@ -55,8 +55,9 @@ class StreamingSession {
   RTCPeerConnection? pc;
   //late RTCPeerConnection audio;
 
-  MediaStream? _localVideoStream;
+  //MediaStream? _localVideoStream;
   //MediaStream? _localAudioStream;
+  //MediaStreamTrack? _localStreamTrack;
 
   RTCRtpSender? videoSender;
   //RTCRtpSender? audioSender;
@@ -210,40 +211,16 @@ class StreamingSession {
     selfSessionType = SelfSessionType.controlled;
     acquireLock();
     streamSettings = settings;
-    final Map<String, dynamic> mediaConstraints;
-    if (AppPlatform.isWeb) {
-      mediaConstraints = {
-        'audio': false,
-        'video': {
-          'frameRate': {'ideal': settings.framerate, 'max': settings.framerate}
-        }
-      };
-    } else {
-      var sources =
-          await desktopCapturer.getSources(types: [SourceType.Screen]);
-      //Todo(haichao): currently this should have no effect. we should change it to be right.
-      final source = sources[settings.screenId!];
-      mediaConstraints = <String, dynamic>{
-        'video': {
-          'deviceId': {'exact': source.id},
-          'mandatory': {
-            'frameRate': settings.framerate,
-            'hideCursor': (settings.showRemoteCursor == false)
-          }
-        },
-        'audio': false
-      };
-    }
-
-    _localVideoStream =
-        await navigator.mediaDevices.getDisplayMedia(mediaConstraints);
 
     pc = await createRTCPeerConnection();
 
-    if (_localVideoStream != null) {
+    if (StreamedManager.localVideoStreams[settings.screenId] != null) {
       // one track expected.
-      _localVideoStream!.getTracks().forEach((track) async {
-        videoSender = (await pc!.addTrack(track, _localVideoStream!));
+      StreamedManager.localVideoStreams[settings.screenId]!
+          .getTracks()
+          .forEach((track) async {
+        videoSender = (await pc!.addTrack(
+            track, StreamedManager.localVideoStreams[settings.screenId]!));
       });
     }
 
@@ -452,15 +429,7 @@ class StreamingSession {
       await channel?.close();
       channel = null;
     }
-
-    if (_localVideoStream != null) {
-      _localVideoStream?.getTracks().forEach((track) {
-        track.stop();
-      });
-      await pc?.removeTrack(videoSender!);
-      _localVideoStream = null;
-    }
-
+    //TODO:理论上不需要removetrack pc会自动close 但是需要验证
     pc?.close();
     pc = null;
     connectionState = StreamingSessionConnectionState.disconnected;
