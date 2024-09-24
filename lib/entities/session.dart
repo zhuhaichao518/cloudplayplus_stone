@@ -249,6 +249,9 @@ class StreamingSession {
 
     var transceivers = await pc!.getTransceivers();
     var vcaps = await getRtpSenderCapabilities('video');
+    // webrtc有白名单限制，默认高通cpu三星猎户座，其他cpu一般是不支持的
+    // 这些设备需要修改webrtc源码来支持 否则不能使用H264
+    // https://github.com/flutter-webrtc/flutter-webrtc/issues/182
     for (var transceiver in transceivers) {
       var codecs = vcaps.codecs
               ?.where(
