@@ -20,6 +20,7 @@ version: 1.0.0+1
 
 environment:
   sdk: '>=3.2.0-11.0.dev <4.0.0'
+  flutter: ">=3.3.0"
 
 # Dependencies specify other packages that your package needs in order to work.
 # To automatically upgrade your package dependencies to the latest versions
@@ -65,7 +66,7 @@ dependencies:
   stacked: ^3.4.3
   bitsdojo_window: ^0.1.6
   qr_flutter: ^4.1.0
-  web: ^0.5.1
+  web: ^1.0.0
   fullscreen_window: ^1.0.4
   mutex: ^3.1.0
 

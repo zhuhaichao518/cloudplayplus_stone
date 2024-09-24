@@ -15,6 +15,6 @@ A new flutter plugin project.
   s.source_files     = ['Classes/**/*']
 
   s.dependency 'FlutterMacOS'
-  s.dependency 'WebRTC-SDK', '125.6422.04'
+  s.vendored_frameworks = 'WebRTC.framework'
   s.osx.deployment_target = '10.14'
 end
