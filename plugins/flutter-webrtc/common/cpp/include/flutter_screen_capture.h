@@ -9,27 +9,10 @@
 
 namespace flutter_webrtc_plugin {
 
-extern void addDefaultAudioConstraints(
-    scoped_refptr<RTCMediaConstraints> audioConstraints);
-
-extern std::string getSourceIdConstraint(const EncodableMap& mediaConstraints);
-
-extern std::string getDeviceIdConstraint(const EncodableMap& mediaConstraints);
-
-extern void addDefaultAudioConstraints(
-    scoped_refptr<RTCMediaConstraints> audioConstraints);
-
-extern void addStreamAudioConstraints(
-    scoped_refptr<RTCMediaConstraints> audioConstraints);
-
 class FlutterScreenCapture : public MediaListObserver,
                              public DesktopCapturerObserver {
  public:
   FlutterScreenCapture(FlutterWebRTCBase* base);
-
-  void GetUserAudio(const EncodableMap& constraints,
-                    scoped_refptr<RTCMediaStream> stream,
-                    EncodableMap& params);
 
   void GetDisplayMedia(const EncodableMap& constraints,
                        std::unique_ptr<MethodResultProxy> result);

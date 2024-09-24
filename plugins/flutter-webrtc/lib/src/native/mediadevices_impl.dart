@@ -62,9 +62,6 @@ class MediaDeviceNative extends MediaDevices {
       }
       String streamId = response['streamId'];
       var stream = MediaStreamNative(streamId, 'local');
-      if (response['videoTracks'] == null) {
-        response['videoTracks'] = [];
-      }
       stream.setMediaTracks(response['audioTracks'], response['videoTracks']);
       return stream;
     } on PlatformException catch (e) {

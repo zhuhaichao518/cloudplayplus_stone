@@ -45,25 +45,6 @@ class MediaStreamTrackNative extends MediaStreamTrack {
     }
   }
 
-  // TODO(haichao): implement this function.
-  /*
-  @override
-  set enabled(bool enabled) {
-    WebRTC.invokeMethod('mediaStreamTrackSetEnable', <String, dynamic>{
-      'trackId': _trackId,
-      'enabled': enabled,
-      'peerConnectionId': _peerConnectionId
-    });
-    _enabled = enabled;
-
-    if (kind == 'audio') {
-      _muted = !enabled;
-      muted ? onMute?.call() : onUnMute?.call();
-    }
-  }
-
-  */
-
   @override
   bool get enabled => _enabled;
 
