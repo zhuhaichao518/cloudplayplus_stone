@@ -6,4 +6,5 @@ class DevelopSettings {
   static bool useSecureStorage = false;
   static bool alwaysShowIntroPage = false;
   static bool useRTCTestServer = true;
+  static bool isDebugging = true;
 }

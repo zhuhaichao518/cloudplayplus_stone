@@ -180,8 +180,18 @@
 
 #pragma mark - RTCVideoRenderer methods
 - (void)renderFrame:(RTCVideoFrame*)frame {
-  [self copyI420ToCVPixelBuffer:_pixelBufferRef withFrame:frame];
-
+    CVPixelBufferRef pixelBuffer = [frame.buffer toCVPixelBuffer];
+    if (pixelBuffer) {
+        CVPixelBufferRetain(pixelBuffer);
+        if (_pixelBufferRef) {
+            CVPixelBufferRelease(_pixelBufferRef);
+        }
+        _pixelBufferRef = pixelBuffer;
+    } else {
+        // no hardware acceleration implemented yet. fallback to software.
+        [self copyI420ToCVPixelBuffer:_pixelBufferRef withFrame:frame];
+    }
+    
   __weak FlutterRTCVideoRenderer* weakSelf = self;
   if (_renderSize.width != frame.width || _renderSize.height != frame.height) {
     dispatch_async(dispatch_get_main_queue(), ^{
@@ -238,7 +248,9 @@
       CVBufferRelease(_pixelBufferRef);
     }
     NSDictionary* pixelAttributes = @{(id)kCVPixelBufferIOSurfacePropertiesKey : @{}};
-    CVPixelBufferCreate(kCFAllocatorDefault, size.width, size.height, kCVPixelFormatType_32BGRA,
+    CVPixelBufferCreate(kCFAllocatorDefault, size.width, size.height, //kCVPixelFormatType_32BGRA,
+        //TODO:(Haichao): this is used in RTCVideoDecoderH264.mm. Check other formats.
+        kCVPixelFormatType_420YpCbCr8BiPlanarFullRange,
                         (__bridge CFDictionaryRef)(pixelAttributes), &_pixelBufferRef);
 
     _frameSize = size;

@@ -69,6 +69,7 @@ dependencies:
   web: ^1.0.0
   fullscreen_window: ^1.0.4
   mutex: ^3.1.0
+  sdp_transform: ^0.3.2
 
 dev_dependencies:
   flutter_test:
