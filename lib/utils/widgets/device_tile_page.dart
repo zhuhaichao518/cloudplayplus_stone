@@ -78,6 +78,7 @@ class _DeviceDetailPageState extends State<DeviceDetailPage> {
     if (StreamingManager.getStreamingStateto(widget.device) ==
         StreamingSessionConnectionState.connected) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
+        ScreenController.setshowDetailUseScrollView(false);
         ScreenController.setShowDetailTitle(false);
       });
       return Stack(
@@ -116,6 +117,7 @@ class _DeviceDetailPageState extends State<DeviceDetailPage> {
       );
     }
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      ScreenController.setshowDetailUseScrollView(true);
       ScreenController.setShowDetailTitle(true);
       ScreenController.setOnlyShowRemoteScreen(false);
     });

@@ -48,8 +48,7 @@ class StreamingSettings {
         SharedPreferencesManager.getString('turnServerPassword') ??
             ''; // Default to empty string
     targetScreenId = 0;
-    codec = SharedPreferencesManager.getString('codec') ??
-            'default';
+    codec = SharedPreferencesManager.getString('codec') ?? 'default';
   }
 
   static Map<String, dynamic> toJson() {
@@ -64,7 +63,7 @@ class StreamingSettings {
       'turnServerUsername': turnServerUsername,
       'turnServerPassword': turnServerPassword,
       'targetScreenId': targetScreenId,
-      'codec':codec,
+      'codec': codec,
     };
     data.removeWhere((key, value) => value == null);
     return data;

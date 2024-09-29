@@ -33,9 +33,19 @@ class DetailView<T> extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return viewModel.selectedItem == null
-        ? _buildNothingSelectedView()
-        : _buildScrollView(context);
+    return ValueListenableBuilder<bool>(
+        valueListenable: ScreenController.showDetailUseScrollView,
+        builder: (context, usescrollview, child) {
+          if (!usescrollview && viewModel.selectedItem != null) {
+            return detailsItemBuilder(
+              context,
+              viewModel.selectedItem as T,
+            );
+          }
+          return viewModel.selectedItem == null
+              ? _buildNothingSelectedView()
+              : _buildScrollView(context);
+        });
   }
 
   CustomScrollView _buildScrollView(BuildContext context) {

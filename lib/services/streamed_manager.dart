@@ -92,7 +92,7 @@ class StreamedManager {
           localVideoStreams.remove(screenId);
         }
       }
-      if (sessions.isEmpty){
+      if (sessions.isEmpty) {
         //TODO(Haichao): maybe restart app to save memory? 给用户一个按钮来重启app.
       }
     } else {

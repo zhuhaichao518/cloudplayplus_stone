@@ -229,7 +229,7 @@ class StreamingSession {
       });
     }
 
-  /* deprecated. using RTCutils instead.
+    /* deprecated. using RTCutils instead.
   // Retrieve all transceivers from the PeerConnection
   var transceivers = await pc!.getTransceivers();
 
@@ -318,17 +318,17 @@ class StreamingSession {
       },
       'optional': [],
     });
-    
-    if (selfSessionType == SelfSessionType.controlled){
-      if (settings.codec == null || settings.codec=="default"){
-        if(AppPlatform.isMacos){
+
+    if (selfSessionType == SelfSessionType.controlled) {
+      if (settings.codec == null || settings.codec == "default") {
+        if (AppPlatform.isMacos) {
           //TODO(haichao):h264 encoder is slow for my m3 mac max. check other platforms.
           //setPreferredCodec(sdp, audio: 'opus', video: 'vp8');
           setPreferredCodec(sdp, audio: 'opus', video: 'vp8');
-        }else{
+        } else {
           setPreferredCodec(sdp, audio: 'opus', video: 'h264');
         }
-      }else{
+      } else {
         setPreferredCodec(sdp, audio: 'opus', video: settings.codec!);
       }
     }
