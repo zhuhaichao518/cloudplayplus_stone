@@ -70,6 +70,8 @@ class StreamingSession {
 
   List<RTCIceCandidate> candidates = [];
 
+  int screenId = 0;
+
   StreamingSession(this.controller, this.controlled) {
     connectionState = StreamingSessionConnectionState.free;
   }

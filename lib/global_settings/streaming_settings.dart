@@ -50,6 +50,11 @@ class StreamingSettings {
     targetScreenId = 0;
     codec = SharedPreferencesManager.getString('codec') ?? 'default';
   }
+  
+  //Screen id setting is not global, so we need to call before start streaming.
+  static void updateScreenId(int newScreenId){
+    targetScreenId = newScreenId;
+  }
 
   static Map<String, dynamic> toJson() {
     Map<String, dynamic> data = {

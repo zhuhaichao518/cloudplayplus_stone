@@ -146,7 +146,6 @@ class _DeviceDetailPageState extends State<DeviceDetailPage> {
                   onChanged: (int? value) {
                     setState(() {
                       _selectedMonitorId = value!;
-                      StreamingSettings.targetScreenId = value - 1;
                     });
                   },
                 ),
@@ -201,6 +200,7 @@ class _DeviceDetailPageState extends State<DeviceDetailPage> {
 
   void _connectDevice(BuildContext context) {
     // 连接设备的逻辑
+    StreamingSettings.updateScreenId(_selectedMonitorId - 1);
     StreamingManager.startStreaming(widget.device);
     VLOG0('连接设备: ${widget.device.devicename}');
   }
