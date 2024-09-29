@@ -56,13 +56,4 @@ class WebRTC {
       initialized = true;
     }
   }
-
-  static Future<void> reinitialize({Map<String, dynamic>? options}) async {
-    if (initialized) {
-      await _channel.invokeMethod<void>('reinitialize', <String, dynamic>{
-        'options': options ?? {},
-      });
-      initialized = true;
-    }
-  }
 }

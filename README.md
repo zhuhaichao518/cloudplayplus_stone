@@ -33,3 +33,18 @@ chrome debug:
 set chrome path to 
 var/lib/flatpak/app/com.google.Chrome/current/active/export/bin/com.google.Chrome
 if using flatpak
+
+# MacOS debug WebRTCFramework:
+copy the framework and dysm to flutter-webrtc/macos
+use xcode to build
+
+first time:
+modify pod
+pod install in cloudplayplus/macos
+
+# Web Debug
+## use local server:
+flutter run -d chrome --web-browser-flag "--disable-web-security"
+
+rtc build:
+python3 run.py build macos_arm64

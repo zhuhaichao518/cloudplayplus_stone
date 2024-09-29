@@ -108,7 +108,7 @@
                       dstV:(uint8_t*)buffer.dataV
                 dstStrideV:buffer.strideV
                      width:src.width
-                     width:src.height
+                    height:src.height
                       mode:rotation];
 
   return buffer;
@@ -140,7 +140,7 @@
                        dstUV:dstUV
                  dstStrideUV:(int)dstUVStride
                        width:i420Buffer.width
-                       width:i420Buffer.height];
+                      height:i420Buffer.height];
 
   } else {
     uint8_t* dst = CVPixelBufferGetBaseAddress(outputPixelBuffer);
@@ -180,14 +180,24 @@
 
 #pragma mark - RTCVideoRenderer methods
 - (void)renderFrame:(RTCVideoFrame*)frame {
-  [self copyI420ToCVPixelBuffer:_pixelBufferRef withFrame:frame];
-
+    CVPixelBufferRef pixelBuffer = [frame.buffer toCVPixelBuffer];
+    if (pixelBuffer) {
+        CVPixelBufferRetain(pixelBuffer);
+        if (_pixelBufferRef) {
+            CVPixelBufferRelease(_pixelBufferRef);
+        }
+        _pixelBufferRef = pixelBuffer;
+    } else {
+        // no hardware acceleration implemented yet. fallback to software.
+        [self copyI420ToCVPixelBuffer:_pixelBufferRef withFrame:frame];
+    }
+    
   __weak FlutterRTCVideoRenderer* weakSelf = self;
   if (_renderSize.width != frame.width || _renderSize.height != frame.height) {
     dispatch_async(dispatch_get_main_queue(), ^{
       FlutterRTCVideoRenderer* strongSelf = weakSelf;
       if (strongSelf.eventSink) {
-        strongSelf.eventSink(@{
+        postEvent( strongSelf.eventSink, @{
           @"event" : @"didTextureChangeVideoSize",
           @"id" : @(strongSelf.textureId),
           @"width" : @(frame.width),
@@ -202,7 +212,7 @@
     dispatch_async(dispatch_get_main_queue(), ^{
       FlutterRTCVideoRenderer* strongSelf = weakSelf;
       if (strongSelf.eventSink) {
-        strongSelf.eventSink(@{
+        postEvent( strongSelf.eventSink,@{
           @"event" : @"didTextureChangeRotation",
           @"id" : @(strongSelf.textureId),
           @"rotation" : @(frame.rotation),
@@ -219,7 +229,7 @@
     [strongSelf.registry textureFrameAvailable:strongSelf.textureId];
     if (!strongSelf->_isFirstFrameRendered) {
       if (strongSelf.eventSink) {
-        strongSelf.eventSink(@{@"event" : @"didFirstFrameRendered"});
+        postEvent(strongSelf.eventSink, @{@"event" : @"didFirstFrameRendered"});
         strongSelf->_isFirstFrameRendered = true;
       }
     }
@@ -238,7 +248,9 @@
       CVBufferRelease(_pixelBufferRef);
     }
     NSDictionary* pixelAttributes = @{(id)kCVPixelBufferIOSurfacePropertiesKey : @{}};
-    CVPixelBufferCreate(kCFAllocatorDefault, size.width, size.height, kCVPixelFormatType_32BGRA,
+    CVPixelBufferCreate(kCFAllocatorDefault, size.width, size.height, //kCVPixelFormatType_32BGRA,
+        //TODO:(Haichao): this is used in RTCVideoDecoderH264.mm. Check other formats.
+        kCVPixelFormatType_420YpCbCr8BiPlanarFullRange,
                         (__bridge CFDictionaryRef)(pixelAttributes), &_pixelBufferRef);
 
     _frameSize = size;

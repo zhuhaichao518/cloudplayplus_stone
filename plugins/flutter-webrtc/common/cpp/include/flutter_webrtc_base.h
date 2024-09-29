@@ -12,7 +12,6 @@
 #include "libwebrtc.h"
 
 #include "rtc_audio_device.h"
-#include "rtc_desktop_capturer.h"
 #include "rtc_desktop_device.h"
 #include "rtc_dtmf_sender.h"
 #include "rtc_media_stream.h"
@@ -25,11 +24,6 @@
 #include "uuidxx.h"
 
 namespace flutter_webrtc_plugin {
-
-// We put HWND here currently
-#if defined(_WINDOWS)
-extern HWND g_main_hwnd_;
-#endif
 
 using namespace libwebrtc;
 
@@ -51,8 +45,6 @@ class FlutterWebRTCBase {
  public:
   FlutterWebRTCBase(BinaryMessenger* messenger, TextureRegistrar* textures);
   ~FlutterWebRTCBase();
-
-  void Reinitialize();
 
   std::string GenerateUUID();
 
@@ -118,7 +110,6 @@ class FlutterWebRTCBase {
   std::map<std::string, scoped_refptr<RTCMediaStream>> local_streams_;
   std::map<std::string, scoped_refptr<RTCMediaTrack>> local_tracks_;
   std::map<std::string, scoped_refptr<RTCVideoCapturer>> video_capturers_;
-  std::map<std::string, scoped_refptr<RTCDesktopCapturer>> desktop_capturers_;
   std::map<int64_t, std::shared_ptr<FlutterVideoRenderer>> renders_;
   std::map<std::string, std::shared_ptr<FlutterRTCDataChannelObserver>>
       data_channel_observers_;

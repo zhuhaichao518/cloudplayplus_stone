@@ -7,6 +7,7 @@ import 'package:cloudplayplus/services/streaming_manager.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 
+import '../base/logging.dart';
 import '../dev_settings.dart/develop_settings.dart';
 import '../entities/device.dart';
 import '../entities/user.dart';
@@ -67,10 +68,8 @@ class WebSocketService {
   }
 
   static Future<void> onMessage(message) async {
-    if (kDebugMode) {
-      print("--got message from server------------------------");
-      print(message);
-    }
+    VLOG0("--got message from server------------------------");
+    VLOG0(message);
     Map<String, dynamic> mapData = message;
     var data = mapData['data'];
     switch (mapData['type']) {
@@ -84,9 +83,11 @@ class WebSocketService {
           if (AppPlatform.isWindows ||
               AppPlatform.isMacos ||
               AppPlatform.isLinux) {
-            List<DesktopCapturerSource> sources =
+            /*List<DesktopCapturerSource> sources =
                 await desktopCapturer.getSources(types: [SourceType.Screen]);
             ApplicationInfo.screencount = sources.length;
+            */
+            ApplicationInfo.screencount = 1;
           } else {
             ApplicationInfo.screencount = 1;
           }
@@ -138,9 +139,7 @@ class WebSocketService {
         }
       default:
         {
-          if (kDebugMode) {
-            print("warning:get unknown message from server");
-          }
+          VLOG0("warning:get unknown message from server");
           break;
         }
     }
@@ -158,12 +157,10 @@ class WebSocketService {
   }
 
   static void send(event, data) {
-    if (kDebugMode) {
-      print("sending----------");
-      print(event);
-      print(data);
-      print("end of sending------");
-    }
+    VLOG0("sending----------");
+    VLOG0(event);
+    VLOG0(data);
+    VLOG0("end of sending------");
     var request = {};
     request["type"] = event;
     request["data"] = data;

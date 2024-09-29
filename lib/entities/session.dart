@@ -6,6 +6,7 @@ import 'package:cloudplayplus/entities/device.dart';
 import 'package:cloudplayplus/services/streamed_manager.dart';
 import 'package:cloudplayplus/services/streaming_manager.dart';
 import 'package:cloudplayplus/services/websocket_service.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'package:mutex/mutex.dart';
 
@@ -14,6 +15,7 @@ import '../global_settings/streaming_settings.dart';
 import '../services/app_info_service.dart';
 import '../services/webrtc_service.dart';
 import '../webrtctest/rtc_service_impl.dart';
+import '../utils/rtc_utils.dart';
 import 'messages.dart';
 
 /*
@@ -227,16 +229,38 @@ class StreamingSession {
       });
     }
 
-    var transceivers = await pc!.getTransceivers();
-    var vcaps = await getRtpSenderCapabilities('video');
-    for (var transceiver in transceivers) {
-      var codecs = vcaps.codecs
-              ?.where(
-                  (element) => element.mimeType.toLowerCase().contains('h264'))
-              .toList() ??
-          [];
-      transceiver.setCodecPreferences(codecs);
+  /* deprecated. using RTCutils instead.
+  // Retrieve all transceivers from the PeerConnection
+  var transceivers = await pc!.getTransceivers();
+
+  // Get the RTP sender capabilities for video
+  var vcaps = await getRtpSenderCapabilities('video');
+
+  // Filter to get only the H.264 codecs from the available capabilities
+  // webrtc有白名单限制，默认高通cpu三星猎户座，其他cpu一般是不支持的
+  // 这些设备需要修改webrtc源码来支持 否则不能使用H264
+  // https://github.com/flutter-webrtc/flutter-webrtc/issues/182
+  // 我的macbook max上 h264性能很差 web端setCodecPreferences格式也不对 会fallback到别的编码器
+  for (var transceiver in transceivers) {
+    var codecs = vcaps.codecs
+            ?.where((element) => element.mimeType.toLowerCase().contains('h264'))
+            .toList() ??
+        [];
+
+    // Check if codecs list is not empty
+    if (codecs.isNotEmpty) {
+      try {
+        // Set codec preferences for the transceiver
+        await transceiver.setCodecPreferences(codecs);
+      } catch (e) {
+        // Log error if setting codec preferences fails
+        VLOG0('Error setting codec preferences: $e');
+      }
+    } else {
+      VLOG0('No compatible H.264 codecs found for transceiver.');
     }
+  }
+  */
 
     pc!.onIceCandidate = (candidate) async {
       if (settings.turnServerSettings == 2) {
@@ -294,6 +318,15 @@ class StreamingSession {
       },
       'optional': [],
     });
+    
+    if (selfSessionType == SelfSessionType.controlled){
+      if(AppPlatform.isMacos){
+        //TODO(haichao):h264 encoder is slow for my m3 mac max. check other platforms.
+        setPreferredCodec(sdp, audio: 'opus', video: 'vp8');
+      }else{
+        setPreferredCodec(sdp, audio: 'opus', video: 'h264');
+      }
+    }
 
     await pc!.setLocalDescription(_fixSdp(sdp, settings.bitrate!));
 
@@ -392,8 +425,10 @@ class StreamingSession {
         candidateMap['sdpMid'], candidateMap['sdpMLineIndex']);
     if (pc == null) {
       // This can not be triggered after adding lock. Keep this and We may resue this list in the future.
+      VLOG0("-----warning:this should not be triggered.");
       candidates.add(candidate);
     } else {
+      VLOG0("adding candidate");
       await pc!.addCandidate(candidate);
     }
     releaseLock();

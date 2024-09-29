@@ -18,20 +18,6 @@ FlutterWebRTCBase::FlutterWebRTCBase(BinaryMessenger* messenger,
   event_channel_ = EventChannelProxy::Create(messenger_, kEventChannelName);
 }
 
-void FlutterWebRTCBase::Reinitialize() {
-  audio_device_ = nullptr;
-  video_device_ = nullptr;
-  desktop_device_ = nullptr;
-  factory_->Terminate();
-  factory_ = nullptr;
-  LibWebRTC::Terminate();
-  LibWebRTC::Initialize();
-  factory_ = LibWebRTC::CreateRTCPeerConnectionFactory();
-  audio_device_ = factory_->GetAudioDevice();
-  video_device_ = factory_->GetVideoDevice();
-  desktop_device_ = factory_->GetDesktopDevice();
-}
-
 FlutterWebRTCBase::~FlutterWebRTCBase() {
   LibWebRTC::Terminate();
 }

@@ -66,17 +66,6 @@ void addDefaultAudioConstraints(
   audioConstraints->AddOptionalConstraint("googDAEchoCancellation", "true");
 }
 
-void addStreamAudioConstraints(
-    scoped_refptr<RTCMediaConstraints> audioConstraints) {
-  audioConstraints->AddOptionalConstraint("googNoiseSuppression", "false");
-  audioConstraints->AddOptionalConstraint("googEchoCancellation", "false");
-  audioConstraints->AddOptionalConstraint("echoCancellation", "false");
-  audioConstraints->AddOptionalConstraint("googEchoCancellation2", "false");
-  audioConstraints->AddOptionalConstraint("googDAEchoCancellation", "false");
-  audioConstraints->AddOptionalConstraint("googHighpassFilter", "false");
-
-}
-
 std::string getSourceIdConstraint(const EncodableMap& mediaConstraints) {
   auto it = mediaConstraints.find(EncodableValue("optional"));
   if (it != mediaConstraints.end() && TypeIs<EncodableList>(it->second)) {
@@ -477,6 +466,12 @@ void FlutterMediaStream::MediaStreamDispose(
     std::unique_ptr<MethodResultProxy> result) {
   scoped_refptr<RTCMediaStream> stream = base_->MediaStreamForId(stream_id);
 
+  if (!stream) {
+    result->Error("MediaStreamDisposeFailed",
+                  "stream [" + stream_id + "] not found!");
+    return;
+  }
+
   vector<scoped_refptr<RTCAudioTrack>> audio_tracks = stream->audio_tracks();
 
   for (auto track : audio_tracks.std_vector()) {
@@ -551,15 +546,6 @@ void FlutterMediaStream::MediaStreamTrackDispose(
         }
         base_->video_capturers_.erase(track_id);
        }
-      }
-
-      if (base_->desktop_capturers_.find(track_id) !=
-          base_->desktop_capturers_.end()) {
-       auto desktop_capturer = base_->desktop_capturers_[track_id];
-       if (desktop_capturer->IsRunning()) {
-         desktop_capturer->Stop();
-       }
-       base_->desktop_capturers_.erase(track_id);
       }
     }
   }

@@ -1,3 +1,5 @@
+import 'package:cloudplayplus/base/logging.dart';
+
 import 'turn.dart' if (dart.library.js) 'turn_web.dart';
 
 class RTCServiceImpl {
@@ -23,6 +25,7 @@ class RTCServiceImpl {
         },
       ]
     };
+    VLOG0("got iceservers:$iceServers");
     return iceServers;
   }
 }
