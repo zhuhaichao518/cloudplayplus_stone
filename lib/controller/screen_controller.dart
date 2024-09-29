@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:fullscreen_window/fullscreen_window.dart';
 
+import '../entities/session.dart';
+
 //Manage which screens will be shown.
 class ScreenController {
   //isFullScreen means borderless occupy the whole device screen.

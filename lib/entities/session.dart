@@ -75,6 +75,7 @@ class StreamingSession {
 
   StreamingSession(this.controller, this.controlled) {
     connectionState = StreamingSessionConnectionState.free;
+    controlled.connectionState.value = StreamingSessionConnectionState.free;
   }
 
   Function(String mediatype, MediaStream stream)? onAddRemoteStream;
@@ -134,6 +135,8 @@ class StreamingSession {
 
     pc!.onTrack = (event) {
       connectionState = StreamingSessionConnectionState.connected;
+      controlled.connectionState.value =
+          StreamingSessionConnectionState.connected;
       //tell the device tile page to render the rtc video.
       //StreamingManager.runUserViewCallback();
       WebrtcService.addStream(controlled.websocketSessionid, event);
@@ -479,6 +482,7 @@ class StreamingSession {
     pc?.close();
     pc = null;
     connectionState = StreamingSessionConnectionState.disconnected;
+    controlled.connectionState.value = StreamingSessionConnectionState.free;
 
     releaseLock();
   }

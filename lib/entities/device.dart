@@ -1,3 +1,6 @@
+import 'package:cloudplayplus/entities/session.dart';
+import 'package:flutter/foundation.dart';
+
 class Device {
   //都用基本类型 传输简便
   final int uid;
@@ -8,6 +11,9 @@ class Device {
   //allow this device to be connected
   final bool connective;
   final int screencount;
+
+  ValueNotifier<StreamingSessionConnectionState> connectionState =
+      ValueNotifier(StreamingSessionConnectionState.free);
 
   Device(
       {required this.uid,

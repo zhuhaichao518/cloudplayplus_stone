@@ -65,7 +65,7 @@ class _DeviceDetailPageState extends State<DeviceDetailPage> {
 
   // callback and trigger rebuild when StreamingSessionConnectionState is updated.
   void onRemoteScreenReceived() {
-    setState(() {});
+    //setState(() {});
   }
 
   @override
@@ -75,127 +75,129 @@ class _DeviceDetailPageState extends State<DeviceDetailPage> {
     WebrtcService.updateCurrentRenderingDevice(
         widget.device.websocketSessionid, onRemoteScreenReceived);
 
-    if (StreamingManager.getStreamingStateto(widget.device) ==
-        StreamingSessionConnectionState.connected) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        ScreenController.setshowDetailUseScrollView(false);
-        ScreenController.setShowDetailTitle(false);
-      });
-      return Stack(
-        children: [
-          const GlobalRemoteScreenRenderer(),
-          FloatingMenuPanel(
-            onPressed: (index) async {
-              if (index == 0) {
-                await ScreenController.setIsFullScreen(
-                    !ScreenController.isFullScreen);
-              }
-              if (index == 1) {
-                /*ScreenController.setShowNavBar(
-                    !ScreenController.showBottomNav.value);
-                ScreenController.setShowMasterList(!ScreenController.showMasterList.value);*/
-                ScreenController.setOnlyShowRemoteScreen(
-                    !ScreenController.onlyShowRemoteScreen);
-              }
-              if (index == 2) {
-                ScreenController.setShowVirtualKeyboard(
-                    !ScreenController.showVirtualKeyboard.value);
-              }
-              if (index == 3) {
-                ScreenController.setOnlyShowRemoteScreen(false);
-                StreamingManager.stopStreaming(widget.device);
-              }
-            },
-            buttons: const [
-              Icons.crop_free,
-              Icons.open_in_full,
-              Icons.keyboard,
-              Icons.close,
-            ],
-          ),
-        ],
-      );
-    }
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      ScreenController.setshowDetailUseScrollView(true);
-      ScreenController.setShowDetailTitle(true);
-      ScreenController.setOnlyShowRemoteScreen(false);
-    });
-    return SingleChildScrollView(
-      padding: EdgeInsets.symmetric(horizontal: 24.0, vertical: 48.0), // 增加内边距
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: <Widget>[
-          // 使用更大的字体和粗体来突出设备类型
-          Text(
-            "设备名称:${widget.device.devicename}",
-          ),
-          SizedBox(height: 16), // 增加垂直间距
-          // 使用更大的字体和粗体来突出设备类型
-          Text(
-            "设备平台:${widget.device.devicetype}",
-          ),
-          SizedBox(height: 16), // 增加垂直间距
-          if (widget.device.screencount > 1)
-            for (int i = 1; i <= widget.device.screencount; i++)
-              ListTile(
-                title: Text('显示器 $i'),
-                leading: Radio(
-                  value: i,
-                  groupValue: _selectedMonitorId,
-                  onChanged: (int? value) {
-                    setState(() {
-                      _selectedMonitorId = value!;
-                    });
+    return ValueListenableBuilder<StreamingSessionConnectionState>(
+        valueListenable: widget.device.connectionState,
+        builder: (context, value, child) {
+          if (value == StreamingSessionConnectionState.connected) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              ScreenController.showDetailUseScrollView.value = false;
+            });
+            return Stack(
+              children: [
+                const GlobalRemoteScreenRenderer(),
+                FloatingMenuPanel(
+                  onPressed: (index) async {
+                    if (index == 0) {
+                      await ScreenController.setIsFullScreen(
+                          !ScreenController.isFullScreen);
+                    }
+                    if (index == 1) {
+                      /*ScreenController.setShowNavBar(
+                          !ScreenController.showBottomNav.value);
+                      ScreenController.setShowMasterList(!ScreenController.showMasterList.value);*/
+                      ScreenController.setOnlyShowRemoteScreen(
+                          !ScreenController.onlyShowRemoteScreen);
+                    }
+                    if (index == 2) {
+                      ScreenController.setShowVirtualKeyboard(
+                          !ScreenController.showVirtualKeyboard.value);
+                    }
+                    if (index == 3) {
+                      ScreenController.setshowDetailUseScrollView(true);
+                      ScreenController.setOnlyShowRemoteScreen(false);
+                      StreamingManager.stopStreaming(widget.device);
+                    }
                   },
+                  buttons: const [
+                    Icons.crop_free,
+                    Icons.open_in_full,
+                    Icons.keyboard,
+                    Icons.close,
+                  ],
                 ),
-              ),
-          SizedBox(height: 16), // 增加垂直间距
-          // 使用装饰文本来展示应用ID
-          Text(
-            "会话ID: ${widget.device.websocketSessionid.toString().substring(widget.device.websocketSessionid.toString().length - 6)}",
-          ),
-          SizedBox(height: 48), // 增加垂直间距
-          // 使用按钮来提供连接设备的交互
-          //widget.device.websocketSessionid ==
-          //        ApplicationInfo.thisDevice.websocketSessionid?
-          ElevatedButton(
-            onPressed: () => _connectDevice(context),
-            child: const Text('连接设备', style: TextStyle(fontSize: 18)),
-            style: ElevatedButton.styleFrom(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
-              ),
-            ),
-          ),
-          // : Container(),
-          SizedBox(height: 24), // 增加垂直间距
-          // 如果设备是用户的，显示分享组件
-          if (widget.device.uid == ApplicationInfo.user.uid) ...[
-            TextField(
-              controller: _shareController,
-              decoration: InputDecoration(
-                labelText: '分享给...',
-                border: OutlineInputBorder(),
-              ),
-            ),
-            SizedBox(height: 24), // 增加垂直间距
-            QrImageView(
-              data: 'https://www.cloudplayplus.com',
-              version: QrVersions.auto,
-              size: 200.0,
-            ),
-            ElevatedButton(
-              onPressed: () => _shareDevice(context),
-              child: Text('共享设备', style: TextStyle(fontSize: 18)),
-              style: ElevatedButton.styleFrom(
-                  // 按钮样式
+              ],
+            );
+          }
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            ScreenController.showDetailUseScrollView.value = true;
+          });
+          return SingleChildScrollView(
+            padding:
+                EdgeInsets.symmetric(horizontal: 24.0, vertical: 48.0), // 增加内边距
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: <Widget>[
+                // 使用更大的字体和粗体来突出设备类型
+                Text(
+                  "设备名称:${widget.device.devicename}",
+                ),
+                SizedBox(height: 16), // 增加垂直间距
+                // 使用更大的字体和粗体来突出设备类型
+                Text(
+                  "设备平台:${widget.device.devicetype}",
+                ),
+                SizedBox(height: 16), // 增加垂直间距
+                if (widget.device.screencount > 1)
+                  for (int i = 1; i <= widget.device.screencount; i++)
+                    ListTile(
+                      title: Text('显示器 $i'),
+                      leading: Radio(
+                        value: i,
+                        groupValue: _selectedMonitorId,
+                        onChanged: (int? value) {
+                          setState(() {
+                            _selectedMonitorId = value!;
+                          });
+                        },
+                      ),
+                    ),
+                SizedBox(height: 16), // 增加垂直间距
+                // 使用装饰文本来展示应用ID
+                Text(
+                  "会话ID: ${widget.device.websocketSessionid.toString().substring(widget.device.websocketSessionid.toString().length - 6)}",
+                ),
+                SizedBox(height: 48), // 增加垂直间距
+                // 使用按钮来提供连接设备的交互
+                //widget.device.websocketSessionid ==
+                //        ApplicationInfo.thisDevice.websocketSessionid?
+                ElevatedButton(
+                  onPressed: () => _connectDevice(context),
+                  child: const Text('连接设备', style: TextStyle(fontSize: 18)),
+                  style: ElevatedButton.styleFrom(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
                   ),
+                ),
+                // : Container(),
+                SizedBox(height: 24), // 增加垂直间距
+                // 如果设备是用户的，显示分享组件
+                if (widget.device.uid == ApplicationInfo.user.uid) ...[
+                  TextField(
+                    controller: _shareController,
+                    decoration: InputDecoration(
+                      labelText: '分享给...',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                  SizedBox(height: 24), // 增加垂直间距
+                  QrImageView(
+                    data: 'https://www.cloudplayplus.com',
+                    version: QrVersions.auto,
+                    size: 200.0,
+                  ),
+                  ElevatedButton(
+                    onPressed: () => _shareDevice(context),
+                    child: Text('共享设备', style: TextStyle(fontSize: 18)),
+                    style: ElevatedButton.styleFrom(
+                        // 按钮样式
+                        ),
+                  ),
+                ],
+              ],
             ),
-          ],
-        ],
-      ),
-    );
+          );
+        });
   }
 
   void _connectDevice(BuildContext context) {

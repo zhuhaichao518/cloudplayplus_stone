@@ -9,8 +9,7 @@ import 'dart:typed_data';
 
 import 'package:cloudplayplus/entities/messages.dart';
 
-
-  void requestMoveMouseRelative(double dx, double dy, int screenId) async {
+void requestMoveMouseRelative(double dx, double dy, int screenId) async {
   // 创建一个ByteData足够存储 LP_MOUSE, screenId, dx, dy
   ByteData byteData = ByteData(10);
   byteData.setUint8(0, LP_MOUSE_ABSL);
@@ -25,7 +24,7 @@ import 'package:cloudplayplus/entities/messages.dart';
   handleMoveMouseRelative(buffer);
 }
 
-  void handleMoveMouseRelative(Uint8List buffer) {
+void handleMoveMouseRelative(Uint8List buffer) {
   ByteData byteData = buffer.buffer.asByteData();
 
   int screenId = byteData.getUint8(1);
@@ -38,5 +37,5 @@ import 'package:cloudplayplus/entities/messages.dart';
 }
 
 void main() {
-   requestMoveMouseRelative(-123.33,44.33,1);
+  requestMoveMouseRelative(-123.33, 44.33, 1);
 }

@@ -8,15 +8,6 @@ class WebrtcService {
   static String currentDeviceId = "";
 
   static Function()? userViewCallback;
-  /*static void updateUserViewCallback(Function() callback) {
-    userViewCallback = callback;
-  }*/
-
-  static void runUserViewCallback() {
-    if (userViewCallback != null) {
-      userViewCallback!();
-    }
-  }
 
   static void addStream(String deviceId, RTCTrackEvent event) {
     streams[deviceId] = event.streams[0];
@@ -25,7 +16,6 @@ class WebrtcService {
       globalVideoRenderer?.initialize().then((data) {
         if (currentDeviceId == deviceId) {
           globalVideoRenderer!.srcObject = event.streams[0];
-          runUserViewCallback();
         }
       }).catchError((error) {
         VLOG0('Error: failed to create RTCVideoRenderer');
@@ -33,7 +23,6 @@ class WebrtcService {
     } else {
       if (currentDeviceId == deviceId) {
         globalVideoRenderer!.srcObject = event.streams[0];
-        runUserViewCallback();
       }
     }
   }
@@ -42,7 +31,6 @@ class WebrtcService {
     streams.remove(deviceId);
     if (currentDeviceId == deviceId) {
       globalVideoRenderer!.srcObject = null;
-      runUserViewCallback();
     }
   }
 
@@ -51,10 +39,8 @@ class WebrtcService {
       String deviceId, Function() callback) {
     if (currentDeviceId == deviceId) return;
     currentDeviceId = deviceId;
-    userViewCallback = callback;
     if (streams.containsKey(deviceId)) {
       globalVideoRenderer?.srcObject = streams[deviceId];
-      //runUserViewCallback();
     }
   }
 }
