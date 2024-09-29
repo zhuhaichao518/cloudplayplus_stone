@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:typed_data';
 
+import 'package:cloudplayplus/controller/hardware_input_controller.dart';
 import 'package:cloudplayplus/dev_settings.dart/develop_settings.dart';
 import 'package:cloudplayplus/entities/device.dart';
 import 'package:cloudplayplus/services/streamed_manager.dart';
@@ -520,7 +521,8 @@ class StreamingSession {
             });
           }
           break;
-        case LP_MOUSE:
+        case LP_MOUSE_ABSL:
+          //InputController.handleMoveMouseRelative(message);
           break;
         case LP_DISCONNECT:
           close();

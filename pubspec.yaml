@@ -42,6 +42,8 @@ dependencies:
     path: plugins/window_manager
   vk:
     path: plugins/virtual.keyboard.dart
+  hardware_simulator:
+    path: plugins/hardware_simulator
 
   # First time usage introduction
   introduction_screen: ^3.1.14

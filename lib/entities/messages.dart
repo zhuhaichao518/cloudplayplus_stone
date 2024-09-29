@@ -6,7 +6,8 @@ import 'package:flutter_webrtc/flutter_webrtc.dart';
 const int LP_PING = 0;
 const int RP_PING = 0;
 const int RP_PONG = 1;
-const int LP_MOUSE = 1 << 1;
+const int LP_MOUSE_ABSL = 1 << 1;
+const int LP_MOUSE_RELATIVE = 1 << 2;
 const int LP_DISCONNECT = 1 << 7;
 const int MOUSE_MOVE_ABSOLUTE = 1 << 5;
 // [--end of message definitions--]

@@ -6,6 +6,7 @@ list(APPEND FLUTTER_PLUGIN_LIST
   bitsdojo_window_linux
   flutter_secure_storage_linux
   flutter_webrtc
+  hardware_simulator
   screen_retriever
   url_launcher_linux
   window_manager
