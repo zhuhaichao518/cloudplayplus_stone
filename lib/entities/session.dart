@@ -320,12 +320,16 @@ class StreamingSession {
     });
     
     if (selfSessionType == SelfSessionType.controlled){
-      if(AppPlatform.isMacos){
-        //TODO(haichao):h264 encoder is slow for my m3 mac max. check other platforms.
-        //setPreferredCodec(sdp, audio: 'opus', video: 'vp8');
-        setPreferredCodec(sdp, audio: 'opus', video: 'h264');
+      if (settings.codec == null || settings.codec=="default"){
+        if(AppPlatform.isMacos){
+          //TODO(haichao):h264 encoder is slow for my m3 mac max. check other platforms.
+          //setPreferredCodec(sdp, audio: 'opus', video: 'vp8');
+          setPreferredCodec(sdp, audio: 'opus', video: 'vp8');
+        }else{
+          setPreferredCodec(sdp, audio: 'opus', video: 'h264');
+        }
       }else{
-        setPreferredCodec(sdp, audio: 'opus', video: 'h264');
+        setPreferredCodec(sdp, audio: 'opus', video: settings.codec!);
       }
     }
 
