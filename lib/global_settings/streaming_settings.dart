@@ -21,6 +21,7 @@ class StreamingSettings {
   static String? turnServerAddress;
   static String? turnServerUsername;
   static String? turnServerPassword;
+  static String? codec;
 
   static void init() {
     framerate =
@@ -47,6 +48,8 @@ class StreamingSettings {
         SharedPreferencesManager.getString('turnServerPassword') ??
             ''; // Default to empty string
     targetScreenId = 0;
+    codec = SharedPreferencesManager.getString('codec') ??
+            'default';
   }
 
   static Map<String, dynamic> toJson() {
@@ -61,6 +64,7 @@ class StreamingSettings {
       'turnServerUsername': turnServerUsername,
       'turnServerPassword': turnServerPassword,
       'targetScreenId': targetScreenId,
+      'codec':codec,
     };
     data.removeWhere((key, value) => value == null);
     return data;
@@ -84,6 +88,7 @@ class StreamedSettings {
   String? turnServerAddress;
   String? turnServerUsername;
   String? turnServerPassword;
+  String? codec;
   static StreamedSettings fromJson(Map<String, dynamic> settings) {
     return StreamedSettings()
       ..framerate = settings['framerate'] as int?
@@ -95,6 +100,7 @@ class StreamedSettings {
       ..turnServerAddress = settings['turnServerAddress'] as String?
       ..turnServerUsername = settings['turnServerUsername'] as String?
       ..turnServerPassword = settings['turnServerPassword'] as String?
-      ..screenId = settings['targetScreenId'] as int?;
+      ..screenId = settings['targetScreenId'] as int?
+      ..codec = settings['codec'] as String?;
   }
 }
