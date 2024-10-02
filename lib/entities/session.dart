@@ -64,6 +64,8 @@ class StreamingSession {
 
   RTCRtpSender? videoSender;
   //RTCRtpSender? audioSender;
+
+  //Controller channel
   RTCDataChannel? channel;
 
   //This is the common settings on both.
@@ -525,8 +527,11 @@ class StreamingSession {
             });
           }
           break;
-        case LP_MOUSE_ABSL:
-          //InputController.handleMoveMouseRelative(message);
+        case LP_MOUSEMOVE_ABSL:
+          InputController.handleMoveMouseAbsl(message);
+          break;
+        case LP_MOUSEBUTTON:
+          InputController.handleMouseClick(message);
           break;
         case LP_DISCONNECT:
           close();

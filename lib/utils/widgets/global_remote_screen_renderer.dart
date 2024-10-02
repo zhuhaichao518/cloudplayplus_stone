@@ -4,7 +4,9 @@ import 'package:cloudplayplus/utils/widgets/on_screen_keyboard.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
+import 'package:hardware_simulator/hardware_simulator.dart';
 
+import '../../controller/hardware_input_controller.dart';
 import '../../controller/screen_controller.dart';
 
 class GlobalRemoteScreenRenderer extends StatefulWidget {
@@ -21,6 +23,10 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
 
   final FocusNode focusNode = FocusNode();
 
+  late Size widgetSize;
+  late Offset widgetPosition;
+  RenderBox? renderBox;
+
   @override
   Widget build(BuildContext context) {
     return ValueListenableBuilder<bool>(
@@ -31,13 +37,29 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
               children: [
                 Listener(
                   onPointerDown: (PointerDownEvent event) {
-                    print('Pointer down at ${event.position}');  // 当点击发生时
-                    focusNode.requestFocus();  // 请求焦点
+                    focusNode.requestFocus();
+                    if (renderBox == null || WebrtcService.currentRenderingSession == null) return;
+                    //TODO(Haichao):有没有必要在这里再更新一次鼠标位置？有没有可能onPointerHover报的位置不够新？
+                    InputController.requestMouseClick(WebrtcService.currentRenderingSession!.channel, 0, true);
+                  },
+                  onPointerUp: (PointerUpEvent event) {
+                    if (renderBox == null || WebrtcService.currentRenderingSession == null) return;
+                    InputController.requestMouseClick(WebrtcService.currentRenderingSession!.channel, 0, false);
                   },
                   onPointerMove: (PointerMoveEvent event) {
-                    print('Mouse moved to ${event.position}');  // 监听并打印鼠标移动位置
+                    if (renderBox == null || WebrtcService.currentRenderingSession == null) return;
+                    final Offset localPosition = renderBox!.globalToLocal(event.position);
+                    final double xPercent = (localPosition.dx / widgetSize.width).clamp(0.0, 1.0);
+                    final double yPercent = (localPosition.dy / widgetSize.height).clamp(0.0, 1.0);
+                    InputController.requestMoveMouseAbsl(WebrtcService.currentRenderingSession!.channel, xPercent, yPercent,WebrtcService.currentRenderingSession!.screenId);
                   },
-                  onPointerHover: (event) => print('Mouse hovered at ${event.position}'),
+                  onPointerHover: (PointerHoverEvent event) {
+                    if (renderBox == null || WebrtcService.currentRenderingSession == null) return;
+                    final Offset localPosition = renderBox!.globalToLocal(event.position);
+                    final double xPercent = (localPosition.dx / widgetSize.width).clamp(0.0, 1.0);
+                    final double yPercent = (localPosition.dy / widgetSize.height).clamp(0.0, 1.0);
+                    InputController.requestMoveMouseAbsl(WebrtcService.currentRenderingSession!.channel, xPercent, yPercent,WebrtcService.currentRenderingSession!.screenId);
+                  },
                   child: RawKeyboardListener(
                     focusNode: focusNode,
                     onKey: (event) {
@@ -46,7 +68,11 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
                       }
                     },
                     child: RTCVideoView(WebrtcService.globalVideoRenderer!,
-                        setAspectRatio: (newAspectRatio) {}),
+                        onRenderBoxUpdated: (newRenderBox) {
+                          renderBox = newRenderBox;
+                          widgetSize = newRenderBox.size;
+                          widgetPosition = newRenderBox.localToGlobal(Offset.zero);
+                        }),
                   ),
                 ),
                 const OnScreenVirtualKeyboard(),  // 放置在Stack中，独立于Listener和RawKeyboardListener

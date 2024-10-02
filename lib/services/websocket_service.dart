@@ -83,11 +83,11 @@ class WebSocketService {
           if (AppPlatform.isWindows ||
               AppPlatform.isMacos ||
               AppPlatform.isLinux) {
-            /*List<DesktopCapturerSource> sources =
+            //TODO:(haichao:用别的方法来获取屏幕数量 因为这个方案会加载webrtc库 刚开始运行没有人串流进来时没必要)
+            List<DesktopCapturerSource> sources =
                 await desktopCapturer.getSources(types: [SourceType.Screen]);
             ApplicationInfo.screencount = sources.length;
-            */
-            ApplicationInfo.screencount = 1;
+            //ApplicationInfo.screencount = 1;
           } else {
             ApplicationInfo.screencount = 1;
           }

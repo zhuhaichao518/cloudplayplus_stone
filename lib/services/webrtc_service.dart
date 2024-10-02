@@ -1,9 +1,12 @@
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 
 import '../base/logging.dart';
+import '../entities/session.dart';
+import 'streaming_manager.dart';
 
 class WebrtcService {
   static RTCVideoRenderer? globalVideoRenderer;
+  static StreamingSession? currentRenderingSession;
   static Map<String, MediaStream> streams = {};
   static String currentDeviceId = "";
 
@@ -16,6 +19,9 @@ class WebrtcService {
       globalVideoRenderer?.initialize().then((data) {
         if (currentDeviceId == deviceId) {
           globalVideoRenderer!.srcObject = event.streams[0];
+          if (StreamingManager.sessions.containsKey(currentDeviceId)){
+            currentRenderingSession = StreamingManager.sessions[currentDeviceId];
+          }
         }
       }).catchError((error) {
         VLOG0('Error: failed to create RTCVideoRenderer');
@@ -23,6 +29,9 @@ class WebrtcService {
     } else {
       if (currentDeviceId == deviceId) {
         globalVideoRenderer!.srcObject = event.streams[0];
+        if (StreamingManager.sessions.containsKey(currentDeviceId)){
+          currentRenderingSession = StreamingManager.sessions[currentDeviceId];
+        }
       }
     }
   }
@@ -31,6 +40,7 @@ class WebrtcService {
     streams.remove(deviceId);
     if (currentDeviceId == deviceId) {
       globalVideoRenderer!.srcObject = null;
+      currentRenderingSession = null;
     }
   }
 
@@ -41,6 +51,11 @@ class WebrtcService {
     currentDeviceId = deviceId;
     if (streams.containsKey(deviceId)) {
       globalVideoRenderer?.srcObject = streams[deviceId];
+      if (StreamingManager.sessions.containsKey(currentDeviceId)){
+        currentRenderingSession = StreamingManager.sessions[currentDeviceId];
+      }else{
+        currentRenderingSession = null;
+      }
     }
   }
 }

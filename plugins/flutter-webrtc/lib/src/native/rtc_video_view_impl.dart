@@ -15,6 +15,7 @@ class RTCVideoView extends StatelessWidget {
     this.mirror = false,
     this.filterQuality = FilterQuality.low,
     this.placeholderBuilder,
+    this.onRenderBoxUpdated,
   });
 
   final RTCVideoRenderer _renderer;
@@ -23,6 +24,7 @@ class RTCVideoView extends StatelessWidget {
   final FilterQuality filterQuality;
   final WidgetBuilder? placeholderBuilder;
   final Function(double)? setAspectRatio;
+  final Function(RenderBox)? onRenderBoxUpdated;
 
   RTCVideoRenderer get videoRenderer => _renderer;
 
@@ -48,6 +50,11 @@ class RTCVideoView extends StatelessWidget {
               valueListenable: videoRenderer,
               builder:
                   (BuildContext context, RTCVideoValue value, Widget? child) {
+                if (onRenderBoxUpdated!= null){
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    onRenderBoxUpdated!(context.findRenderObject() as RenderBox);
+                  });
+                }
                 if (setAspectRatio != null) {
                   setAspectRatio!(value.aspectRatio);
                 }
