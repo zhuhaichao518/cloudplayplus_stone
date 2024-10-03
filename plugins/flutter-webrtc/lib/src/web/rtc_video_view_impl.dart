@@ -16,6 +16,7 @@ class RTCVideoView extends StatefulWidget {
     this.mirror = false,
     this.filterQuality = FilterQuality.low,
     this.placeholderBuilder,
+    this.onRenderBoxUpdated,
   });
 
   final RTCVideoRenderer _renderer;
@@ -24,6 +25,7 @@ class RTCVideoView extends StatefulWidget {
   final FilterQuality filterQuality;
   final WidgetBuilder? placeholderBuilder;
   final Function(double)? setAspectRatio;
+  final Function(RenderBox)? onRenderBoxUpdated;
 
   @override
   RTCVideoViewState createState() => RTCVideoViewState();
@@ -83,6 +85,11 @@ class RTCVideoViewState extends State<RTCVideoView> {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (BuildContext context, BoxConstraints constraints) {
+        if (widget.onRenderBoxUpdated!= null){
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            widget.onRenderBoxUpdated!(context.findRenderObject() as RenderBox);
+          });
+        }
         return Center(
           child: Container(
             width: constraints.maxWidth,

@@ -6,6 +6,7 @@ import 'package:cloudplayplus/services/streamed_manager.dart';
 import 'package:cloudplayplus/services/streaming_manager.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
+import 'package:hardware_simulator/hardware_simulator.dart';
 
 import '../base/logging.dart';
 import '../dev_settings.dart/develop_settings.dart';
@@ -83,10 +84,7 @@ class WebSocketService {
           if (AppPlatform.isWindows ||
               AppPlatform.isMacos ||
               AppPlatform.isLinux) {
-            //TODO:(haichao:用别的方法来获取屏幕数量 因为这个方案会加载webrtc库 刚开始运行没有人串流进来时没必要)
-            List<DesktopCapturerSource> sources =
-                await desktopCapturer.getSources(types: [SourceType.Screen]);
-            ApplicationInfo.screencount = sources.length;
+            ApplicationInfo.screencount = await HardwareSimulator.getMonitorCount();
             //ApplicationInfo.screencount = 1;
           } else {
             ApplicationInfo.screencount = 1;

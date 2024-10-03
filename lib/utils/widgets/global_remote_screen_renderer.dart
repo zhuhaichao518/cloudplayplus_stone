@@ -26,6 +26,11 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
   late Size widgetSize;
   late Offset widgetPosition;
   RenderBox? renderBox;
+  bool isCursorLocked = false;
+
+  void onLockedCursorMoved(double dx,double dy){
+    print("dx:{$dx}dy:{$dy}");
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -41,16 +46,20 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
                     if (renderBox == null || WebrtcService.currentRenderingSession == null) return;
                     //TODO(Haichao):有没有必要在这里再更新一次鼠标位置？有没有可能onPointerHover报的位置不够新？
                     InputController.requestMouseClick(WebrtcService.currentRenderingSession!.channel, 0, true);
+                    //HardwareSimulator.lockCursor();
+                    //HardwareSimulator.addCursorMoved(onLockedCursorMoved);
                   },
                   onPointerUp: (PointerUpEvent event) {
                     if (renderBox == null || WebrtcService.currentRenderingSession == null) return;
                     InputController.requestMouseClick(WebrtcService.currentRenderingSession!.channel, 0, false);
+                    //HardwareSimulator.unlockCursor();
                   },
                   onPointerMove: (PointerMoveEvent event) {
                     if (renderBox == null || WebrtcService.currentRenderingSession == null) return;
                     final Offset localPosition = renderBox!.globalToLocal(event.position);
                     final double xPercent = (localPosition.dx / widgetSize.width).clamp(0.0, 1.0);
                     final double yPercent = (localPosition.dy / widgetSize.height).clamp(0.0, 1.0);
+                    print(event.delta.distance);
                     InputController.requestMoveMouseAbsl(WebrtcService.currentRenderingSession!.channel, xPercent, yPercent,WebrtcService.currentRenderingSession!.screenId);
                   },
                   onPointerHover: (PointerHoverEvent event) {
@@ -127,6 +136,10 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
   @override
   void dispose() {
     aspectRatioNotifier.dispose(); // 销毁时清理 ValueNotifier
+    if (isCursorLocked){
+      HardwareSimulator.unlockCursor();
+      HardwareSimulator.removeCursorMoved(onLockedCursorMoved);
+    }
     super.dispose();
   }
 }

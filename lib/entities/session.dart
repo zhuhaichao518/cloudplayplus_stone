@@ -154,6 +154,7 @@ class StreamingSession {
       channel?.send(RTCDataChannelMessage.fromBinary(
           Uint8List.fromList([LP_PING, RP_PING])));
     };
+    screenId = StreamingSettings.targetScreenId!;
     // read the latest settings from user settings.
     WebSocketService.send('requestRemoteControl', {
       'target_uid': ApplicationInfo.user.uid,
@@ -229,6 +230,7 @@ class StreamingSession {
 
     if (StreamedManager.localVideoStreams[settings.screenId] != null) {
       // one track expected.
+      screenId = settings.screenId!;
       StreamedManager.localVideoStreams[settings.screenId]!
           .getTracks()
           .forEach((track) async {
@@ -329,7 +331,7 @@ class StreamingSession {
 
     if (selfSessionType == SelfSessionType.controlled) {
       if (settings.codec == null || settings.codec == "default") {
-        if (AppPlatform.isMacos) {
+        if (AppPlatform.isMacos || AppPlatform.isWeb) {
           //TODO(haichao):h264 encoder is slow for my m3 mac max. check other platforms.
           //setPreferredCodec(sdp, audio: 'opus', video: 'vp8');
           setPreferredCodec(sdp, audio: 'opus', video: 'vp8');
