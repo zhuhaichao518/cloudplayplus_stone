@@ -9,6 +9,7 @@ const int RP_PONG = 1;
 const int LP_MOUSEMOVE_ABSL = 1 << 1;
 const int LP_MOUSEMOVE_RELATIVE = 1 << 2;
 const int LP_MOUSEBUTTON = 1 << 3;
+const int LP_KEYPRESSED = 1 << 4;
 const int LP_DISCONNECT = 1 << 7;
 // [--end of message definitions--]
 

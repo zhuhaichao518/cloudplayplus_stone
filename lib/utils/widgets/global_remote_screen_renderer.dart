@@ -1,4 +1,5 @@
 //render the global remote screen in an infinite vertical scroll view.
+import 'package:cloudplayplus/services/app_info_service.dart';
 import 'package:cloudplayplus/services/webrtc_service.dart';
 import 'package:cloudplayplus/utils/widgets/on_screen_keyboard.dart';
 import 'package:flutter/material.dart';
@@ -7,6 +8,7 @@ import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'package:hardware_simulator/hardware_simulator.dart';
 
 import '../../controller/hardware_input_controller.dart';
+import '../../controller/platform_key_map.dart';
 import '../../controller/screen_controller.dart';
 
 class GlobalRemoteScreenRenderer extends StatefulWidget {
@@ -30,6 +32,8 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
 
   void onLockedCursorMoved(double dx,double dy){
     print("dx:{$dx}dy:{$dy}");
+    //有没有必要await？如果不保序的概率极低 感觉可以不await
+    InputController.requestMoveMouseRelative(WebrtcService.currentRenderingSession!.channel, dx, dy, WebrtcService.currentRenderingSession!.screenId);
   }
 
   @override
@@ -46,16 +50,16 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
                     if (renderBox == null || WebrtcService.currentRenderingSession == null) return;
                     //TODO(Haichao):有没有必要在这里再更新一次鼠标位置？有没有可能onPointerHover报的位置不够新？
                     InputController.requestMouseClick(WebrtcService.currentRenderingSession!.channel, 0, true);
-                    //HardwareSimulator.lockCursor();
+                    HardwareSimulator.lockCursor();
                     //HardwareSimulator.addCursorMoved(onLockedCursorMoved);
                   },
                   onPointerUp: (PointerUpEvent event) {
                     if (renderBox == null || WebrtcService.currentRenderingSession == null) return;
                     InputController.requestMouseClick(WebrtcService.currentRenderingSession!.channel, 0, false);
-                    //HardwareSimulator.unlockCursor();
+                    HardwareSimulator.unlockCursor();
                   },
                   onPointerMove: (PointerMoveEvent event) {
-                    if (renderBox == null || WebrtcService.currentRenderingSession == null) return;
+                    if (isCursorLocked || renderBox == null || WebrtcService.currentRenderingSession == null) return;
                     final Offset localPosition = renderBox!.globalToLocal(event.position);
                     final double xPercent = (localPosition.dx / widgetSize.width).clamp(0.0, 1.0);
                     final double yPercent = (localPosition.dy / widgetSize.height).clamp(0.0, 1.0);
@@ -63,7 +67,7 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
                     InputController.requestMoveMouseAbsl(WebrtcService.currentRenderingSession!.channel, xPercent, yPercent,WebrtcService.currentRenderingSession!.screenId);
                   },
                   onPointerHover: (PointerHoverEvent event) {
-                    if (renderBox == null || WebrtcService.currentRenderingSession == null) return;
+                    if (isCursorLocked || renderBox == null || WebrtcService.currentRenderingSession == null) return;
                     final Offset localPosition = renderBox!.globalToLocal(event.position);
                     final double xPercent = (localPosition.dx / widgetSize.width).clamp(0.0, 1.0);
                     final double yPercent = (localPosition.dy / widgetSize.height).clamp(0.0, 1.0);
@@ -72,9 +76,36 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
                   child: RawKeyboardListener(
                     focusNode: focusNode,
                     onKey: (event) {
-                      if (event is RawKeyDownEvent) {
-                        print('Key pressed: ${event.data.logicalKey}'); // 监听键盘事件
+                    if (event is RawKeyDownEvent) {
+                      if (AppPlatform.isWeb) {
+                        RawKeyEventDataWeb data = event.data as RawKeyEventDataWeb;
+                        InputController.requestKeyEvent(WebrtcService.currentRenderingSession!.channel,data.keyCode, true);
+                      } else if (AppPlatform.isWindows) {
+                        RawKeyEventDataWindows data =
+                            event.data as RawKeyEventDataWindows;
+                        InputController.requestKeyEvent(WebrtcService.currentRenderingSession!.channel,data.keyCode, true);
+                      } else if (AppPlatform.isMacos) {
+                        RawKeyEventDataMacOs data =
+                            event.data as RawKeyEventDataMacOs;
+                        int keyCode = macToWindowsKeyMap[data.keyCode]!;
+                        InputController.requestKeyEvent(WebrtcService.currentRenderingSession!.channel,keyCode, true);
                       }
+                    }
+                    else if (event is RawKeyUpEvent) {
+                      if (AppPlatform.isWeb) {
+                        RawKeyEventDataWeb data = event.data as RawKeyEventDataWeb;
+                        InputController.requestKeyEvent(WebrtcService.currentRenderingSession!.channel,data.keyCode, false);
+                      } else if (AppPlatform.isWindows) {
+                        RawKeyEventDataWindows data =
+                            event.data as RawKeyEventDataWindows;
+                        InputController.requestKeyEvent(WebrtcService.currentRenderingSession!.channel,data.keyCode, false);
+                      } else if (AppPlatform.isMacos) {
+                        RawKeyEventDataMacOs data =
+                            event.data as RawKeyEventDataMacOs;
+                        int keyCode = macToWindowsKeyMap[data.keyCode]!;
+                        InputController.requestKeyEvent(WebrtcService.currentRenderingSession!.channel,keyCode, false);
+                      }
+                    }
                     },
                     child: RTCVideoView(WebrtcService.globalVideoRenderer!,
                         onRenderBoxUpdated: (newRenderBox) {
