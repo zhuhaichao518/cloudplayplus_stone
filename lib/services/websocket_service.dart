@@ -4,6 +4,7 @@ import 'package:cloudplayplus/global_settings/streaming_settings.dart';
 import 'package:cloudplayplus/services/shared_preferences_manager.dart';
 import 'package:cloudplayplus/services/streamed_manager.dart';
 import 'package:cloudplayplus/services/streaming_manager.dart';
+import 'package:flutter/foundation.dart';
 import 'package:hardware_simulator/hardware_simulator.dart';
 
 import '../base/logging.dart';
@@ -44,6 +45,9 @@ class WebSocketService {
         _baseUrl = "ws://127.0.0.1:8000/ws/";
       }
     }
+    if (!kIsWeb && DevelopSettings.useUnsafeServer) {
+      _baseUrl = 'ws://101.132.58.198:8001/ws/';
+    }
     String? accessToken;
     if (DevelopSettings.useSecureStorage) {
       accessToken = await SecureStorageManager.getString("access_token");
@@ -62,6 +66,10 @@ class WebSocketService {
 
     _socket?.onMessage = (message) async {
       await onMessage(_decoder.convert(message));
+    };
+    _socket?.onClose = (code, message) async {
+      VLOG0(code!);
+      VLOG0(message!);
     };
     await _socket?.connect();
   }
@@ -82,7 +90,8 @@ class WebSocketService {
           if (AppPlatform.isWindows ||
               AppPlatform.isMacos ||
               AppPlatform.isLinux) {
-            ApplicationInfo.screencount = await HardwareSimulator.getMonitorCount();
+            ApplicationInfo.screencount =
+                await HardwareSimulator.getMonitorCount();
             //ApplicationInfo.screencount = 1;
           } else {
             ApplicationInfo.screencount = 1;

@@ -24,7 +24,7 @@ class SimpleWebSocket {
     HttpClient client = HttpClient(context: SecurityContext());
     client.badCertificateCallback =
         (X509Certificate cert, String host, int port) {
-      if (DevelopSettings.isDebugging) {
+      if (DevelopSettings.isDebugging || DevelopSettings.useUnsafeServer) {
         return true; // trust the certificate
       }
       return false;
@@ -51,9 +51,13 @@ class SimpleWebSocket {
 
   connect() async {
     try {
-      _socket = await WebSocket.connect(_url);
       //_socket = await _connectForSelfSignedCert(_url);
       //_socket = await connectToWebSocket(_url);
+      //if (DevelopSettings.useUnsafeServer){
+      //  _socket = await _connectForSelfSignedCert(_url);
+      //}else{
+      _socket = await WebSocket.connect(_url);
+      //}
       onOpen?.call();
       _socket.listen((data) {
         onMessage?.call(data);

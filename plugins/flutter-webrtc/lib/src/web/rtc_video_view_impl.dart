@@ -85,7 +85,7 @@ class RTCVideoViewState extends State<RTCVideoView> {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (BuildContext context, BoxConstraints constraints) {
-        if (widget.onRenderBoxUpdated!= null){
+        if (widget.onRenderBoxUpdated != null) {
           WidgetsBinding.instance.addPostFrameCallback((_) {
             widget.onRenderBoxUpdated!(context.findRenderObject() as RenderBox);
           });

@@ -50,9 +50,10 @@ class RTCVideoView extends StatelessWidget {
               valueListenable: videoRenderer,
               builder:
                   (BuildContext context, RTCVideoValue value, Widget? child) {
-                if (onRenderBoxUpdated!= null){
+                if (onRenderBoxUpdated != null) {
                   WidgetsBinding.instance.addPostFrameCallback((_) {
-                    onRenderBoxUpdated!(context.findRenderObject() as RenderBox);
+                    onRenderBoxUpdated!(
+                        context.findRenderObject() as RenderBox);
                   });
                 }
                 if (setAspectRatio != null) {

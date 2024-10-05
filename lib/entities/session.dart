@@ -543,7 +543,7 @@ class StreamingSession {
           break;
         case LP_KEYPRESSED:
           InputController.handleKeyEvent(message);
-          break;          
+          break;
         case LP_DISCONNECT:
           close();
           break;

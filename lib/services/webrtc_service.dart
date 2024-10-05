@@ -19,8 +19,9 @@ class WebrtcService {
       globalVideoRenderer?.initialize().then((data) {
         if (currentDeviceId == deviceId) {
           globalVideoRenderer!.srcObject = event.streams[0];
-          if (StreamingManager.sessions.containsKey(currentDeviceId)){
-            currentRenderingSession = StreamingManager.sessions[currentDeviceId];
+          if (StreamingManager.sessions.containsKey(currentDeviceId)) {
+            currentRenderingSession =
+                StreamingManager.sessions[currentDeviceId];
           }
         }
       }).catchError((error) {
@@ -29,7 +30,7 @@ class WebrtcService {
     } else {
       if (currentDeviceId == deviceId) {
         globalVideoRenderer!.srcObject = event.streams[0];
-        if (StreamingManager.sessions.containsKey(currentDeviceId)){
+        if (StreamingManager.sessions.containsKey(currentDeviceId)) {
           currentRenderingSession = StreamingManager.sessions[currentDeviceId];
         }
       }
@@ -51,9 +52,9 @@ class WebrtcService {
     currentDeviceId = deviceId;
     if (streams.containsKey(deviceId)) {
       globalVideoRenderer?.srcObject = streams[deviceId];
-      if (StreamingManager.sessions.containsKey(currentDeviceId)){
+      if (StreamingManager.sessions.containsKey(currentDeviceId)) {
         currentRenderingSession = StreamingManager.sessions[currentDeviceId];
-      }else{
+      } else {
         currentRenderingSession = null;
       }
     }

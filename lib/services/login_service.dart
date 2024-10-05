@@ -4,6 +4,7 @@ import 'package:cloudplayplus/dev_settings.dart/develop_settings.dart';
 import 'package:cloudplayplus/services/app_info_service.dart';
 import 'package:cloudplayplus/services/secure_storage_manager.dart';
 import 'package:cloudplayplus/services/shared_preferences_manager.dart';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import '../../entities/user.dart' as cpp_user;
 
@@ -329,7 +330,19 @@ class LoginService {
     http.Response response;
 
     try {
-      if (!DevelopSettings.useLocalServer) {
+      if (!kIsWeb && DevelopSettings.useUnsafeServer) {
+        _baseUrl = 'https://101.132.58.198';
+        response = await customHttpPost(
+          url,
+          headers: {
+            'Content-Type': 'application/json; charset=UTF-8',
+          },
+          body: {
+            'username': username,
+            'password': password,
+          },
+        );
+      } else if (!DevelopSettings.useLocalServer) {
         response = await http.post(
           url,
           headers: <String, String>{
@@ -357,7 +370,7 @@ class LoginService {
     } catch (e) {
       return ({"status": "fail", "message": "网络连接失败。请检查网络"});
     }
-    
+
     /*final response = await customHttpPost(
       url,
       headers: {

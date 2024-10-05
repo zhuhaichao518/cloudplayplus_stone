@@ -6,8 +6,8 @@ import 'package:hardware_simulator/hardware_simulator.dart';
 import '../entities/messages.dart';
 
 class InputController {
-  static void requestMoveMouseAbsl(RTCDataChannel? channel,
-      double x, double y, int screenId) async {
+  static void requestMoveMouseAbsl(
+      RTCDataChannel? channel, double x, double y, int screenId) async {
     if (channel == null) return;
     // 创建一个ByteData足够存储 LP_MOUSE, screenId, dx, dy
     ByteData byteData = ByteData(10);
@@ -35,8 +35,8 @@ class InputController {
     HardwareSimulator.mouse.performMouseMoveAbsl(x, y, screenId);
   }
 
-  static void requestMoveMouseRelative(RTCDataChannel? channel,
-      double x, double y, int screenId) async {
+  static void requestMoveMouseRelative(
+      RTCDataChannel? channel, double x, double y, int screenId) async {
     if (channel == null) return;
     // 创建一个ByteData足够存储 LP_MOUSE, screenId, dx, dy
     ByteData byteData = ByteData(10);
@@ -64,14 +64,15 @@ class InputController {
     HardwareSimulator.mouse.performMouseMoveRelative(dx, dy, screenId);
   }
 
-  static void requestMouseClick(RTCDataChannel? channel, int buttonId, bool isDown) async {
+  static void requestMouseClick(
+      RTCDataChannel? channel, int buttonId, bool isDown) async {
     if (channel == null) return;
 
     // 创建一个 ByteData 足够存储 LP_MOUSEBUTTON, buttonId, isDown
     ByteData byteData = ByteData(3);
-    byteData.setUint8(0, LP_MOUSEBUTTON);  // 操作符，用于指示鼠标按键操作
-    byteData.setUint8(1, buttonId);        // 鼠标按键 ID，例如 0 表示左键，1 表示右键
-    byteData.setUint8(2, isDown ? 1 : 0);  // isDown，1 表示按下，0 表示松开
+    byteData.setUint8(0, LP_MOUSEBUTTON); // 操作符，用于指示鼠标按键操作
+    byteData.setUint8(1, buttonId); // 鼠标按键 ID，例如 0 表示左键，1 表示右键
+    byteData.setUint8(2, isDown ? 1 : 0); // isDown，1 表示按下，0 表示松开
 
     // 转换 ByteData 为 Uint8List
     Uint8List buffer = byteData.buffer.asUint8List();
@@ -85,21 +86,22 @@ class InputController {
     ByteData byteData = ByteData.sublistView(buffer);
 
     // 获取 buttonId 和 isDown 信息
-    int buttonId = byteData.getUint8(1);   // 第2个字节存储了 buttonId
-    bool isDown = byteData.getUint8(2) == 1;  // 第3个字节存储了 isDown (1 表示按下, 0 表示松开)
+    int buttonId = byteData.getUint8(1); // 第2个字节存储了 buttonId
+    bool isDown = byteData.getUint8(2) == 1; // 第3个字节存储了 isDown (1 表示按下, 0 表示松开)
 
     // 调用模拟点击的方法
     HardwareSimulator.mouse.performMouseClick(buttonId, isDown);
   }
 
-  static void requestKeyEvent(RTCDataChannel? channel, int keyCode, bool isDown) async {
+  static void requestKeyEvent(
+      RTCDataChannel? channel, int keyCode, bool isDown) async {
     if (channel == null) return;
 
     // 创建一个 ByteData 足够存储 LP_MOUSEBUTTON, buttonId, isDown
     ByteData byteData = ByteData(3);
-    byteData.setUint8(0, LP_KEYPRESSED);  // 操作符，用于指示鼠标按键操作
-    byteData.setUint8(1, keyCode);        // 鼠标按键 ID，例如 0 表示左键，1 表示右键
-    byteData.setUint8(2, isDown ? 1 : 0);  // isDown，1 表示按下，0 表示松开
+    byteData.setUint8(0, LP_KEYPRESSED); // 操作符，用于指示鼠标按键操作
+    byteData.setUint8(1, keyCode); // 鼠标按键 ID，例如 0 表示左键，1 表示右键
+    byteData.setUint8(2, isDown ? 1 : 0); // isDown，1 表示按下，0 表示松开
 
     // 转换 ByteData 为 Uint8List
     Uint8List buffer = byteData.buffer.asUint8List();
@@ -113,8 +115,8 @@ class InputController {
     ByteData byteData = ByteData.sublistView(buffer);
 
     // 获取 buttonId 和 isDown 信息
-    int keyCode = byteData.getUint8(1);   // 第2个字节存储了 buttonId
-    bool isDown = byteData.getUint8(2) == 1;  // 第3个字节存储了 isDown (1 表示按下, 0 表示松开)
+    int keyCode = byteData.getUint8(1); // 第2个字节存储了 buttonId
+    bool isDown = byteData.getUint8(2) == 1; // 第3个字节存储了 isDown (1 表示按下, 0 表示松开)
 
     // 调用模拟点击的方法
     HardwareSimulator.keyboard.performKeyEvent(keyCode, isDown);
