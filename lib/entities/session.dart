@@ -167,7 +167,7 @@ class StreamingSession {
   Future<RTCPeerConnection> createRTCPeerConnection() async {
     Map<String, dynamic> iceServers;
 
-    if (streamSettings!.turnServerSettings == 2) {
+    /*if (streamSettings!.turnServerSettings == 2) {
       iceServers = {
         'iceServers': [
           {
@@ -188,7 +188,13 @@ class StreamingSession {
           officialStun1,
         ]
       };
-    }
+    }*/
+
+    iceServers = {
+      'iceServers': [
+        cloudPlayPlusStun,
+      ]
+    };
 
     final Map<String, dynamic> config = {
       'mandatory': {},

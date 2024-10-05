@@ -4,8 +4,6 @@ import 'package:cloudplayplus/global_settings/streaming_settings.dart';
 import 'package:cloudplayplus/services/shared_preferences_manager.dart';
 import 'package:cloudplayplus/services/streamed_manager.dart';
 import 'package:cloudplayplus/services/streaming_manager.dart';
-import 'package:flutter/foundation.dart';
-import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'package:hardware_simulator/hardware_simulator.dart';
 
 import '../base/logging.dart';

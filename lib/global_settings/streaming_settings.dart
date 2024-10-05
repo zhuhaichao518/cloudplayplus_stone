@@ -4,6 +4,12 @@ var officialStun1 = {
   'urls': "stun:stun.l.google.com:19302",
 };
 
+var cloudPlayPlusStun = {
+  'urls': "turn:101.132.58.198:3478",
+  'username': "sunshine",
+  'credential': "pangdahai"
+};
+
 class StreamingSettings {
   static int? framerate;
   static int? bitrate;

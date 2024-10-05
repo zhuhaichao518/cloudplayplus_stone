@@ -32,7 +32,7 @@ class LoginService {
     }
   }
 
-  Future<http.Response> customHttpPost(
+  static Future<http.Response> customHttpPost(
     Uri url, {
     Map<String, String>? headers,
     Map<String, dynamic>? body,
@@ -357,7 +357,7 @@ class LoginService {
     } catch (e) {
       return ({"status": "fail", "message": "网络连接失败。请检查网络"});
     }
-
+    
     /*final response = await customHttpPost(
       url,
       headers: {
