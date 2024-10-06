@@ -31,6 +31,8 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
   late Size widgetSize;
   RenderBox? renderBox;
   bool isCursorLocked = false;
+  bool _leftButtonDown = false;
+  bool _rightButtonDown = false;
 
   void onLockedCursorMoved(double dx, double dy) {
     print("dx:{$dx}dy:{$dy}");
@@ -40,6 +42,22 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
         dx,
         dy,
         WebrtcService.currentRenderingSession!.screenId);
+  }
+
+  void _syncMouseButtonState(PointerEvent event) {
+    if ((event.buttons & kPrimaryMouseButton != 0) != _leftButtonDown) {
+      _leftButtonDown = !_leftButtonDown;
+      InputController.requestMouseClick(
+        WebrtcService.currentRenderingSession!.channel,
+        1,
+      _leftButtonDown);
+    } else if ((event.buttons & kSecondaryMouseButton != 0) != _rightButtonDown) {
+      _rightButtonDown = !_rightButtonDown;
+      InputController.requestMouseClick(
+        WebrtcService.currentRenderingSession!.channel,
+        3,
+        _rightButtonDown);
+    }
   }
 
   @override
@@ -55,47 +73,24 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
                     focusNode.requestFocus();
                     if (renderBox == null ||
                         WebrtcService.currentRenderingSession == null) return;
-                    //TODO(Haichao):有没有必要在这里再更新一次鼠标位置？有没有可能onPointerHover报的位置不够新？
-
-                    int buttonId = 1;
-                    if (event.buttons & kPrimaryMouseButton != 0) {
-                      buttonId = 1;
-                    } else if (event.buttons & kSecondaryMouseButton != 0) {
-                      buttonId = 3;
-                    }
-                    InputController.requestMouseClick(
-                        WebrtcService.currentRenderingSession!.channel,
-                        buttonId,
-                        true);
-                    //HardwareSimulator.lockCursor();
-                    //HardwareSimulator.addCursorMoved(onLockedCursorMoved);
+                    _syncMouseButtonState(event);
                   },
                   onPointerUp: (PointerUpEvent event) {
                     if (renderBox == null ||
                         WebrtcService.currentRenderingSession == null) return;
-                    int buttonId = 1;
-                    if (event.buttons & kPrimaryMouseButton != 0) {
-                      buttonId = 1;
-                    } else if (event.buttons & kSecondaryMouseButton != 0) {
-                      buttonId = 3;
-                    }
-                    InputController.requestMouseClick(
-                        WebrtcService.currentRenderingSession!.channel,
-                        buttonId,
-                        false);
-                    //HardwareSimulator.unlockCursor();
+                    _syncMouseButtonState(event);
                   },
                   onPointerMove: (PointerMoveEvent event) {
                     if (isCursorLocked ||
                         renderBox == null ||
                         WebrtcService.currentRenderingSession == null) return;
+                    _syncMouseButtonState(event);
                     final Offset localPosition =
                         renderBox!.globalToLocal(event.position);
                     final double xPercent =
                         (localPosition.dx / widgetSize.width).clamp(0.0, 1.0);
                     final double yPercent =
                         (localPosition.dy / widgetSize.height).clamp(0.0, 1.0);
-                    print(event.delta.distance);
                     InputController.requestMoveMouseAbsl(
                         WebrtcService.currentRenderingSession!.channel,
                         xPercent,
