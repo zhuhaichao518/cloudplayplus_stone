@@ -13,6 +13,9 @@ class RTCDesktopDevice : public RefCountInterface {
  public:
   virtual scoped_refptr<RTCDesktopCapturer> CreateDesktopCapturer(
       scoped_refptr<MediaSource> source) = 0;
+  virtual scoped_refptr<RTCDesktopCapturer> CreateDesktopCapturer(
+      scoped_refptr<MediaSource> source,
+      bool has_cursor) = 0;
   virtual scoped_refptr<RTCDesktopMediaList> GetDesktopMediaList(
       DesktopType type) = 0;
 

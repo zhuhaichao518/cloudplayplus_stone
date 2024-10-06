@@ -87,12 +87,13 @@ class WebSocketService {
           AppStateService.websocketSessionid = data['connection_id'];
           ApplicationInfo.user =
               User(uid: data['uid'], nickname: data['nickname']);
-          if (AppPlatform.isWindows ||
-              AppPlatform.isMacos ||
-              AppPlatform.isLinux) {
+          if (AppPlatform
+                  .isMacos /* ||
+              AppPlatform.isWindows ||
+              AppPlatform.isLinux*/
+              ) {
             ApplicationInfo.screencount =
                 await HardwareSimulator.getMonitorCount();
-            //ApplicationInfo.screencount = 1;
           } else {
             ApplicationInfo.screencount = 1;
           }

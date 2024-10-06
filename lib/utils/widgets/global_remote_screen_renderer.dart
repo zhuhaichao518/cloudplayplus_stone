@@ -26,6 +26,7 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
       ValueNotifier<double>(1.6); // 初始宽高比为 16:10
 
   final FocusNode focusNode = FocusNode();
+  final _fsnode = FocusScopeNode();
 
   late Size widgetSize;
   RenderBox? renderBox;
@@ -55,11 +56,11 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
                     if (renderBox == null ||
                         WebrtcService.currentRenderingSession == null) return;
                     //TODO(Haichao):有没有必要在这里再更新一次鼠标位置？有没有可能onPointerHover报的位置不够新？
-                    
+
                     int buttonId = 1;
-                    if (event.buttons & kPrimaryMouseButton != 0){
+                    if (event.buttons & kPrimaryMouseButton != 0) {
                       buttonId = 1;
-                    }else if (event.buttons & kSecondaryMouseButton != 0){
+                    } else if (event.buttons & kSecondaryMouseButton != 0) {
                       buttonId = 3;
                     }
                     InputController.requestMouseClick(
@@ -73,9 +74,9 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
                     if (renderBox == null ||
                         WebrtcService.currentRenderingSession == null) return;
                     int buttonId = 1;
-                    if (event.buttons & kPrimaryMouseButton != 0){
+                    if (event.buttons & kPrimaryMouseButton != 0) {
                       buttonId = 1;
-                    }else if (event.buttons & kSecondaryMouseButton != 0){
+                    } else if (event.buttons & kSecondaryMouseButton != 0) {
                       buttonId = 3;
                     }
                     InputController.requestMouseClick(
@@ -117,100 +118,109 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
                         yPercent,
                         WebrtcService.currentRenderingSession!.screenId);
                   },
-                  child: RawKeyboardListener(
-                    focusNode: focusNode,
-                    onKey: (event) {
-                      if (event is RawKeyDownEvent) {
-                        if (AppPlatform.isWeb) {
-                          RawKeyEventDataWeb data =
-                              event.data as RawKeyEventDataWeb;
-                          InputController.requestKeyEvent(
-                              WebrtcService.currentRenderingSession!.channel,
-                              data.keyCode,
-                              true);
-                        } else if (AppPlatform.isWindows) {
-                          RawKeyEventDataWindows data =
-                              event.data as RawKeyEventDataWindows;
-                          InputController.requestKeyEvent(
-                              WebrtcService.currentRenderingSession!.channel,
-                              data.keyCode,
-                              true);
-                        } else if (AppPlatform.isMacos) {
-                          RawKeyEventDataMacOs data =
-                              event.data as RawKeyEventDataMacOs;
-                          int keyCode = macToWindowsKeyMap[data.keyCode]!;
-                          InputController.requestKeyEvent(
-                              WebrtcService.currentRenderingSession!.channel,
-                              keyCode,
-                              true);
-                        }
-                      } else if (event is RawKeyUpEvent) {
-                        if (AppPlatform.isWeb) {
-                          RawKeyEventDataWeb data =
-                              event.data as RawKeyEventDataWeb;
-                          InputController.requestKeyEvent(
-                              WebrtcService.currentRenderingSession!.channel,
-                              data.keyCode,
-                              false);
-                        } else if (AppPlatform.isWindows) {
-                          RawKeyEventDataWindows data =
-                              event.data as RawKeyEventDataWindows;
-                          InputController.requestKeyEvent(
-                              WebrtcService.currentRenderingSession!.channel,
-                              data.keyCode,
-                              false);
-                        } else if (AppPlatform.isMacos) {
-                          RawKeyEventDataMacOs data =
-                              event.data as RawKeyEventDataMacOs;
-                          int keyCode = macToWindowsKeyMap[data.keyCode]!;
-                          InputController.requestKeyEvent(
-                              WebrtcService.currentRenderingSession!.channel,
-                              keyCode,
-                              false);
-                        }
-                      }
+                  child: FocusScope(
+                    node: _fsnode,
+                    onKey: (data, event) {
+                      return KeyEventResult.handled;
                     },
-                    child: kIsWeb
-                        ? ValueListenableBuilder<double>(
-                            valueListenable: aspectRatioNotifier, // 监听宽高比的变化
-                            builder: (context, aspectRatio, child) {
-                              return LayoutBuilder(builder:
-                                  (BuildContext context,
-                                      BoxConstraints constraints) {
-                                print("------max height: {$constraints.maxHeight} aspectratio: {$aspectRatioNotifier.value}");
-                                double realHeight = constraints.maxHeight;
-                                double realWidth = constraints.maxWidth;
-                                if (constraints.maxHeight *
-                                        aspectRatioNotifier.value > constraints.maxWidth){
-                                  realHeight = realWidth / aspectRatioNotifier.value;
-                                }else{
-                                  realWidth = realHeight * aspectRatioNotifier.value;
-                                }
-                                return SizedBox(
-                                    width: realWidth,
-                                    height: realHeight,
-                                    child: RTCVideoView(
-                                        WebrtcService.globalVideoRenderer!,
-                                        setAspectRatio: (newAspectRatio) {
-                                      // 延迟更新 aspectRatio，避免在构建过程中触发 setState
-                                      if (newAspectRatio.isNaN) return;
-                                      WidgetsBinding.instance
-                                          .addPostFrameCallback((_) {
-                                        if (aspectRatioNotifier.value ==
-                                                newAspectRatio) {
-                                          return;
-                                        }
-                                        aspectRatioNotifier.value =
-                                            newAspectRatio;
-                                      });
-                                    }, onRenderBoxUpdated: (newRenderBox) {
-                                      renderBox = newRenderBox;
-                                      widgetSize = newRenderBox.size;
-                                    }));
-                              });
-                            })
-                        : RTCVideoView(WebrtcService.globalVideoRenderer!,
-                            /*setAspectRatio: (AspectRatio) {
+                    child: RawKeyboardListener(
+                      focusNode: focusNode,
+                      onKey: (event) {
+                        if (event is RawKeyDownEvent) {
+                          if (AppPlatform.isWeb) {
+                            RawKeyEventDataWeb data =
+                                event.data as RawKeyEventDataWeb;
+                            InputController.requestKeyEvent(
+                                WebrtcService.currentRenderingSession!.channel,
+                                data.keyCode,
+                                true);
+                          } else if (AppPlatform.isWindows) {
+                            RawKeyEventDataWindows data =
+                                event.data as RawKeyEventDataWindows;
+                            InputController.requestKeyEvent(
+                                WebrtcService.currentRenderingSession!.channel,
+                                data.keyCode,
+                                true);
+                          } else if (AppPlatform.isMacos) {
+                            RawKeyEventDataMacOs data =
+                                event.data as RawKeyEventDataMacOs;
+                            int keyCode = macToWindowsKeyMap[data.keyCode]!;
+                            InputController.requestKeyEvent(
+                                WebrtcService.currentRenderingSession!.channel,
+                                keyCode,
+                                true);
+                          }
+                        } else if (event is RawKeyUpEvent) {
+                          if (AppPlatform.isWeb) {
+                            RawKeyEventDataWeb data =
+                                event.data as RawKeyEventDataWeb;
+                            InputController.requestKeyEvent(
+                                WebrtcService.currentRenderingSession!.channel,
+                                data.keyCode,
+                                false);
+                          } else if (AppPlatform.isWindows) {
+                            RawKeyEventDataWindows data =
+                                event.data as RawKeyEventDataWindows;
+                            InputController.requestKeyEvent(
+                                WebrtcService.currentRenderingSession!.channel,
+                                data.keyCode,
+                                false);
+                          } else if (AppPlatform.isMacos) {
+                            RawKeyEventDataMacOs data =
+                                event.data as RawKeyEventDataMacOs;
+                            int keyCode = macToWindowsKeyMap[data.keyCode]!;
+                            InputController.requestKeyEvent(
+                                WebrtcService.currentRenderingSession!.channel,
+                                keyCode,
+                                false);
+                          }
+                        }
+                      },
+                      child: kIsWeb
+                          ? ValueListenableBuilder<double>(
+                              valueListenable: aspectRatioNotifier, // 监听宽高比的变化
+                              builder: (context, aspectRatio, child) {
+                                return LayoutBuilder(builder:
+                                    (BuildContext context,
+                                        BoxConstraints constraints) {
+                                  print(
+                                      "------max height: {$constraints.maxHeight} aspectratio: {$aspectRatioNotifier.value}");
+                                  double realHeight = constraints.maxHeight;
+                                  double realWidth = constraints.maxWidth;
+                                  if (constraints.maxHeight *
+                                          aspectRatioNotifier.value >
+                                      constraints.maxWidth) {
+                                    realHeight =
+                                        realWidth / aspectRatioNotifier.value;
+                                  } else {
+                                    realWidth =
+                                        realHeight * aspectRatioNotifier.value;
+                                  }
+                                  return SizedBox(
+                                      width: realWidth,
+                                      height: realHeight,
+                                      child: RTCVideoView(
+                                          WebrtcService.globalVideoRenderer!,
+                                          setAspectRatio: (newAspectRatio) {
+                                        // 延迟更新 aspectRatio，避免在构建过程中触发 setState
+                                        if (newAspectRatio.isNaN) return;
+                                        WidgetsBinding.instance
+                                            .addPostFrameCallback((_) {
+                                          if (aspectRatioNotifier.value ==
+                                              newAspectRatio) {
+                                            return;
+                                          }
+                                          aspectRatioNotifier.value =
+                                              newAspectRatio;
+                                        });
+                                      }, onRenderBoxUpdated: (newRenderBox) {
+                                        renderBox = newRenderBox;
+                                        widgetSize = newRenderBox.size;
+                                      }));
+                                });
+                              })
+                          : RTCVideoView(WebrtcService.globalVideoRenderer!,
+                              /*setAspectRatio: (AspectRatio) {
                       if(kIsWeb){
                         if (renderBox!=null){
                           double newheight = renderBox!.size.height;
@@ -223,10 +233,11 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
                         }
                       }
                     },*/
-                            onRenderBoxUpdated: (newRenderBox) {
-                            renderBox = newRenderBox;
-                            widgetSize = newRenderBox.size;
-                          }),
+                              onRenderBoxUpdated: (newRenderBox) {
+                              renderBox = newRenderBox;
+                              widgetSize = newRenderBox.size;
+                            }),
+                    ),
                   ),
                 ),
                 const OnScreenVirtualKeyboard(), // 放置在Stack中，独立于Listener和RawKeyboardListener

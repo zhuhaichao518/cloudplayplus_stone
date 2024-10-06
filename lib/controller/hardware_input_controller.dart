@@ -88,7 +88,8 @@ class InputController {
     // 获取 buttonId 和 isDown 信息
     int buttonId = byteData.getUint8(1); // 第2个字节存储了 buttonId
     bool isDown = byteData.getUint8(2) == 1; // 第3个字节存储了 isDown (1 表示按下, 0 表示松开)
-
+    
+    print("--handle mouse click:{$buttonId} {$isDown}");
     // 调用模拟点击的方法
     HardwareSimulator.mouse.performMouseClick(buttonId, isDown);
   }
