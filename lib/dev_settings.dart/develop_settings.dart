@@ -2,7 +2,7 @@
 // export CHROME_EXECUTABLE="/var/lib/flatpak/app/com.google.Chrome/current/active/export/bin/com.google.Chrome"
 // flutter run -d chrome --web-browser-flag "--disable-web-security"
 class DevelopSettings {
-  static bool useUnsafeServer = true;
+  static bool useUnsafeServer = false;
   static bool useLocalServer = false;
   static bool useSecureStorage = false;
   static bool alwaysShowIntroPage = false;

@@ -3,6 +3,7 @@ import 'package:cloudplayplus/services/app_info_service.dart';
 import 'package:cloudplayplus/services/webrtc_service.dart';
 import 'package:cloudplayplus/utils/widgets/on_screen_keyboard.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
@@ -54,21 +55,34 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
                     if (renderBox == null ||
                         WebrtcService.currentRenderingSession == null) return;
                     //TODO(Haichao):有没有必要在这里再更新一次鼠标位置？有没有可能onPointerHover报的位置不够新？
+                    
+                    int buttonId = 1;
+                    if (event.buttons & kPrimaryMouseButton != 0){
+                      buttonId = 1;
+                    }else if (event.buttons & kSecondaryMouseButton != 0){
+                      buttonId = 3;
+                    }
                     InputController.requestMouseClick(
                         WebrtcService.currentRenderingSession!.channel,
-                        0,
+                        buttonId,
                         true);
-                    HardwareSimulator.lockCursor();
+                    //HardwareSimulator.lockCursor();
                     //HardwareSimulator.addCursorMoved(onLockedCursorMoved);
                   },
                   onPointerUp: (PointerUpEvent event) {
                     if (renderBox == null ||
                         WebrtcService.currentRenderingSession == null) return;
+                    int buttonId = 1;
+                    if (event.buttons & kPrimaryMouseButton != 0){
+                      buttonId = 1;
+                    }else if (event.buttons & kSecondaryMouseButton != 0){
+                      buttonId = 3;
+                    }
                     InputController.requestMouseClick(
                         WebrtcService.currentRenderingSession!.channel,
-                        0,
+                        buttonId,
                         false);
-                    HardwareSimulator.unlockCursor();
+                    //HardwareSimulator.unlockCursor();
                   },
                   onPointerMove: (PointerMoveEvent event) {
                     if (isCursorLocked ||
