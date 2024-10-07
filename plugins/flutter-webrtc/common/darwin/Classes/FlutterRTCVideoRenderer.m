@@ -17,6 +17,7 @@
   RTCVideoRotation _rotation;
   FlutterEventChannel* _eventChannel;
   bool _isFirstFrameRendered;
+  //bool _directCVPixelBuffer;
 }
 
 @synthesize textureId = _textureId;
@@ -47,13 +48,17 @@
 
 - (void)dealloc {
   if (_pixelBufferRef) {
+    //CVPixelBufferUnlockBaseAddress(_pixelBufferRef, kCVPixelBufferLock_ReadOnly);
     CVBufferRelease(_pixelBufferRef);
   }
 }
 
 - (CVPixelBufferRef)copyPixelBuffer {
   if (_pixelBufferRef != nil) {
+    //TODO(haichao): Lock/Unlock is only needed when we directly get CVPixelBuffer from WebRTC.
+    //However,lock does not work here and still conflict with decoder. Why?
     CVBufferRetain(_pixelBufferRef);
+    //CVPixelBufferLockBaseAddress(_pixelBufferRef, kCVPixelBufferLock_ReadOnly);
     return _pixelBufferRef;
   }
   return nil;
@@ -182,11 +187,34 @@
 - (void)renderFrame:(RTCVideoFrame*)frame {
     CVPixelBufferRef pixelBuffer = [frame.buffer toCVPixelBuffer];
     if (pixelBuffer) {
+/* ### old implementation
+// I tried to direct use the buffer from decoder, but it seems has confilct with decoder.
         CVPixelBufferRetain(pixelBuffer);
         if (_pixelBufferRef) {
             CVPixelBufferRelease(_pixelBufferRef);
         }
         _pixelBufferRef = pixelBuffer;
+ ### end of old implementation*/
+ //理论上这个拷贝可以省掉 但是old implementation 在flutter渲染一段时间会报bad access。
+ //怀疑是decoder在复用这个buffer。我没找到好的方案
+ //即使在copyPixelBuffer中 retain和 CVPixelBufferLockBaseAddress也不行。
+ //目前这里就拷贝一下，本身性能影响也比较有限。
+        CVPixelBufferLockBaseAddress(pixelBuffer, kCVPixelBufferLock_ReadOnly);
+        CVPixelBufferLockBaseAddress(_pixelBufferRef, 0);
+
+        // 获取源缓冲区和目标缓冲区的基地址
+        void *srcBaseAddress = CVPixelBufferGetBaseAddress(pixelBuffer);
+        void *dstBaseAddress = CVPixelBufferGetBaseAddress(_pixelBufferRef);
+
+        // 获取源缓冲区的总大小
+        size_t dataSize = CVPixelBufferGetDataSize(pixelBuffer);
+
+        // 将源缓冲区的数据复制到目标缓冲区
+        memcpy(dstBaseAddress, srcBaseAddress, dataSize);
+
+        // 解锁源和目标缓冲区
+        CVPixelBufferUnlockBaseAddress(pixelBuffer, kCVPixelBufferLock_ReadOnly);
+        CVPixelBufferUnlockBaseAddress(_pixelBufferRef, 0);
     } else {
         // no hardware acceleration implemented yet. fallback to software.
         [self copyI420ToCVPixelBuffer:_pixelBufferRef withFrame:frame];
