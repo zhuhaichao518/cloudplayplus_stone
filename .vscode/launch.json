@@ -10,6 +10,12 @@
             "type": "dart"
         },
         {
+            "name": "Flutter (Web Security Disabled)",
+            "request": "launch",
+            "type": "dart",
+            "toolArgs": ["--web-browser-flag","--disable-web-security"]
+        },
+        {
             "name": "Debug Native",
             "type": "cppdbg",
             "request": "launch",

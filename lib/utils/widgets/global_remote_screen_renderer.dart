@@ -1,4 +1,5 @@
 //render the global remote screen in an infinite vertical scroll view.
+import 'package:cloudplayplus/base/logging.dart';
 import 'package:cloudplayplus/services/app_info_service.dart';
 import 'package:cloudplayplus/services/webrtc_service.dart';
 import 'package:cloudplayplus/utils/widgets/on_screen_keyboard.dart';
@@ -48,15 +49,12 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
     if ((event.buttons & kPrimaryMouseButton != 0) != _leftButtonDown) {
       _leftButtonDown = !_leftButtonDown;
       InputController.requestMouseClick(
-        WebrtcService.currentRenderingSession!.channel,
-        1,
-      _leftButtonDown);
-    } else if ((event.buttons & kSecondaryMouseButton != 0) != _rightButtonDown) {
+          WebrtcService.currentRenderingSession!.channel, 1, _leftButtonDown);
+    } else if ((event.buttons & kSecondaryMouseButton != 0) !=
+        _rightButtonDown) {
       _rightButtonDown = !_rightButtonDown;
       InputController.requestMouseClick(
-        WebrtcService.currentRenderingSession!.channel,
-        3,
-        _rightButtonDown);
+          WebrtcService.currentRenderingSession!.channel, 3, _rightButtonDown);
     }
   }
 
@@ -178,7 +176,7 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
                                 return LayoutBuilder(builder:
                                     (BuildContext context,
                                         BoxConstraints constraints) {
-                                  print(
+                                  VLOG0(
                                       "------max height: {$constraints.maxHeight} aspectratio: {$aspectRatioNotifier.value}");
                                   double realHeight = constraints.maxHeight;
                                   double realWidth = constraints.maxWidth;
@@ -191,43 +189,34 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
                                     realWidth =
                                         realHeight * aspectRatioNotifier.value;
                                   }
-                                  return SizedBox(
-                                      width: realWidth,
-                                      height: realHeight,
-                                      child: RTCVideoView(
-                                          WebrtcService.globalVideoRenderer!,
-                                          setAspectRatio: (newAspectRatio) {
-                                        // 延迟更新 aspectRatio，避免在构建过程中触发 setState
-                                        if (newAspectRatio.isNaN) return;
-                                        WidgetsBinding.instance
-                                            .addPostFrameCallback((_) {
-                                          if (aspectRatioNotifier.value ==
-                                              newAspectRatio) {
-                                            return;
-                                          }
-                                          aspectRatioNotifier.value =
-                                              newAspectRatio;
-                                        });
-                                      }, onRenderBoxUpdated: (newRenderBox) {
-                                        renderBox = newRenderBox;
-                                        widgetSize = newRenderBox.size;
-                                      }));
+                                  return Center(
+                                      child: SizedBox(
+                                          width: realWidth,
+                                          height: realHeight,
+                                          child: RTCVideoView(
+                                              WebrtcService
+                                                  .globalVideoRenderer!,
+                                              setAspectRatio: (newAspectRatio) {
+                                            // 延迟更新 aspectRatio，避免在构建过程中触发 setState
+                                            if (newAspectRatio.isNaN) return;
+                                            WidgetsBinding.instance
+                                                .addPostFrameCallback((_) {
+                                              if (aspectRatioNotifier.value ==
+                                                  newAspectRatio) {
+                                                return;
+                                              }
+                                              aspectRatioNotifier.value =
+                                                  newAspectRatio;
+                                            });
+                                          }, onRenderBoxUpdated:
+                                                  (newRenderBox) {
+                                            renderBox = newRenderBox;
+                                            widgetSize = newRenderBox.size;
+                                          }))
+                                      );
                                 });
                               })
                           : RTCVideoView(WebrtcService.globalVideoRenderer!,
-                              /*setAspectRatio: (AspectRatio) {
-                      if(kIsWeb){
-                        if (renderBox!=null){
-                          double newheight = renderBox!.size.height;
-                          double newwidth = renderBox!.size.width;
-                          if (renderBox!.size.height * AspectRatio > renderBox!.size.width){
-                            newheight = renderBox!.size.width/AspectRatio;
-                          }else{
-
-                          }
-                        }
-                      }
-                    },*/
                               onRenderBoxUpdated: (newRenderBox) {
                               renderBox = newRenderBox;
                               widgetSize = newRenderBox.size;
