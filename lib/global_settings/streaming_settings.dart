@@ -60,7 +60,7 @@ class StreamingSettings {
             ''; // Default to empty string
     targetScreenId = 0;
     codec = SharedPreferencesManager.getString('codec') ?? 'default';
-    
+
     hookCursorImage = SharedPreferencesManager.getBool('useCustomTurnServer');
     hookCursorImage ??= (AppPlatform.isWeb || AppPlatform.isDeskTop);
   }
@@ -83,7 +83,7 @@ class StreamingSettings {
       'turnServerPassword': turnServerPassword,
       'targetScreenId': targetScreenId,
       'codec': codec,
-      'hookCursorImage':hookCursorImage,
+      'hookCursorImage': hookCursorImage,
     };
     data.removeWhere((key, value) => value == null);
     return data;

@@ -9,7 +9,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
-import 'package:hardware_simulator/hardware_simulator.dart';
 
 import '../../controller/hardware_input_controller.dart';
 import '../../controller/platform_key_map.dart';
@@ -72,22 +71,26 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
                     focusNode.requestFocus();
                     if (renderBox == null ||
                         WebrtcService.currentRenderingSession == null) return;
-                    if (event.kind == PointerDeviceKind.touch){
+                    if (event.kind == PointerDeviceKind.touch) {
                       _leftButtonDown = true;
                       InputController.requestMouseClick(
-                          WebrtcService.currentRenderingSession!.channel, 1, _leftButtonDown);
-                    } else if (event.kind == PointerDeviceKind.mouse){
+                          WebrtcService.currentRenderingSession!.channel,
+                          1,
+                          _leftButtonDown);
+                    } else if (event.kind == PointerDeviceKind.mouse) {
                       _syncMouseButtonState(event);
                     }
                   },
                   onPointerUp: (PointerUpEvent event) {
                     if (renderBox == null ||
                         WebrtcService.currentRenderingSession == null) return;
-                    if (event.kind == PointerDeviceKind.touch){
+                    if (event.kind == PointerDeviceKind.touch) {
                       _leftButtonDown = false;
                       InputController.requestMouseClick(
-                          WebrtcService.currentRenderingSession!.channel, 1, _leftButtonDown);
-                    } else if (event.kind == PointerDeviceKind.mouse){
+                          WebrtcService.currentRenderingSession!.channel,
+                          1,
+                          _leftButtonDown);
+                    } else if (event.kind == PointerDeviceKind.mouse) {
                       _syncMouseButtonState(event);
                     }
                   },
@@ -225,8 +228,7 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
                                                   (newRenderBox) {
                                             renderBox = newRenderBox;
                                             widgetSize = newRenderBox.size;
-                                          }))
-                                      );
+                                          })));
                                 });
                               })
                           : RTCVideoView(WebrtcService.globalVideoRenderer!,

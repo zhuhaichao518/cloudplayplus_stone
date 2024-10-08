@@ -16,6 +16,12 @@
             "toolArgs": ["--web-browser-flag","--disable-web-security"]
         },
         {
+            "name": "Flutter (local engine)",
+            "request": "launch",
+            "type": "dart",
+            "toolArgs": ["--web-browser-flag","--disable-web-security","--local-web-sdk=wasm_release"]
+        },
+        {
             "name": "Debug Native",
             "type": "cppdbg",
             "request": "launch",

@@ -20,7 +20,7 @@ class MouseStyleRegion extends StatefulWidget {
 class _MouseStyleRegionState extends State<MouseStyleRegion> {
   MouseCursor _cursorStyle = SystemMouseCursors.basic;
   MouseCursor _cursorStyleOnLeave = SystemMouseCursors.basic;
-  
+
   @override
   void dispose() {
     InputController.removeCursorContext(context);
@@ -42,7 +42,7 @@ class _MouseStyleRegionState extends State<MouseStyleRegion> {
         hitTestBehavior: HitTestBehavior.translucent,
         //macos上 全屏模式下当鼠标向上移出去再移回来会切回默认鼠标样式 这个也只能缓解
         onEnter: (event) {
-          if (AppPlatform.isMacos){
+          if (AppPlatform.isMacos) {
             setState(() {
               _cursorStyle = SystemMouseCursors.basic;
             });
@@ -52,12 +52,13 @@ class _MouseStyleRegionState extends State<MouseStyleRegion> {
                   _cursorStyle = _cursorStyleOnLeave;
                 });
               }
-            }); 
+            });
           }
         },
         onExit: (event) {
           //修复快速移出无法移动到边角的问题。
-          InputController.requestMoveMouseAbsl(WebrtcService.currentRenderingSession!.channel, 0, 0, -1);
+          InputController.requestMoveMouseAbsl(
+              WebrtcService.currentRenderingSession!.channel, 0, 0, -1);
         },
       ),
     );

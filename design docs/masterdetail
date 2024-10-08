@@ -1,0 +1,24 @@
+  page_transitions_theme.dart
+  
+  Widget buildTransitions<T>(
+    PageRoute<T>? route,
+    BuildContext? context,
+    Animation<double> animation,
+    Animation<double> secondaryAnimation,
+    Widget child,
+  ) {
+    if (_kProfileForceDisableSnapshotting) {
+      return _ZoomPageTransitionNoCache(
+      animation: animation,
+      secondaryAnimation: secondaryAnimation,
+      child: child,
+      );
+    }
+    return _ZoomPageTransition(
+      animation: animation,
+      secondaryAnimation: secondaryAnimation,
+      allowSnapshotting: allowSnapshotting && (route?.allowSnapshotting??true),
+      allowEnterRouteSnapshotting: allowEnterRouteSnapshotting,
+      child: child,
+    );
+  }

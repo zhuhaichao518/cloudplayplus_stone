@@ -15,7 +15,7 @@ class StreamedManager {
   //Screenid to MediaStream
   static Map<int, MediaStream> localVideoStreams = {};
   static Map<int, int> localVideoStreamsCount = {};
-  
+
   //auto increment. used for cursor hooks.
   static int cursorImageHookID = 0;
 

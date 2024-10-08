@@ -8,7 +8,8 @@ environment:
 
 dependencies:
   collection: ^1.17.0
-  dart_webrtc: ^1.4.9
+  dart_webrtc:
+    path: dart-webrtc
   flutter:
     sdk: flutter
   path_provider: ^2.0.2

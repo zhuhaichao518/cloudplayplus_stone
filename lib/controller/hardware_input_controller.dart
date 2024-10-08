@@ -8,9 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'package:hardware_simulator/hardware_simulator.dart';
 import 'package:hardware_simulator/hardware_simulator_platform_interface.dart';
-import 'dart:ui' as ui show Image,
-        decodeImageFromPixels,
-        PixelFormat;
+import 'dart:ui' as ui show Image, decodeImageFromPixels, PixelFormat;
 import '../entities/messages.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -22,7 +20,7 @@ class InputController {
   static void requestMoveMouseAbsl(
       RTCDataChannel? channel, double x, double y, int screenId) async {
     if (channel == null) return;
-    if (screenId == -1){
+    if (screenId == -1) {
       x = lastx;
       y = lasty;
       bool shouldSend = false;
@@ -33,19 +31,19 @@ class InputController {
       if (lasty > 0.85) {
         shouldSend = true;
         y = 1;
-      } 
+      }
       if (lastx < 0.15) {
         shouldSend = true;
         x = 0;
-      } 
+      }
       if (lastx > 0.85) {
         shouldSend = true;
         x = 1;
       }
-      if (!shouldSend){
+      if (!shouldSend) {
         return;
       }
-    }else{
+    } else {
       lastx = x;
       lasty = y;
     }
@@ -74,7 +72,7 @@ class InputController {
 
     HardwareSimulator.mouse.performMouseMoveAbsl(x, y, screenId);
   }
- 
+
   // maybe we don't need screenId?
   static void requestMoveMouseRelative(
       RTCDataChannel? channel, double x, double y, int screenId) async {
@@ -164,8 +162,8 @@ class InputController {
     HardwareSimulator.keyboard.performKeyEvent(keyCode, isDown);
   }
 
-  static Map<int,MouseCursor> cachedCursors = {};
-  
+  static Map<int, MouseCursor> cachedCursors = {};
+
   static Future<ui.Image> rawBGRAtoImage(
       Uint8List bytes, int width, int height) async {
     final Completer<ui.Image> completer = Completer();
@@ -182,7 +180,7 @@ class InputController {
   }
 
   static Future<MouseCursor> registerIncomingCursor(int width, int height,
-    Uint8List data, int hotx, int hoty, int hash) async {
+      Uint8List data, int hotx, int hoty, int hash) async {
     final ui.Image cursorimage = await rawBGRAtoImage(data, width, height);
     MouseCursor imageCursor = await CustomMouseCursor.image(cursorimage,
         hotX: hotx,
@@ -191,7 +189,7 @@ class InputController {
         finalizeForCurrentDPR: false);
     return imageCursor;
   }
-  
+
   /* we use bloc istead of callback.
   static CursorUpdatedCallback? _cursorUpdatedCallback;
 
@@ -200,26 +198,27 @@ class InputController {
   }*/
 
   static BuildContext? _cursorContext;
-  static void setCursorContext(BuildContext context){
+  static void setCursorContext(BuildContext context) {
     _cursorContext = context;
   }
 
-  static void removeCursorContext(BuildContext context){
+  static void removeCursorContext(BuildContext context) {
     //check if the cursorcontext to remove is the current active one.
-    if (_cursorContext == context){
+    if (_cursorContext == context) {
       _cursorContext = null;
     }
   }
 
   static CursorMovedCallback cursorMovedCallback = (deltax, deltay) {
-    requestMoveMouseRelative(WebrtcService.currentRenderingSession!.channel!, deltax, deltay, 0);
+    requestMoveMouseRelative(
+        WebrtcService.currentRenderingSession!.channel!, deltax, deltay, 0);
   };
 
   static bool isCursorLocked = false;
 
   static void handleCursorUpdate(RTCDataChannelMessage msg) async {
     Uint8List buffer = msg.binary;
-    if (buffer[0] == LP_MOUSECURSOR_CHANGED_WITHBUFFER){
+    if (buffer[0] == LP_MOUSECURSOR_CHANGED_WITHBUFFER) {
       //cursor hash: 0 + size + hash + data
       int width = 0;
       int height = 0;
@@ -244,7 +243,8 @@ class InputController {
         for (int i = 17; i < 21; i++) {
           hash = hash * 256 + buffer[i];
         }
-        MouseCursor newcursor = await registerIncomingCursor(width, height, buffer.sublist(21), hotx, hoty, hash);
+        MouseCursor newcursor = await registerIncomingCursor(
+            width, height, buffer.sublist(21), hotx, hoty, hash);
         cachedCursors[hash] = newcursor;
         _cursorContext?.read<MouseStyleBloc>().setCursor(newcursor);
       }
@@ -252,81 +252,83 @@ class InputController {
       ByteData byteData = ByteData.sublistView(buffer);
       int message = byteData.getInt32(1);
       int msgInfo = byteData.getInt32(5);
-      if (message == HardwareSimulator.CURSOR_UPDATED_CACHED){
+      if (message == HardwareSimulator.CURSOR_UPDATED_CACHED) {
         if (cachedCursors.containsKey(msgInfo)) {
-          _cursorContext?.read<MouseStyleBloc>().setCursor(cachedCursors[msgInfo]!);
+          _cursorContext
+              ?.read<MouseStyleBloc>()
+              .setCursor(cachedCursors[msgInfo]!);
         }
-      } else if (message == HardwareSimulator.CURSOR_UPDATED_DEFAULT){
-          MouseCursor remotecursor;
-          switch (msgInfo) {
-            case 32512: // IDC_ARROW
-              remotecursor = SystemMouseCursors.basic;
-              break;
-            case 32513: // IDC_IBEAM
-              remotecursor = SystemMouseCursors.text;
-              break;
-            case 32514: // IDC_WAIT
-              remotecursor = SystemMouseCursors.wait;
-              break;
-            case 32515: // IDC_CROSS
-              remotecursor = SystemMouseCursors.precise;
-              break;
-            case 32516: // IDC_UPARROW
-              remotecursor = SystemMouseCursors.resizeUpDown;
-              break;
-            case 32640: // IDC_SIZE (OBSOLETE)
-              // Use an appropriate cursor or the default one
-              remotecursor = SystemMouseCursors.basic;
-              break;
-            case 32642: // IDC_SIZENWSE
-              remotecursor = SystemMouseCursors.resizeUpLeftDownRight;
-              break;
-            case 32643: // IDC_SIZENESW
-              remotecursor = SystemMouseCursors.resizeUpRightDownLeft;
-              break;
-            case 32644: // IDC_SIZEWE
-              remotecursor = SystemMouseCursors.resizeLeftRight;
-              break;
-            case 32645: // IDC_SIZENS
-              remotecursor = SystemMouseCursors.resizeUpDown;
-              break;
-            case 32646: // IDC_SIZEALL
-              remotecursor = SystemMouseCursors.allScroll;
-              break;
-            case 32648: // IDC_NO
-              remotecursor = SystemMouseCursors.forbidden;
-              break;
-            case 32649: // IDC_HAND (Windows 5.0+)
-              remotecursor = SystemMouseCursors.click;
-              break;
-            case 32650: // IDC_APPSTARTING
-              remotecursor = SystemMouseCursors.progress;
-              break;
-            case 32651: // IDC_HELP (Windows 4.0+)
-              remotecursor = SystemMouseCursors.help;
-              break;
-            case 32671: // IDC_PIN (Windows 6.6+)
-              // Use an appropriate cursor or the default one
-              remotecursor = SystemMouseCursors.basic;
-              break;
-            case 32672: // IDC_PERSON (Windows 6.6+)
-              // Use an appropriate cursor or the default one
-              remotecursor = SystemMouseCursors.basic;
-              break;
-            default:
-              // Handle unknown cursor
-              remotecursor = SystemMouseCursors.basic;
-          }
-          _cursorContext?.read<MouseStyleBloc>().setCursor(remotecursor);
-      } else if (message == HardwareSimulator.CURSOR_INVISIBLE){
-          //lock cursor will start tracing mouse.
-          isCursorLocked = true;
-          HardwareSimulator.lockCursor();
-          HardwareSimulator.addCursorMoved(cursorMovedCallback);
-      } else if (message == HardwareSimulator.CURSOR_VISIBLE){
-          isCursorLocked = false;
-          HardwareSimulator.unlockCursor();
-          HardwareSimulator.removeCursorMoved(cursorMovedCallback);
+      } else if (message == HardwareSimulator.CURSOR_UPDATED_DEFAULT) {
+        MouseCursor remotecursor;
+        switch (msgInfo) {
+          case 32512: // IDC_ARROW
+            remotecursor = SystemMouseCursors.basic;
+            break;
+          case 32513: // IDC_IBEAM
+            remotecursor = SystemMouseCursors.text;
+            break;
+          case 32514: // IDC_WAIT
+            remotecursor = SystemMouseCursors.wait;
+            break;
+          case 32515: // IDC_CROSS
+            remotecursor = SystemMouseCursors.precise;
+            break;
+          case 32516: // IDC_UPARROW
+            remotecursor = SystemMouseCursors.resizeUpDown;
+            break;
+          case 32640: // IDC_SIZE (OBSOLETE)
+            // Use an appropriate cursor or the default one
+            remotecursor = SystemMouseCursors.basic;
+            break;
+          case 32642: // IDC_SIZENWSE
+            remotecursor = SystemMouseCursors.resizeUpLeftDownRight;
+            break;
+          case 32643: // IDC_SIZENESW
+            remotecursor = SystemMouseCursors.resizeUpRightDownLeft;
+            break;
+          case 32644: // IDC_SIZEWE
+            remotecursor = SystemMouseCursors.resizeLeftRight;
+            break;
+          case 32645: // IDC_SIZENS
+            remotecursor = SystemMouseCursors.resizeUpDown;
+            break;
+          case 32646: // IDC_SIZEALL
+            remotecursor = SystemMouseCursors.allScroll;
+            break;
+          case 32648: // IDC_NO
+            remotecursor = SystemMouseCursors.forbidden;
+            break;
+          case 32649: // IDC_HAND (Windows 5.0+)
+            remotecursor = SystemMouseCursors.click;
+            break;
+          case 32650: // IDC_APPSTARTING
+            remotecursor = SystemMouseCursors.progress;
+            break;
+          case 32651: // IDC_HELP (Windows 4.0+)
+            remotecursor = SystemMouseCursors.help;
+            break;
+          case 32671: // IDC_PIN (Windows 6.6+)
+            // Use an appropriate cursor or the default one
+            remotecursor = SystemMouseCursors.basic;
+            break;
+          case 32672: // IDC_PERSON (Windows 6.6+)
+            // Use an appropriate cursor or the default one
+            remotecursor = SystemMouseCursors.basic;
+            break;
+          default:
+            // Handle unknown cursor
+            remotecursor = SystemMouseCursors.basic;
+        }
+        _cursorContext?.read<MouseStyleBloc>().setCursor(remotecursor);
+      } else if (message == HardwareSimulator.CURSOR_INVISIBLE) {
+        //lock cursor will start tracing mouse.
+        isCursorLocked = true;
+        HardwareSimulator.lockCursor();
+        HardwareSimulator.addCursorMoved(cursorMovedCallback);
+      } else if (message == HardwareSimulator.CURSOR_VISIBLE) {
+        isCursorLocked = false;
+        HardwareSimulator.unlockCursor();
+        HardwareSimulator.removeCursorMoved(cursorMovedCallback);
       }
     }
   }
