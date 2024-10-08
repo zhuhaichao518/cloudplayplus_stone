@@ -37,7 +37,10 @@ class StreamingManager {
       VLOG0("No session found with sessionId: $target.websocketSessionid");
     }
     if (sessions.isEmpty){
-      CustomMouseCursor.disposeAll();
+      //TODO(Haichao:fix ConcurrentModificationError when sometimes disconnecting)
+      Future.delayed(const Duration(milliseconds: 200), () {
+        CustomMouseCursor.disposeAll();
+      });
     }
   }
 
