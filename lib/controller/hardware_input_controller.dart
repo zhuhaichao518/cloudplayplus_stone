@@ -15,9 +15,38 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 typedef CursorUpdatedCallback = void Function(MouseCursor newcursor);
 
 class InputController {
+  static double lastx = 1;
+  static double lasty = 1;
   static void requestMoveMouseAbsl(
       RTCDataChannel? channel, double x, double y, int screenId) async {
     if (channel == null) return;
+    if (screenId == -1){
+      x = lastx;
+      y = lasty;
+      bool shouldSend = false;
+      if (lasty < 0.15) {
+        shouldSend = true;
+        y = 0;
+      }
+      if (lasty > 0.85) {
+        shouldSend = true;
+        y = 1;
+      } 
+      if (lastx < 0.15) {
+        shouldSend = true;
+        x = 0;
+      } 
+      if (lastx > 0.85) {
+        shouldSend = true;
+        x = 1;
+      }
+      if (!shouldSend){
+        return;
+      }
+    }else{
+      lastx = x;
+      lasty = y;
+    }
     // 创建一个ByteData足够存储 LP_MOUSE, screenId, dx, dy
     ByteData byteData = ByteData(10);
     byteData.setUint8(0, LP_MOUSEMOVE_ABSL);

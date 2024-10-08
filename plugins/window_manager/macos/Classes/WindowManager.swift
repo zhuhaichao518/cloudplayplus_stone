@@ -199,10 +199,14 @@ public class WindowManager: NSObject, NSWindowDelegate {
         if (isFullScreen) {
             if (!mainWindow.styleMask.contains(.fullScreen)) {
                 mainWindow.toggleFullScreen(nil)
+                //hide menu in full screen mode. I don't know why I should add both.
+                NSApplication.shared.presentationOptions = [.hideMenuBar, .hideDock]
             }
         } else {
             if (mainWindow.styleMask.contains(.fullScreen)) {
                 mainWindow.toggleFullScreen(nil)
+                //hide menu in full screen mode. I don't know why I should add both.
+                NSApplication.shared.presentationOptions = [.hideMenuBar, .hideDock]
             }
         }
     }
