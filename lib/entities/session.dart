@@ -9,6 +9,7 @@ import 'package:cloudplayplus/services/streaming_manager.dart';
 import 'package:cloudplayplus/services/websocket_service.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
+import 'package:hardware_simulator/hardware_simulator.dart';
 import 'package:mutex/mutex.dart';
 
 import '../base/logging.dart';
@@ -74,6 +75,8 @@ class StreamingSession {
   List<RTCIceCandidate> candidates = [];
 
   int screenId = 0;
+  
+  int cursorImageHookID = 0;
 
   StreamingSession(this.controller, this.controlled) {
     connectionState = StreamingSessionConnectionState.free;
@@ -217,6 +220,9 @@ class StreamingSession {
   //We are the 'controlled'.
   void acceptRequest(StreamedSettings settings) async {
     acquireLock();
+    if (settings.hookCursorImage == true){
+      HardwareSimulator.addCursorImageUpdated(onLocalCursorImageMessage, cursorImageHookID);
+    }
     if (connectionState != StreamingSessionConnectionState.free &&
         connectionState != StreamingSessionConnectionState.disconnected) {
       VLOG0("starting connection on which is already started. Please debug.");
@@ -493,7 +499,9 @@ class StreamingSession {
     pc = null;
     connectionState = StreamingSessionConnectionState.disconnected;
     controlled.connectionState.value = StreamingSessionConnectionState.free;
-
+    if (streamSettings?.hookCursorImage == true){
+      HardwareSimulator.removeCursorImageUpdated(cursorImageHookID);
+    }
     releaseLock();
   }
 
@@ -517,6 +525,19 @@ class StreamingSession {
 
   void releaseLock() {
     locker.release();
+  }
+
+  void onLocalCursorImageMessage(int message, int messageInfo, Uint8List cursorImage){
+    if (message == HardwareSimulator.CURSOR_UPDATED_IMAGE){
+      channel?.send(RTCDataChannelMessage.fromBinary(cursorImage));
+    }else{
+      ByteData byteData = ByteData(9);
+      byteData.setUint8(0, LP_MOUSECURSOR_CHANGED);
+      byteData.setInt32(1, message);
+      byteData.setInt32(5, messageInfo);
+      Uint8List buffer = byteData.buffer.asUint8List();
+      channel?.send(RTCDataChannelMessage.fromBinary(buffer));
+    } 
   }
 
   void processDataChannelMessageFromClient(RTCDataChannelMessage message) {
@@ -570,6 +591,11 @@ class StreamingSession {
             });
           }
           break;
+        case LP_MOUSECURSOR_CHANGED:
+        case LP_MOUSECURSOR_CHANGED_WITHBUFFER:
+          if (WebrtcService.currentRenderingSession == this){
+            InputController.handleCursorUpdate(message);
+          }
         case LP_DISCONNECT:
           close();
           break;

@@ -15,6 +15,9 @@ class StreamedManager {
   //Screenid to MediaStream
   static Map<int, MediaStream> localVideoStreams = {};
   static Map<int, int> localVideoStreamsCount = {};
+  
+  //auto increment. used for cursor hooks.
+  static int cursorImageHookID = 0;
 
   static void startStreaming(Device target, StreamedSettings settings) async {
     acquireLock();
@@ -61,6 +64,8 @@ class StreamedManager {
     }
     StreamingSession session =
         StreamingSession(target, ApplicationInfo.thisDevice);
+    cursorImageHookID++;
+    session.cursorImageHookID = cursorImageHookID;
     session.acceptRequest(settings);
     sessions[target.websocketSessionid] = session;
     releaseLock();
