@@ -6,10 +6,12 @@ import 'package:flutter_webrtc/flutter_webrtc.dart';
 const int LP_PING = 0;
 const int RP_PING = 0;
 const int RP_PONG = 1;
-const int LP_MOUSEMOVE_ABSL = 1 << 1;
-const int LP_MOUSEMOVE_RELATIVE = 1 << 2;
-const int LP_MOUSEBUTTON = 1 << 3;
-const int LP_KEYPRESSED = 1 << 4;
+const int LP_MOUSEMOVE_ABSL = 1 << 1; //2
+const int LP_MOUSEMOVE_RELATIVE = 1 << 2; //4
+const int LP_MOUSEBUTTON = 1 << 3; //8
+const int LP_MOUSECURSOR_CHANGED_WITHBUFFER = 9;
+const int LP_MOUSECURSOR_CHANGED = 10;
+const int LP_KEYPRESSED = 1 << 4; //16
 const int LP_DISCONNECT = 1 << 7;
 // [--end of message definitions--]
 

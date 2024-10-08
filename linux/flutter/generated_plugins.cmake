@@ -4,6 +4,7 @@
 
 list(APPEND FLUTTER_PLUGIN_LIST
   bitsdojo_window_linux
+  custom_mouse_cursor
   flutter_secure_storage_linux
   flutter_webrtc
   hardware_simulator

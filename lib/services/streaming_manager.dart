@@ -1,4 +1,5 @@
 //这个文件负责管理所有由本app远程控制别的app的状态。
+import 'package:custom_mouse_cursor/custom_mouse_cursor.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 
 import '../base/logging.dart';
@@ -34,6 +35,9 @@ class StreamingManager {
       WebrtcService.removeStream(target.websocketSessionid);
     } else {
       VLOG0("No session found with sessionId: $target.websocketSessionid");
+    }
+    if (sessions.isEmpty){
+      CustomMouseCursor.disposeAll();
     }
   }
 

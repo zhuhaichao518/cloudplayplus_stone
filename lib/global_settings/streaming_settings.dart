@@ -1,4 +1,8 @@
+import 'dart:io';
+
+import 'package:cloudplayplus/services/app_info_service.dart';
 import 'package:cloudplayplus/services/shared_preferences_manager.dart';
+import 'package:flutter/foundation.dart';
 
 var officialStun1 = {
   'urls': "stun:stun.l.google.com:19302",
@@ -28,6 +32,7 @@ class StreamingSettings {
   static String? turnServerUsername;
   static String? turnServerPassword;
   static String? codec;
+  static bool? hookCursorImage;
 
   static void init() {
     framerate =
@@ -55,6 +60,9 @@ class StreamingSettings {
             ''; // Default to empty string
     targetScreenId = 0;
     codec = SharedPreferencesManager.getString('codec') ?? 'default';
+    
+    hookCursorImage = SharedPreferencesManager.getBool('useCustomTurnServer');
+    hookCursorImage ??= (AppPlatform.isWeb || AppPlatform.isDeskTop);
   }
 
   //Screen id setting is not global, so we need to call before start streaming.
@@ -75,6 +83,7 @@ class StreamingSettings {
       'turnServerPassword': turnServerPassword,
       'targetScreenId': targetScreenId,
       'codec': codec,
+      'hookCursorImage':hookCursorImage,
     };
     data.removeWhere((key, value) => value == null);
     return data;
@@ -99,6 +108,7 @@ class StreamedSettings {
   String? turnServerUsername;
   String? turnServerPassword;
   String? codec;
+  bool? hookCursorImage;
   static StreamedSettings fromJson(Map<String, dynamic> settings) {
     return StreamedSettings()
       ..framerate = settings['framerate'] as int?
@@ -111,6 +121,7 @@ class StreamedSettings {
       ..turnServerUsername = settings['turnServerUsername'] as String?
       ..turnServerPassword = settings['turnServerPassword'] as String?
       ..screenId = settings['targetScreenId'] as int?
-      ..codec = settings['codec'] as String?;
+      ..codec = settings['codec'] as String?
+      ..hookCursorImage = settings['hookCursorImage'] as bool?;
   }
 }

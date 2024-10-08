@@ -7,12 +7,14 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'package:hardware_simulator/hardware_simulator.dart';
 
 import '../../controller/hardware_input_controller.dart';
 import '../../controller/platform_key_map.dart';
 import '../../controller/screen_controller.dart';
+import 'cursor_change_widget.dart';
 
 class GlobalRemoteScreenRenderer extends StatefulWidget {
   const GlobalRemoteScreenRenderer({super.key});
@@ -223,6 +225,10 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
                             }),
                     ),
                   ),
+                ),
+                BlocProvider(
+                  create: (context) => MouseStyleBloc(),
+                  child: const MouseStyleRegion(),
                 ),
                 const OnScreenVirtualKeyboard(), // 放置在Stack中，独立于Listener和RawKeyboardListener
               ],
