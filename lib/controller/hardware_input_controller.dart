@@ -1,11 +1,13 @@
 import 'dart:async';
 import 'dart:typed_data';
 
+import 'package:cloudplayplus/services/webrtc_service.dart';
 import 'package:cloudplayplus/utils/widgets/cursor_change_widget.dart';
 import 'package:custom_mouse_cursor/custom_mouse_cursor.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'package:hardware_simulator/hardware_simulator.dart';
+import 'package:hardware_simulator/hardware_simulator_platform_interface.dart';
 import 'dart:ui' as ui show Image,
         decodeImageFromPixels,
         PixelFormat;
@@ -72,7 +74,8 @@ class InputController {
 
     HardwareSimulator.mouse.performMouseMoveAbsl(x, y, screenId);
   }
-
+ 
+  // maybe we don't need screenId?
   static void requestMoveMouseRelative(
       RTCDataChannel? channel, double x, double y, int screenId) async {
     if (channel == null) return;
@@ -208,6 +211,10 @@ class InputController {
     }
   }
 
+  static CursorMovedCallback cursorMovedCallback = (deltax, deltay) {
+    requestMoveMouseRelative(WebrtcService.currentRenderingSession!.channel!, deltax, deltay, 0);
+  };
+
   static void handleCursorUpdate(RTCDataChannelMessage msg) async {
     Uint8List buffer = msg.binary;
     if (buffer[0] == LP_MOUSECURSOR_CHANGED_WITHBUFFER){
@@ -309,6 +316,13 @@ class InputController {
               remotecursor = SystemMouseCursors.basic;
           }
           _cursorContext?.read<MouseStyleBloc>().setCursor(remotecursor);
+      } else if (message == HardwareSimulator.CURSOR_INVISIBLE){
+          //lock cursor will start tracing mouse.
+          HardwareSimulator.lockCursor();
+          HardwareSimulator.addCursorMoved(cursorMovedCallback);
+      } else if (message == HardwareSimulator.CURSOR_VISIBLE){
+          HardwareSimulator.unlockCursor();
+          HardwareSimulator.removeCursorMoved(cursorMovedCallback);
       }
     }
   }

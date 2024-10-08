@@ -502,6 +502,9 @@ class StreamingSession {
     if (streamSettings?.hookCursorImage == true){
       HardwareSimulator.removeCursorImageUpdated(cursorImageHookID);
     }
+    if (WebrtcService.currentRenderingSession == this){
+      HardwareSimulator.unlockCursor();
+    }
     releaseLock();
   }
 
@@ -558,6 +561,9 @@ class StreamingSession {
           break;
         case LP_MOUSEMOVE_ABSL:
           InputController.handleMoveMouseAbsl(message);
+          break;
+        case LP_MOUSEMOVE_RELATIVE:
+          InputController.handleMoveMouseRelative(message);
           break;
         case LP_MOUSEBUTTON:
           InputController.handleMouseClick(message);
