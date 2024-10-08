@@ -33,7 +33,6 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
 
   late Size widgetSize;
   RenderBox? renderBox;
-  bool isCursorLocked = false;
   bool _leftButtonDown = false;
   bool _rightButtonDown = false;
 
@@ -93,10 +92,10 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
                     }
                   },
                   onPointerMove: (PointerMoveEvent event) {
-                    if (isCursorLocked ||
-                        renderBox == null ||
+                    if (renderBox == null ||
                         WebrtcService.currentRenderingSession == null) return;
                     _syncMouseButtonState(event);
+                    if (InputController.isCursorLocked) return;
                     final Offset localPosition =
                         renderBox!.globalToLocal(event.position);
                     final double xPercent =
@@ -110,7 +109,7 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
                         WebrtcService.currentRenderingSession!.screenId);
                   },
                   onPointerHover: (PointerHoverEvent event) {
-                    if (isCursorLocked ||
+                    if (InputController.isCursorLocked ||
                         renderBox == null ||
                         WebrtcService.currentRenderingSession == null) return;
                     final Offset localPosition =
@@ -294,10 +293,6 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
   @override
   void dispose() {
     aspectRatioNotifier.dispose(); // 销毁时清理 ValueNotifier
-    if (isCursorLocked) {
-      HardwareSimulator.unlockCursor();
-      HardwareSimulator.removeCursorMoved(onLockedCursorMoved);
-    }
     super.dispose();
   }
 }

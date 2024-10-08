@@ -215,6 +215,8 @@ class InputController {
     requestMoveMouseRelative(WebrtcService.currentRenderingSession!.channel!, deltax, deltay, 0);
   };
 
+  static bool isCursorLocked = false;
+
   static void handleCursorUpdate(RTCDataChannelMessage msg) async {
     Uint8List buffer = msg.binary;
     if (buffer[0] == LP_MOUSECURSOR_CHANGED_WITHBUFFER){
@@ -318,9 +320,11 @@ class InputController {
           _cursorContext?.read<MouseStyleBloc>().setCursor(remotecursor);
       } else if (message == HardwareSimulator.CURSOR_INVISIBLE){
           //lock cursor will start tracing mouse.
+          isCursorLocked = true;
           HardwareSimulator.lockCursor();
           HardwareSimulator.addCursorMoved(cursorMovedCallback);
       } else if (message == HardwareSimulator.CURSOR_VISIBLE){
+          isCursorLocked = false;
           HardwareSimulator.unlockCursor();
           HardwareSimulator.removeCursorMoved(cursorMovedCallback);
       }
