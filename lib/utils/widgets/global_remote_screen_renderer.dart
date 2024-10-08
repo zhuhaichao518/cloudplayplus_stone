@@ -73,12 +73,24 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
                     focusNode.requestFocus();
                     if (renderBox == null ||
                         WebrtcService.currentRenderingSession == null) return;
-                    _syncMouseButtonState(event);
+                    if (event.kind == PointerDeviceKind.touch){
+                      _leftButtonDown = true;
+                      InputController.requestMouseClick(
+                          WebrtcService.currentRenderingSession!.channel, 1, _leftButtonDown);
+                    } else if (event.kind == PointerDeviceKind.mouse){
+                      _syncMouseButtonState(event);
+                    }
                   },
                   onPointerUp: (PointerUpEvent event) {
                     if (renderBox == null ||
                         WebrtcService.currentRenderingSession == null) return;
-                    _syncMouseButtonState(event);
+                    if (event.kind == PointerDeviceKind.touch){
+                      _leftButtonDown = false;
+                      InputController.requestMouseClick(
+                          WebrtcService.currentRenderingSession!.channel, 1, _leftButtonDown);
+                    } else if (event.kind == PointerDeviceKind.mouse){
+                      _syncMouseButtonState(event);
+                    }
                   },
                   onPointerMove: (PointerMoveEvent event) {
                     if (isCursorLocked ||
