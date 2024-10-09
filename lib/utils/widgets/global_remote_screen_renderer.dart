@@ -91,6 +91,7 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
                 Listener(
                   onPointerSignal: (PointerSignalEvent event) {
                     if (event is PointerScrollEvent) {
+                      //this does not work on macos for touch bar, works for web.
                       InputController.requestMouseScroll(WebrtcService.currentRenderingSession!.channel, event.scrollDelta.dx, event.scrollDelta.dy);
                     }
                   },

@@ -135,9 +135,10 @@ class InputController {
   }
 
   static void requestMouseScroll(
-      RTCDataChannel? channel, double dx, double dy) async {
+      RTCDataChannel? channel, double? dx, double? dy) async {
     if (channel == null) return;
-
+    dx ??= 0;
+    dy ??= 0;
     // 创建一个 ByteData 足够存储 LP_MOUSEBUTTON, buttonId, isDown
     ByteData byteData = ByteData(9);
     byteData.setUint8(0, LP_MOUSE_SCROLL);
@@ -253,8 +254,8 @@ class InputController {
 
   static CursorWheelCallback cursorWheelCallback = (deltax, deltay) {
     if (isCursorLocked && WebrtcService.currentRenderingSession!=null && WebrtcService.currentRenderingSession!.channel!=null){
-      //requestMoveWheel(
-      //    WebrtcService.currentRenderingSession!.channel!, deltax, deltay, 0);
+      requestMouseScroll(
+          WebrtcService.currentRenderingSession!.channel!, deltax, deltay);
     }
   };
 
@@ -371,6 +372,7 @@ class InputController {
         HardwareSimulator.addCursorMoved(cursorMovedCallback);
         if (AppPlatform.isWeb){
           HardwareSimulator.addCursorPressed(cursorPressedCallback);
+          HardwareSimulator.addCursorWheel(cursorWheelCallback);
         }
       } else if (message == HardwareSimulator.CURSOR_VISIBLE) {
         isCursorLocked = false;
@@ -378,6 +380,7 @@ class InputController {
         HardwareSimulator.removeCursorMoved(cursorMovedCallback);
         if (AppPlatform.isWeb){
           HardwareSimulator.removeCursorPressed(cursorPressedCallback);
+          HardwareSimulator.addCursorWheel(cursorWheelCallback);
         }
       }
     }
