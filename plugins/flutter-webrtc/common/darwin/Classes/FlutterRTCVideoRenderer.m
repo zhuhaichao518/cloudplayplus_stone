@@ -202,15 +202,36 @@
         CVPixelBufferLockBaseAddress(pixelBuffer, kCVPixelBufferLock_ReadOnly);
         CVPixelBufferLockBaseAddress(_pixelBufferRef, 0);
 
-        // 获取源缓冲区和目标缓冲区的基地址
-        void *srcBaseAddress = CVPixelBufferGetBaseAddress(pixelBuffer);
-        void *dstBaseAddress = CVPixelBufferGetBaseAddress(_pixelBufferRef);
+        // YUV格式需要对齐 否则会出现绿线
+        // 获取 Y 平面的基地址和尺寸
+        void *srcBaseAddressY = CVPixelBufferGetBaseAddressOfPlane(pixelBuffer, 0);
+        void *dstBaseAddressY = CVPixelBufferGetBaseAddressOfPlane(_pixelBufferRef, 0);
 
-        // 获取源缓冲区的总大小
-        size_t dataSize = CVPixelBufferGetDataSize(pixelBuffer);
+        size_t srcBytesPerRowY = CVPixelBufferGetBytesPerRowOfPlane(pixelBuffer, 0);
+        size_t dstBytesPerRowY = CVPixelBufferGetBytesPerRowOfPlane(_pixelBufferRef, 0);
+        size_t heightY = CVPixelBufferGetHeightOfPlane(pixelBuffer, 0);
 
-        // 将源缓冲区的数据复制到目标缓冲区
-        memcpy(dstBaseAddress, srcBaseAddress, dataSize);
+        // 拷贝 Y 平面
+        for (size_t row = 0; row < heightY; row++) {
+            memcpy((char *)dstBaseAddressY + row * dstBytesPerRowY,
+                   (char *)srcBaseAddressY + row * srcBytesPerRowY,
+                   srcBytesPerRowY);
+        }
+
+        // 获取 CbCr 平面的基地址和尺寸
+        void *srcBaseAddressCbCr = CVPixelBufferGetBaseAddressOfPlane(pixelBuffer, 1);
+        void *dstBaseAddressCbCr = CVPixelBufferGetBaseAddressOfPlane(_pixelBufferRef, 1);
+
+        size_t srcBytesPerRowCbCr = CVPixelBufferGetBytesPerRowOfPlane(pixelBuffer, 1);
+        size_t dstBytesPerRowCbCr = CVPixelBufferGetBytesPerRowOfPlane(_pixelBufferRef, 1);
+        size_t heightCbCr = CVPixelBufferGetHeightOfPlane(pixelBuffer, 1);
+
+        // 拷贝 CbCr 平面
+        for (size_t row = 0; row < heightCbCr; row++) {
+            memcpy((char *)dstBaseAddressCbCr + row * dstBytesPerRowCbCr,
+                   (char *)srcBaseAddressCbCr + row * srcBytesPerRowCbCr,
+                   srcBytesPerRowCbCr);
+        }
 
         // 解锁源和目标缓冲区
         CVPixelBufferUnlockBaseAddress(pixelBuffer, kCVPixelBufferLock_ReadOnly);
