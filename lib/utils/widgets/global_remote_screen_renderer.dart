@@ -34,6 +34,9 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
   RenderBox? renderBox;
   bool _leftButtonDown = false;
   bool _rightButtonDown = false;
+  bool _middleButtonDown = false;
+  bool _backButtonDown = false;
+  bool _forwardButtonDown = false;
 
   void onLockedCursorMoved(double dx, double dy) {
     print("dx:{$dx}dy:{$dy}");
@@ -50,11 +53,30 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
       _leftButtonDown = !_leftButtonDown;
       InputController.requestMouseClick(
           WebrtcService.currentRenderingSession!.channel, 1, _leftButtonDown);
-    } else if ((event.buttons & kSecondaryMouseButton != 0) !=
+    } 
+    if ((event.buttons & kSecondaryMouseButton != 0) !=
         _rightButtonDown) {
       _rightButtonDown = !_rightButtonDown;
       InputController.requestMouseClick(
           WebrtcService.currentRenderingSession!.channel, 3, _rightButtonDown);
+    }
+    if ((event.buttons & kMiddleMouseButton != 0) !=
+        _middleButtonDown) {
+      _middleButtonDown = !_middleButtonDown;
+      InputController.requestMouseClick(
+          WebrtcService.currentRenderingSession!.channel, 2, _middleButtonDown);
+    }
+    if ((event.buttons & kBackMouseButton != 0) !=
+        _backButtonDown) {
+      _backButtonDown = !_backButtonDown;
+      InputController.requestMouseClick(
+          WebrtcService.currentRenderingSession!.channel, 4, _backButtonDown);
+    }
+    if ((event.buttons & kForwardMouseButton != 0) !=
+        _forwardButtonDown) {
+      _forwardButtonDown = !_forwardButtonDown;
+      InputController.requestMouseClick(
+          WebrtcService.currentRenderingSession!.channel, 5, _forwardButtonDown);
     }
   }
 
@@ -67,6 +89,11 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
             return Stack(
               children: [
                 Listener(
+                  onPointerSignal: (PointerSignalEvent event) {
+                    if (event is PointerScrollEvent) {
+                      InputController.requestMouseScroll(WebrtcService.currentRenderingSession!.channel, event.scrollDelta.dx, event.scrollDelta.dy);
+                    }
+                  },
                   onPointerDown: (PointerDownEvent event) {
                     focusNode.requestFocus();
                     if (renderBox == null ||
@@ -78,7 +105,6 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
                           1,
                           _leftButtonDown);
                     } else if (event.kind == PointerDeviceKind.mouse) {
-                      print("down");
                       _syncMouseButtonState(event);
                     }
                   },

@@ -111,7 +111,7 @@ class InputController {
     // 创建一个 ByteData 足够存储 LP_MOUSEBUTTON, buttonId, isDown
     ByteData byteData = ByteData(3);
     byteData.setUint8(0, LP_MOUSEBUTTON); // 操作符，用于指示鼠标按键操作
-    byteData.setUint8(1, buttonId); // 鼠标按键 ID，例如 0 表示左键，1 表示右键
+    byteData.setUint8(1, buttonId); // 鼠标按键 ID，例如 1 表示左键，3 表示右键
     byteData.setUint8(2, isDown ? 1 : 0); // isDown，1 表示按下，0 表示松开
 
     // 转换 ByteData 为 Uint8List
@@ -132,6 +132,33 @@ class InputController {
     print("--handle mouse click:{$buttonId} {$isDown}");
     // 调用模拟点击的方法
     HardwareSimulator.mouse.performMouseClick(buttonId, isDown);
+  }
+
+  static void requestMouseScroll(
+      RTCDataChannel? channel, double dx, double dy) async {
+    if (channel == null) return;
+
+    // 创建一个 ByteData 足够存储 LP_MOUSEBUTTON, buttonId, isDown
+    ByteData byteData = ByteData(9);
+    byteData.setUint8(0, LP_MOUSE_SCROLL);
+    // 将dx, dy转换为浮点数并存储
+    byteData.setFloat32(1, dx, Endian.little);
+    byteData.setFloat32(5, dy, Endian.little);
+
+    // 转换 ByteData 为 Uint8List
+    Uint8List buffer = byteData.buffer.asUint8List();
+
+    // 发送消息
+    channel.send(RTCDataChannelMessage.fromBinary(buffer));
+  }
+
+  static void handleMouseScroll(RTCDataChannelMessage message) {
+    Uint8List buffer = message.binary;
+    ByteData byteData = ByteData.sublistView(buffer);
+    double dx = byteData.getFloat32(1, Endian.little);
+    double dy = byteData.getFloat32(5, Endian.little);
+
+    HardwareSimulator.mouse.performMouseScroll(dx, dy);
   }
 
   static void requestKeyEvent(

@@ -398,11 +398,10 @@ packages:
   fullscreen_window:
     dependency: "direct main"
     description:
-      name: fullscreen_window
-      sha256: fe3014f91bff16a82d142ba9d834980b8a84b4bb03347a92588d389ad92bd1d3
-      url: "https://pub.dev"
-    source: hosted
-    version: "1.0.4"
+      path: "plugins/fullscreen_window"
+      relative: true
+    source: path
+    version: "1.1.0"
   get_it:
     dependency: transitive
     description:

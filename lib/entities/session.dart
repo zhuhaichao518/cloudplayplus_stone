@@ -570,6 +570,9 @@ class StreamingSession {
         case LP_MOUSEBUTTON:
           InputController.handleMouseClick(message);
           break;
+        case LP_MOUSE_SCROLL:
+          InputController.handleMouseScroll(message);
+          break;
         case LP_KEYPRESSED:
           InputController.handleKeyEvent(message);
           break;

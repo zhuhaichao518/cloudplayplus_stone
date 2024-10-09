@@ -8,6 +8,7 @@ const int RP_PING = 0;
 const int RP_PONG = 1;
 const int LP_MOUSEMOVE_ABSL = 1 << 1; //2
 const int LP_MOUSEMOVE_RELATIVE = 1 << 2; //4
+const int LP_MOUSE_SCROLL = 5;
 const int LP_MOUSEBUTTON = 1 << 3; //8
 const int LP_MOUSECURSOR_CHANGED_WITHBUFFER = 9;
 const int LP_MOUSECURSOR_CHANGED = 10;
