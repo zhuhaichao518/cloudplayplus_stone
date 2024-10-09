@@ -78,6 +78,7 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
                           1,
                           _leftButtonDown);
                     } else if (event.kind == PointerDeviceKind.mouse) {
+                      print("down");
                       _syncMouseButtonState(event);
                     }
                   },

@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:typed_data';
 
+import 'package:cloudplayplus/services/app_info_service.dart';
 import 'package:cloudplayplus/services/webrtc_service.dart';
 import 'package:cloudplayplus/utils/widgets/cursor_change_widget.dart';
 import 'package:custom_mouse_cursor/custom_mouse_cursor.dart';
@@ -210,8 +211,24 @@ class InputController {
   }
 
   static CursorMovedCallback cursorMovedCallback = (deltax, deltay) {
-    requestMoveMouseRelative(
-        WebrtcService.currentRenderingSession!.channel!, deltax, deltay, 0);
+    if (isCursorLocked && WebrtcService.currentRenderingSession!=null && WebrtcService.currentRenderingSession!.channel!=null){
+      requestMoveMouseRelative(
+          WebrtcService.currentRenderingSession!.channel!, deltax, deltay, 0);
+    }
+  };
+
+  static CursorPressedCallback cursorPressedCallback = (button, isDown) {
+    if (isCursorLocked && WebrtcService.currentRenderingSession!=null && WebrtcService.currentRenderingSession!.channel!=null){
+      requestMouseClick(
+          WebrtcService.currentRenderingSession!.channel!, button, isDown);
+    }
+  };
+
+  static CursorWheelCallback cursorWheelCallback = (deltax, deltay) {
+    if (isCursorLocked && WebrtcService.currentRenderingSession!=null && WebrtcService.currentRenderingSession!.channel!=null){
+      //requestMoveWheel(
+      //    WebrtcService.currentRenderingSession!.channel!, deltax, deltay, 0);
+    }
   };
 
   static bool isCursorLocked = false;
@@ -325,10 +342,16 @@ class InputController {
         isCursorLocked = true;
         HardwareSimulator.lockCursor();
         HardwareSimulator.addCursorMoved(cursorMovedCallback);
+        if (AppPlatform.isWeb){
+          HardwareSimulator.addCursorPressed(cursorPressedCallback);
+        }
       } else if (message == HardwareSimulator.CURSOR_VISIBLE) {
         isCursorLocked = false;
         HardwareSimulator.unlockCursor();
         HardwareSimulator.removeCursorMoved(cursorMovedCallback);
+        if (AppPlatform.isWeb){
+          HardwareSimulator.removeCursorPressed(cursorPressedCallback);
+        }
       }
     }
   }

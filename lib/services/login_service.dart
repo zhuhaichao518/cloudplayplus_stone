@@ -17,6 +17,7 @@ import '../../entities/user.dart' as cpp_user;
 //flutter run -d chrome --web-browser-flag "--disable-web-security"
 
 //macos build web:
+//flutter build web --local-web-sdk=wasm_release
 //flutter build web --local-web-sdk=wasm_release --release --web-renderer canvaskit --dart-define=FLUTTER_WEB_CANVASKIT_URL=/canvaskit/
 class LoginService {
   //run python manage.py runserver 8000 before testing.

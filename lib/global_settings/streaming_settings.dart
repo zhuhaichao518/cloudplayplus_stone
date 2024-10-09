@@ -1,17 +1,19 @@
-import 'dart:io';
-
 import 'package:cloudplayplus/services/app_info_service.dart';
 import 'package:cloudplayplus/services/shared_preferences_manager.dart';
-import 'package:flutter/foundation.dart';
 
 var officialStun1 = {
   'urls': "stun:stun.l.google.com:19302",
 };
 
+/*
 var cloudPlayPlusStun = {
   'urls': "turn:101.132.58.198:3478",
   'username': "sunshine",
   'credential': "pangdahai"
+};*/
+
+var cloudPlayPlusStun = {
+  'urls': "stun:101.132.58.198:3478",
 };
 
 class StreamingSettings {

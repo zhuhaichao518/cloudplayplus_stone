@@ -87,16 +87,8 @@ class WebSocketService {
           AppStateService.websocketSessionid = data['connection_id'];
           ApplicationInfo.user =
               User(uid: data['uid'], nickname: data['nickname']);
-          if (AppPlatform
-                  .isMacos /* ||
-              AppPlatform.isWindows ||
-              AppPlatform.isLinux*/
-              ) {
-            ApplicationInfo.screencount =
-                await HardwareSimulator.getMonitorCount();
-          } else {
-            ApplicationInfo.screencount = 1;
-          }
+          ApplicationInfo.screencount =
+              await HardwareSimulator.getMonitorCount();
           send('updateDeviceInfo', {
             'deviceName': ApplicationInfo.deviceName,
             'deviceType': ApplicationInfo.deviceTypeName,
