@@ -12,7 +12,7 @@ import '../../entities/user.dart' as cpp_user;
 //flutter run -d chrome --web-browser-flag "--disable-web-security"
 //flutter build web --local-web-sdk=host_debug --no-tree-shake-icons
 //flutter build web --local-web-sdk=host_debug --no-tree-shake-icons --release --web-renderer canvaskit --dart-define=FLUTTER_WEB_CANVASKIT_URL=https://cdn.jsdelivr.net/npm/canvaskit-wasm@0.39.1/bin/
-//flutter builflutter build web --local-web-sdk=host_debug --no-tree-shake-icons --release --web-renderer canvaskit --dart-define=FLUTTER_WEB_CANVASKIT_URL=/canvaskit/
+//flutter build web --local-web-sdk=host_debug --no-tree-shake-icons --release --web-renderer canvaskit --dart-define=FLUTTER_WEB_CANVASKIT_URL=/canvaskit/
 
 //flutter run -d chrome --web-browser-flag "--disable-web-security"
 

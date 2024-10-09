@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:typed_data';
 
+import 'package:cloudplayplus/base/logging.dart';
 import 'package:cloudplayplus/services/app_info_service.dart';
 import 'package:cloudplayplus/services/webrtc_service.dart';
 import 'package:cloudplayplus/utils/widgets/cursor_change_widget.dart';
@@ -163,9 +164,9 @@ class InputController {
   }
 
   static void requestKeyEvent(
-      RTCDataChannel? channel, int keyCode, bool isDown) async {
-    if (channel == null) return;
-
+      RTCDataChannel? channel, int? keyCode, bool isDown) async {
+    if (channel == null || keyCode == null) return;
+    // VLOG0("sending key event code {$keyCode} isDown {$isDown}");
     // 创建一个 ByteData 足够存储 LP_MOUSEBUTTON, buttonId, isDown
     ByteData byteData = ByteData(3);
     byteData.setUint8(0, LP_KEYPRESSED); // 操作符，用于指示鼠标按键操作

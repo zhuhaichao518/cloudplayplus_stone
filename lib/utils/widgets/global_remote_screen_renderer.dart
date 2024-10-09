@@ -160,57 +160,15 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
                     onKey: (data, event) {
                       return KeyEventResult.handled;
                     },
-                    child: RawKeyboardListener(
+                    child: KeyboardListener(
                       focusNode: focusNode,
-                      onKey: (event) {
-                        if (event is RawKeyDownEvent) {
-                          if (AppPlatform.isWeb) {
-                            RawKeyEventDataWeb data =
-                                event.data as RawKeyEventDataWeb;
-                            InputController.requestKeyEvent(
-                                WebrtcService.currentRenderingSession!.channel,
-                                data.keyCode,
-                                true);
-                          } else if (AppPlatform.isWindows) {
-                            RawKeyEventDataWindows data =
-                                event.data as RawKeyEventDataWindows;
-                            InputController.requestKeyEvent(
-                                WebrtcService.currentRenderingSession!.channel,
-                                data.keyCode,
-                                true);
-                          } else if (AppPlatform.isMacos) {
-                            RawKeyEventDataMacOs data =
-                                event.data as RawKeyEventDataMacOs;
-                            int keyCode = macToWindowsKeyMap[data.keyCode]!;
-                            InputController.requestKeyEvent(
-                                WebrtcService.currentRenderingSession!.channel,
-                                keyCode,
-                                true);
-                          }
-                        } else if (event is RawKeyUpEvent) {
-                          if (AppPlatform.isWeb) {
-                            RawKeyEventDataWeb data =
-                                event.data as RawKeyEventDataWeb;
-                            InputController.requestKeyEvent(
-                                WebrtcService.currentRenderingSession!.channel,
-                                data.keyCode,
-                                false);
-                          } else if (AppPlatform.isWindows) {
-                            RawKeyEventDataWindows data =
-                                event.data as RawKeyEventDataWindows;
-                            InputController.requestKeyEvent(
-                                WebrtcService.currentRenderingSession!.channel,
-                                data.keyCode,
-                                false);
-                          } else if (AppPlatform.isMacos) {
-                            RawKeyEventDataMacOs data =
-                                event.data as RawKeyEventDataMacOs;
-                            int keyCode = macToWindowsKeyMap[data.keyCode]!;
-                            InputController.requestKeyEvent(
-                                WebrtcService.currentRenderingSession!.channel,
-                                keyCode,
-                                false);
-                          }
+                      onKeyEvent: (event) {
+                        if (event is KeyDownEvent || event is KeyUpEvent){
+                          // For web, there is a bug where an unexpected keyup is
+                          // triggered. https://github.com/flutter/engine/pull/17742/files
+                          InputController.requestKeyEvent(
+                            WebrtcService.currentRenderingSession!.channel,
+                          physicalToWindowsKeyMap[event.physicalKey],event is KeyDownEvent);
                         }
                       },
                       child: kIsWeb

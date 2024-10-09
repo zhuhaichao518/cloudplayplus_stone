@@ -500,11 +500,15 @@ class StreamingSession {
     pc = null;
     connectionState = StreamingSessionConnectionState.disconnected;
     controlled.connectionState.value = StreamingSessionConnectionState.free;
-    if (streamSettings?.hookCursorImage == true) {
-      HardwareSimulator.removeCursorImageUpdated(cursorImageHookID);
+    if (streamSettings?.hookCursorImage == true && controlled.uid == ApplicationInfo.user.uid) {
+      if (AppPlatform.isWindows) {
+        HardwareSimulator.removeCursorImageUpdated(cursorImageHookID);
+      }
     }
     if (WebrtcService.currentRenderingSession == this) {
-      HardwareSimulator.unlockCursor();
+      if (AppPlatform.isDeskTop) {
+        HardwareSimulator.unlockCursor();
+      }
     }
     releaseLock();
   }
@@ -551,7 +555,7 @@ class StreamingSession {
       switch (message.binary[0]) {
         case LP_PING:
           if (message.binary.length == 2 && message.binary[1] == RP_PING) {
-            VLOG0("ping received from client");
+            //VLOG0("ping received from client");
             restartPingTimeoutTimer();
             Timer(const Duration(seconds: 1), () {
               if (connectionState ==
@@ -592,7 +596,7 @@ class StreamingSession {
       switch (message.binary[0]) {
         case LP_PING:
           if (message.binary.length == 2 && message.binary[1] == RP_PONG) {
-            VLOG0("pong received from host");
+            //VLOG0("pong received from host");
             restartPingTimeoutTimer();
             Timer(const Duration(seconds: 1), () {
               if (connectionState ==
