@@ -51,7 +51,7 @@ class StreamingSettings {
         SharedPreferencesManager.getBool('useCustomTurnServer') ??
             false; // Default to false
     turnServerAddress =
-        SharedPreferencesManager.getString('turnServerAddress') ??
+        SharedPreferencesManager.getString('customTurnServerAddress') ??
             ''; // Default to empty string
     turnServerUsername =
         SharedPreferencesManager.getString('turnServerUsername') ??
@@ -59,12 +59,16 @@ class StreamingSettings {
     turnServerPassword =
         SharedPreferencesManager.getString('turnServerPassword') ??
             ''; // Default to empty string*/
-    customTurnServerAddress = SharedPreferencesManager.getString('turnServerAddress') ??
+    customTurnServerAddress =
+        SharedPreferencesManager.getString('customTurnServerAddress') ??
             'turn:106.14.91.137:3478';
-    customTurnServerUsername = SharedPreferencesManager.getString('customTurnServerUsername') ??
+    customTurnServerUsername =
+        SharedPreferencesManager.getString('customTurnServerUsername') ??
             'haichaozhu';
-    customTurnServerPassword = SharedPreferencesManager.getString('customTurnServerPassword')?? 'pdhcppturn123';
-    
+    customTurnServerPassword =
+        SharedPreferencesManager.getString('customTurnServerPassword') ??
+            'pdhcppturn123';
+
     codec = SharedPreferencesManager.getString('codec') ?? 'default';
 
     hookCursorImage = SharedPreferencesManager.getBool('useCustomTurnServer');
@@ -84,7 +88,7 @@ class StreamingSettings {
       'streamAudio': streamAudio,
       /*'turnServerSettings': turnServerSettings,
       'useCustomTurnServer': useCustomTurnServer,
-      'turnServerAddress': turnServerAddress,
+      'customTurnServerAddress': turnServerAddress,
       'turnServerUsername': turnServerUsername,
       'turnServerPassword': turnServerPassword,*/
       'targetScreenId': targetScreenId,
@@ -123,7 +127,7 @@ class StreamedSettings {
       ..streamAudio = settings['streamAudio'] as bool?
       /*..turnServerSettings = settings['turnServerSettings'] as int?
       ..useCustomTurnServer = settings['useCustomTurnServer'] as bool?
-      ..turnServerAddress = settings['turnServerAddress'] as String?
+      ..turnServerAddress = settings['customTurnServerAddress'] as String?
       ..turnServerUsername = settings['turnServerUsername'] as String?
       ..turnServerPassword = settings['turnServerPassword'] as String?*/
       ..screenId = settings['targetScreenId'] as int?

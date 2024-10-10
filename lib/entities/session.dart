@@ -192,16 +192,23 @@ class StreamingSession {
         ]
       };
     }*/
-
-    iceServers = {
-      'iceServers': [
-        {
-          'urls': StreamingSettings.customTurnServerAddress,
-          'username': StreamingSettings.customTurnServerUsername,
-          'credential': StreamingSettings.customTurnServerPassword
-        }
-      ]
-    };
+    if (StreamingSettings.useTurnServer) {
+      iceServers = {
+        'iceServers': [
+          {
+            'urls': StreamingSettings.customTurnServerAddress,
+            'username': StreamingSettings.customTurnServerUsername,
+            'credential': StreamingSettings.customTurnServerPassword
+          }
+        ]
+      };
+    } else {
+      iceServers = {
+        'iceServers': [
+          {cloudPlayPlusStun}
+        ]
+      };
+    }
 
     final Map<String, dynamic> config = {
       'mandatory': {},
@@ -504,7 +511,8 @@ class StreamingSession {
     pc = null;
     connectionState = StreamingSessionConnectionState.disconnected;
     controlled.connectionState.value = StreamingSessionConnectionState.free;
-    if (streamSettings?.hookCursorImage == true && controlled.uid == ApplicationInfo.user.uid) {
+    if (streamSettings?.hookCursorImage == true &&
+        controlled.uid == ApplicationInfo.user.uid) {
       if (AppPlatform.isWindows) {
         HardwareSimulator.removeCursorImageUpdated(cursorImageHookID);
       }

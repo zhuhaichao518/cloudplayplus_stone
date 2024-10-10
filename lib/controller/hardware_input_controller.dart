@@ -240,21 +240,27 @@ class InputController {
   }
 
   static CursorMovedCallback cursorMovedCallback = (deltax, deltay) {
-    if (isCursorLocked && WebrtcService.currentRenderingSession!=null && WebrtcService.currentRenderingSession!.channel!=null){
+    if (isCursorLocked &&
+        WebrtcService.currentRenderingSession != null &&
+        WebrtcService.currentRenderingSession!.channel != null) {
       requestMoveMouseRelative(
           WebrtcService.currentRenderingSession!.channel!, deltax, deltay, 0);
     }
   };
 
   static CursorPressedCallback cursorPressedCallback = (button, isDown) {
-    if (isCursorLocked && WebrtcService.currentRenderingSession!=null && WebrtcService.currentRenderingSession!.channel!=null){
+    if (isCursorLocked &&
+        WebrtcService.currentRenderingSession != null &&
+        WebrtcService.currentRenderingSession!.channel != null) {
       requestMouseClick(
           WebrtcService.currentRenderingSession!.channel!, button, isDown);
     }
   };
 
   static CursorWheelCallback cursorWheelCallback = (deltax, deltay) {
-    if (isCursorLocked && WebrtcService.currentRenderingSession!=null && WebrtcService.currentRenderingSession!.channel!=null){
+    if (isCursorLocked &&
+        WebrtcService.currentRenderingSession != null &&
+        WebrtcService.currentRenderingSession!.channel != null) {
       requestMouseScroll(
           WebrtcService.currentRenderingSession!.channel!, deltax, deltay);
     }
@@ -371,7 +377,7 @@ class InputController {
         isCursorLocked = true;
         HardwareSimulator.lockCursor();
         HardwareSimulator.addCursorMoved(cursorMovedCallback);
-        if (AppPlatform.isWeb){
+        if (AppPlatform.isWeb) {
           HardwareSimulator.addCursorPressed(cursorPressedCallback);
           HardwareSimulator.addCursorWheel(cursorWheelCallback);
         }
@@ -379,7 +385,7 @@ class InputController {
         isCursorLocked = false;
         HardwareSimulator.unlockCursor();
         HardwareSimulator.removeCursorMoved(cursorMovedCallback);
-        if (AppPlatform.isWeb){
+        if (AppPlatform.isWeb) {
           HardwareSimulator.removeCursorPressed(cursorPressedCallback);
           HardwareSimulator.addCursorWheel(cursorWheelCallback);
         }
