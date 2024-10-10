@@ -229,7 +229,7 @@ class StreamingSession {
   //We are the 'controlled'.
   void acceptRequest(StreamedSettings settings) async {
     acquireLock();
-    if (settings.hookCursorImage == true) {
+    if (settings.hookCursorImage == true && AppPlatform.isDeskTop) {
       HardwareSimulator.addCursorImageUpdated(
           onLocalCursorImageMessage, cursorImageHookID);
     }
@@ -511,7 +511,7 @@ class StreamingSession {
     controlled.connectionState.value = StreamingSessionConnectionState.free;
     if (streamSettings?.hookCursorImage == true &&
         controlled.uid == ApplicationInfo.user.uid) {
-      if (AppPlatform.isWindows) {
+      if (AppPlatform.isDeskTop) {
         HardwareSimulator.removeCursorImageUpdated(cursorImageHookID);
       }
     }

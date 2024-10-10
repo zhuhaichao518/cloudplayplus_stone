@@ -71,7 +71,6 @@ class StreamingSettings {
 
     codec = SharedPreferencesManager.getString('codec') ?? 'default';
 
-    hookCursorImage = SharedPreferencesManager.getBool('useCustomTurnServer');
     hookCursorImage ??= (AppPlatform.isWeb || AppPlatform.isDeskTop);
   }
 
