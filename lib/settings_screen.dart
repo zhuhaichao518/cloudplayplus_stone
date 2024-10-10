@@ -145,7 +145,7 @@ class StreamingSettingsScreen extends StatefulWidget {
 
 class _StreamingSettingsScreen extends State<StreamingSettingsScreen> {
   bool _haveAudio = true;
-  bool _renderRemoteCursor = true;
+  bool _renderRemoteCursor = false;
   int _bitrate = 80000;
   int _frameRate = 60;
   final Map<int, String> bitrates = {
@@ -195,7 +195,7 @@ class _StreamingSettingsScreen extends State<StreamingSettingsScreen> {
               title: const Text('视频设置'),
               tiles: [
                 SettingsTile.switchTile(
-                  title: const Text('隐藏远程鼠标'),
+                  title: const Text('显示远程鼠标'),
                   leading: const Icon(Icons.mouse),
                   initialValue: _renderRemoteCursor,
                   enabled: false,

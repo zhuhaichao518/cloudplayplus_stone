@@ -204,9 +204,7 @@ class StreamingSession {
       };
     } else {
       iceServers = {
-        'iceServers': [
-          {cloudPlayPlusStun}
-        ]
+        'iceServers': [cloudPlayPlusStun]
       };
     }
 

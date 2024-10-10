@@ -22,8 +22,16 @@ class _MainScreenState extends State<MainScreen> {
     _children = [
       DevicesPage(),
       //Grouped(),
-      const Text("test"), //Grouped(),
-      const Text("test"), //Ungrouped(),
+      //const Text("test"), //Grouped(),
+      Scaffold(
+        appBar: AppBar(title: const Text('我的好友')),
+        body: const Center(
+          child: Text(
+            '暂未开放 敬请期待',
+            style: TextStyle(fontSize: 20),
+          ),
+        ),
+      ),
       const SettingsScreen(), //GamesPage(),
     ];
   }
@@ -64,10 +72,10 @@ class _MainScreenState extends State<MainScreen> {
                     icon: Icon(Icons.computer),
                     label: 'Devices',
                   ),
-                  BottomNavigationBarItem(
+                  /*BottomNavigationBarItem(
                     icon: Icon(Icons.games_rounded),
                     label: 'Games',
-                  ),
+                  ),*/
                   BottomNavigationBarItem(
                     icon: Icon(Icons.group),
                     label: 'Friends',

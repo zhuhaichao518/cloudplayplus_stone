@@ -158,7 +158,7 @@ class _DevicesPageState extends State<DevicesPage> {
           },
         ),
       ),
-      masterViewFraction: 0.8,
+      masterViewFraction: 0.26,
     );
   }
 
