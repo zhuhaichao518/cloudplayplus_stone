@@ -25,16 +25,13 @@ class StreamingSettings {
 
   static bool? streamAudio;
 
-  //0: Use both.
-  //1: Only use Stun
-  //2: Only use Turn.
-  static int? turnServerSettings;
-  static bool? useCustomTurnServer;
-  static String? turnServerAddress;
-  static String? turnServerUsername;
-  static String? turnServerPassword;
   static String? codec;
   static bool? hookCursorImage;
+
+  static bool useTurnServer = false;
+  static String? customTurnServerAddress;
+  static String? customTurnServerUsername;
+  static String? customTurnServerPassword;
 
   static void init() {
     framerate =
@@ -45,7 +42,9 @@ class StreamingSettings {
         false; // Default to false
     streamAudio = SharedPreferencesManager.getBool('streamAudio') ??
         true; // Default to true
-    turnServerSettings =
+    // This will be updated when user clicks connect button.
+    targetScreenId = 0;
+    /*turnServerSettings =
         SharedPreferencesManager.getInt('turnServerSettings') ??
             0; // Default to false
     useCustomTurnServer =
@@ -59,8 +58,13 @@ class StreamingSettings {
             ''; // Default to empty string
     turnServerPassword =
         SharedPreferencesManager.getString('turnServerPassword') ??
-            ''; // Default to empty string
-    targetScreenId = 0;
+            ''; // Default to empty string*/
+    customTurnServerAddress = SharedPreferencesManager.getString('turnServerAddress') ??
+            'turn:106.14.91.137:3478';
+    customTurnServerUsername = SharedPreferencesManager.getString('customTurnServerUsername') ??
+            'haichaozhu';
+    customTurnServerPassword = SharedPreferencesManager.getString('customTurnServerPassword')?? 'pdhcppturn123';
+    
     codec = SharedPreferencesManager.getString('codec') ?? 'default';
 
     hookCursorImage = SharedPreferencesManager.getBool('useCustomTurnServer');
@@ -78,11 +82,11 @@ class StreamingSettings {
       'bitrate': bitrate,
       'showRemoteCursor': showRemoteCursor,
       'streamAudio': streamAudio,
-      'turnServerSettings': turnServerSettings,
+      /*'turnServerSettings': turnServerSettings,
       'useCustomTurnServer': useCustomTurnServer,
       'turnServerAddress': turnServerAddress,
       'turnServerUsername': turnServerUsername,
-      'turnServerPassword': turnServerPassword,
+      'turnServerPassword': turnServerPassword,*/
       'targetScreenId': targetScreenId,
       'codec': codec,
       'hookCursorImage': hookCursorImage,
@@ -104,11 +108,11 @@ class StreamedSettings {
   //0: Use both.
   //1: Only use Peer to Peer
   //2: Only use Turn.
-  int? turnServerSettings;
+  /*int? turnServerSettings;
   bool? useCustomTurnServer;
   String? turnServerAddress;
   String? turnServerUsername;
-  String? turnServerPassword;
+  String? turnServerPassword;*/
   String? codec;
   bool? hookCursorImage;
   static StreamedSettings fromJson(Map<String, dynamic> settings) {
@@ -117,11 +121,11 @@ class StreamedSettings {
       ..bitrate = settings['bitrate'] as int?
       ..showRemoteCursor = settings['showRemoteCursor'] as bool?
       ..streamAudio = settings['streamAudio'] as bool?
-      ..turnServerSettings = settings['turnServerSettings'] as int?
+      /*..turnServerSettings = settings['turnServerSettings'] as int?
       ..useCustomTurnServer = settings['useCustomTurnServer'] as bool?
       ..turnServerAddress = settings['turnServerAddress'] as String?
       ..turnServerUsername = settings['turnServerUsername'] as String?
-      ..turnServerPassword = settings['turnServerPassword'] as String?
+      ..turnServerPassword = settings['turnServerPassword'] as String?*/
       ..screenId = settings['targetScreenId'] as int?
       ..codec = settings['codec'] as String?
       ..hookCursorImage = settings['hookCursorImage'] as bool?;

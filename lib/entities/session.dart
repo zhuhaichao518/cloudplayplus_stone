@@ -105,7 +105,7 @@ class StreamingSession {
     pc = await createRTCPeerConnection();
 
     pc!.onIceCandidate = (candidate) async {
-      if (streamSettings!.turnServerSettings == 2) {
+      /*if (streamSettings!.turnServerSettings == 2) {
         if (!candidate.candidate!.contains("srflx")) {
           return;
         }
@@ -114,7 +114,7 @@ class StreamingSession {
         if (candidate.candidate!.contains("srflx")) {
           return;
         }
-      }
+      }*/
 
       /*if (candidate.candidate!.contains("srflx")) {
           return;
@@ -195,7 +195,11 @@ class StreamingSession {
 
     iceServers = {
       'iceServers': [
-        cloudPlayPlusStun,
+        {
+          'urls': StreamingSettings.customTurnServerAddress,
+          'username': StreamingSettings.customTurnServerUsername,
+          'credential': StreamingSettings.customTurnServerPassword
+        }
       ]
     };
 
@@ -286,7 +290,7 @@ class StreamingSession {
   */
 
     pc!.onIceCandidate = (candidate) async {
-      if (settings.turnServerSettings == 2) {
+      /*if (settings.turnServerSettings == 2) {
         if (!candidate.candidate!.contains("srflx")) {
           return;
         }
@@ -295,7 +299,7 @@ class StreamingSession {
         if (candidate.candidate!.contains("srflx")) {
           return;
         }
-      }
+      }*/
 
       /*if (candidate.candidate!.contains("srflx")) {
           return;

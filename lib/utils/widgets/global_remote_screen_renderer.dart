@@ -101,6 +101,16 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
                         WebrtcService.currentRenderingSession == null) return;
                     if (event.kind == PointerDeviceKind.touch) {
                       _leftButtonDown = true;
+                    final Offset localPosition =
+                        renderBox!.globalToLocal(event.position);
+                    final double xPercent =
+                        (localPosition.dx / widgetSize.width).clamp(0.0, 1.0);
+                    final double yPercent =
+                        (localPosition.dy / widgetSize.height).clamp(0.0, 1.0);
+                      InputController.requestMoveMouseAbsl(
+                          WebrtcService.currentRenderingSession!.channel,
+                          xPercent, yPercent,
+                          WebrtcService.currentRenderingSession!.screenId);
                       InputController.requestMouseClick(
                           WebrtcService.currentRenderingSession!.channel,
                           1,
