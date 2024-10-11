@@ -250,7 +250,10 @@ class LoginService {
       accessToken = SharedPreferencesManager.getString('access_token');
       refreshToken = SharedPreferencesManager.getString('refresh_token');
     }
-    if (accessToken == null || refreshToken == null) {
+    if (accessToken == null ||
+        refreshToken == null ||
+        accessToken == "" ||
+        refreshToken == "") {
       return false;
     } else if (isTokenValid(accessToken)) {
       return await loginWithToken(accessToken);
@@ -394,12 +397,12 @@ class LoginService {
         await SecureStorageManager.setString(
             'access_token', responseBody['access']);
         await SecureStorageManager.setString(
-            'access_token', responseBody['access']);
+            'refresh_token', responseBody['refresh']);
       } else {
         await SharedPreferencesManager.setString(
             'access_token', responseBody['access']);
         await SharedPreferencesManager.setString(
-            'access_token', responseBody['access']);
+            'refresh_token', responseBody['refresh']);
       }
       /*TODO(haichao):update app state
       ApplicationInfoServiceImpl().user = cppUser.User(

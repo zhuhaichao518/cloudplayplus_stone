@@ -66,6 +66,7 @@ class InputController {
   }
 
   static void handleMoveMouseAbsl(RTCDataChannelMessage message) {
+    if (!AppPlatform.isDeskTop) return;
     Uint8List buffer = message.binary;
     ByteData byteData = ByteData.sublistView(buffer);
     int screenId = byteData.getUint8(1);
@@ -96,6 +97,7 @@ class InputController {
   }
 
   static void handleMoveMouseRelative(RTCDataChannelMessage message) {
+    if (!AppPlatform.isDeskTop) return;
     Uint8List buffer = message.binary;
     ByteData byteData = ByteData.sublistView(buffer);
     int screenId = byteData.getUint8(1);
@@ -123,6 +125,7 @@ class InputController {
   }
 
   static void handleMouseClick(RTCDataChannelMessage message) {
+    if (!AppPlatform.isDeskTop) return;
     Uint8List buffer = message.binary;
     ByteData byteData = ByteData.sublistView(buffer);
 
@@ -155,6 +158,7 @@ class InputController {
   }
 
   static void handleMouseScroll(RTCDataChannelMessage message) {
+    if (!AppPlatform.isDeskTop) return;
     Uint8List buffer = message.binary;
     ByteData byteData = ByteData.sublistView(buffer);
     double dx = byteData.getFloat32(1, Endian.little);
@@ -181,6 +185,7 @@ class InputController {
   }
 
   static void handleKeyEvent(RTCDataChannelMessage message) {
+    if (!AppPlatform.isDeskTop) return;
     Uint8List buffer = message.binary;
     ByteData byteData = ByteData.sublistView(buffer);
 

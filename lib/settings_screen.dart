@@ -1,4 +1,7 @@
+import 'package:cloudplayplus/dev_settings.dart/develop_settings.dart';
 import 'package:cloudplayplus/global_settings/streaming_settings.dart';
+import 'package:cloudplayplus/pages/login_screen.dart';
+import 'package:cloudplayplus/services/secure_storage_manager.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -126,6 +129,68 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     SharedPreferencesManager.setInt('themeIndex', _themeIndex);
                     themeProvider.setThemeMode(2);
                   });
+                },
+              ),
+            ],
+          ),
+          SettingsSection(
+            title: const Text('账号管理'),
+            tiles: <SettingsTile>[
+              SettingsTile.navigation(
+                leading: const Icon(Icons.logout),
+                title: const Text('退出登陆'),
+                onPressed: (context) {
+                  showDialog(
+                    context: context,
+                    builder: (BuildContext context) {
+                      return AlertDialog(
+                        title: const Text('退出'),
+                        content: const Text('确定要退出登陆吗?'),
+                        actions: [
+                          TextButton(
+                            onPressed: () {
+                              SharedPreferencesManager.clear();
+                              SharedPreferencesManager.setBool(
+                                  'appintroFinished', true);
+                              Navigator.pushReplacement(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) => const LoginScreen()),
+                              );
+                            },
+                            child: const Text('登出并清除数据'),
+                          ),
+                          TextButton(
+                            onPressed: () {
+                              if (DevelopSettings.useSecureStorage) {
+                                SecureStorageManager.setString(
+                                    'access_token', "");
+                                SecureStorageManager.setString(
+                                    'refresh_token', "");
+                              } else {
+                                SharedPreferencesManager.setString(
+                                    'access_token', "");
+                                SharedPreferencesManager.setString(
+                                    'refresh_token', "");
+                              }
+                              Navigator.pushReplacement(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) => const LoginScreen()),
+                              );
+                            },
+                            child: const Text('仅登出'),
+                          ),
+                          TextButton(
+                            onPressed: () {
+                              Navigator.of(context).pop();
+                            },
+                            child: const Text('取消'),
+                          ),
+                        ],
+                      );
+                    },
+                  );
                 },
               ),
             ],
