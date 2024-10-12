@@ -263,12 +263,12 @@ class _StreamingSettingsScreen extends State<StreamingSettingsScreen> {
                   title: const Text('显示远程鼠标'),
                   leading: const Icon(Icons.mouse),
                   initialValue: _renderRemoteCursor,
-                  enabled: false,
                   onToggle: (bool value) {
                     setState(() {
                       _renderRemoteCursor = value;
                       SharedPreferencesManager.setBool(
                           'renderRemoteCursor', value);
+                      StreamingSettings.showRemoteCursor = value;
                     });
                   },
                 ),

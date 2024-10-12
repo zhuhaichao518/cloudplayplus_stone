@@ -49,7 +49,7 @@ class StreamedManager {
             'deviceId': {'exact': source.id},
             'mandatory': {
               'frameRate': settings.framerate,
-              'hideCursor': (settings.showRemoteCursor == false)
+              'hasCursor': settings.showRemoteCursor
             }
           },
           'audio': false
