@@ -66,8 +66,19 @@ class StreamingSession {
   RTCRtpSender? videoSender;
   //RTCRtpSender? audioSender;
 
-  //Controller channel
+  //used to send reliable messages.
   RTCDataChannel? channel;
+
+  int datachannelMessageIndex = 0;
+
+  bool useUnsafeDatachannel = true;
+  //Controller channel
+  //use unreliable channel because there is noticeable latency on data loss.
+  //work like udp.
+  // ignore: non_constant_identifier_names
+  RTCDataChannel? UDPChannel;
+
+  InputController? inputController;
 
   //This is the common settings on both.
   StreamedSettings? streamSettings;
@@ -150,17 +161,24 @@ class StreamingSession {
       //onAddRemoteStream?.call(event.track.kind!, event.streams[0]);
     };
     pc!.onDataChannel = (newchannel) {
-      channel = newchannel;
-      channel?.onMessage = (msg) {
-        /*if (msg.isBinary) {
-          //VLOG0(msg.binary);
-        } else {
-          VLOG0("at ${DateTime.now()}" + msg.text);
-        }*/
-        processDataChannelMessageFromHost(msg);
-      };
-      channel?.send(RTCDataChannelMessage.fromBinary(
-          Uint8List.fromList([LP_PING, RP_PING])));
+      if (newchannel.label == "userInput"){
+        UDPChannel = newchannel;
+        inputController = InputController(UDPChannel!, false);
+        //This channel is only used to send user input
+        /*
+        channel?.onMessage = (msg) {
+        };*/
+      }else{
+        channel = newchannel;
+        if (!useUnsafeDatachannel){
+          inputController = InputController(channel!, true);
+        }
+        channel?.onMessage = (msg) {
+          processDataChannelMessageFromHost(msg);
+        };
+        channel?.send(RTCDataChannelMessage.fromBinary(
+            Uint8List.fromList([LP_PING, RP_PING])));
+      }
     };
     screenId = StreamingSettings.targetScreenId!;
     // read the latest settings from user settings.
@@ -333,14 +351,28 @@ class StreamingSession {
     };
 
     //create data channel
-    RTCDataChannelInit dataChannelDict = RTCDataChannelInit()
+    RTCDataChannelInit reliableDataChannelDict = RTCDataChannelInit()
       ..maxRetransmits = 30
       ..ordered = true;
-    channel = await pc!.createDataChannel('userInput', dataChannelDict);
+    channel = await pc!.createDataChannel('safeMessage', reliableDataChannelDict);
 
     channel?.onMessage = (RTCDataChannelMessage msg) {
       processDataChannelMessageFromClient(msg);
     };
+
+    if (useUnsafeDatachannel){
+      RTCDataChannelInit dataChannelDict = RTCDataChannelInit()
+        ..maxRetransmits = 0
+        ..ordered = false;
+      UDPChannel = await pc!.createDataChannel('userInput', dataChannelDict);
+
+      UDPChannel?.onMessage = (RTCDataChannelMessage msg) {
+        processDataChannelMessageFromClient(msg);
+      };
+      inputController = InputController(UDPChannel!, false);
+    }else{
+      inputController = InputController(channel!, true);
+    }
 
     //For web, RTCDataChannel.readyState is not 'open', and this should only for windows
     /*if (!kIsWeb && Platform.isWindows){
@@ -501,13 +533,17 @@ class StreamingSession {
     // We don't want to see more new connections when it is stopped. So we may want to use a lock.
     acquireLock();
     candidates.clear();
-
+    inputController = null;
     if (channel != null) {
       await channel?.send(RTCDataChannelMessage.fromBinary(
           Uint8List.fromList([LP_DISCONNECT, RP_PING])));
 
       await channel?.close();
       channel = null;
+    }
+    if (UDPChannel !=null){
+      await UDPChannel?.close();
+      UDPChannel = null;
     }
     //TODO:理论上不需要removetrack pc会自动close 但是需要验证
     pc?.close();
@@ -521,8 +557,16 @@ class StreamingSession {
       }
     }
     if (WebrtcService.currentRenderingSession == this) {
-      if (AppPlatform.isDeskTop) {
-        HardwareSimulator.unlockCursor();
+      if (HardwareSimulator.cursorlocked){
+        if (AppPlatform.isDeskTop || AppPlatform.isWeb) {
+          HardwareSimulator.cursorlocked = false;
+          HardwareSimulator.unlockCursor();
+          HardwareSimulator.removeCursorMoved(InputController.cursorMovedCallback);
+        }
+        if (AppPlatform.isWeb) {
+          HardwareSimulator.removeCursorPressed(InputController.cursorPressedCallback);
+          HardwareSimulator.addCursorWheel(InputController.cursorWheelCallback);
+        }
       }
     }
     releaseLock();
@@ -563,7 +607,7 @@ class StreamingSession {
       channel?.send(RTCDataChannelMessage.fromBinary(buffer));
     }
   }
-
+  
   void processDataChannelMessageFromClient(RTCDataChannelMessage message) {
     VLOG0("message from Client:${message.binary[0]}");
     if (message.isBinary) {
@@ -581,19 +625,19 @@ class StreamingSession {
           }
           break;
         case LP_MOUSEMOVE_ABSL:
-          InputController.handleMoveMouseAbsl(message);
+          inputController?.handleMoveMouseAbsl(message);
           break;
         case LP_MOUSEMOVE_RELATIVE:
-          InputController.handleMoveMouseRelative(message);
+          inputController?.handleMoveMouseRelative(message);
           break;
         case LP_MOUSEBUTTON:
-          InputController.handleMouseClick(message);
+          inputController?.handleMouseClick(message);
           break;
         case LP_MOUSE_SCROLL:
-          InputController.handleMouseScroll(message);
+          inputController?.handleMouseScroll(message);
           break;
         case LP_KEYPRESSED:
-          InputController.handleKeyEvent(message);
+          inputController?.handleKeyEvent(message);
           break;
         case LP_DISCONNECT:
           close();
@@ -624,7 +668,7 @@ class StreamingSession {
         case LP_MOUSECURSOR_CHANGED:
         case LP_MOUSECURSOR_CHANGED_WITHBUFFER:
           if (WebrtcService.currentRenderingSession == this) {
-            InputController.handleCursorUpdate(message);
+            inputController?.handleCursorUpdate(message);
           }
         case LP_DISCONNECT:
           close();

@@ -38,11 +38,12 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
   bool _backButtonDown = false;
   bool _forwardButtonDown = false;
 
+  InputController? _inputcontroller;
+
   void onLockedCursorMoved(double dx, double dy) {
     print("dx:{$dx}dy:{$dy}");
     //有没有必要await？如果不保序的概率极低 感觉可以不await
-    InputController.requestMoveMouseRelative(
-        WebrtcService.currentRenderingSession!.channel,
+    _inputcontroller?.requestMoveMouseRelative(
         dx,
         dy,
         WebrtcService.currentRenderingSession!.screenId);
@@ -51,28 +52,23 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
   void _syncMouseButtonState(PointerEvent event) {
     if ((event.buttons & kPrimaryMouseButton != 0) != _leftButtonDown) {
       _leftButtonDown = !_leftButtonDown;
-      InputController.requestMouseClick(
-          WebrtcService.currentRenderingSession!.channel, 1, _leftButtonDown);
+      _inputcontroller?.requestMouseClick(1, _leftButtonDown);
     }
     if ((event.buttons & kSecondaryMouseButton != 0) != _rightButtonDown) {
       _rightButtonDown = !_rightButtonDown;
-      InputController.requestMouseClick(
-          WebrtcService.currentRenderingSession!.channel, 3, _rightButtonDown);
+      _inputcontroller?.requestMouseClick( 3, _rightButtonDown);
     }
     if ((event.buttons & kMiddleMouseButton != 0) != _middleButtonDown) {
       _middleButtonDown = !_middleButtonDown;
-      InputController.requestMouseClick(
-          WebrtcService.currentRenderingSession!.channel, 2, _middleButtonDown);
+      _inputcontroller?.requestMouseClick(2, _middleButtonDown);
     }
     if ((event.buttons & kBackMouseButton != 0) != _backButtonDown) {
       _backButtonDown = !_backButtonDown;
-      InputController.requestMouseClick(
-          WebrtcService.currentRenderingSession!.channel, 4, _backButtonDown);
+      _inputcontroller?.requestMouseClick(4, _backButtonDown);
     }
     if ((event.buttons & kForwardMouseButton != 0) != _forwardButtonDown) {
       _forwardButtonDown = !_forwardButtonDown;
-      InputController.requestMouseClick(
-          WebrtcService.currentRenderingSession!.channel,
+      _inputcontroller?.requestMouseClick(
           5,
           _forwardButtonDown);
     }
@@ -81,6 +77,7 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
   //String _pressedKey = '';
   @override
   Widget build(BuildContext context) {
+    _inputcontroller = WebrtcService.currentRenderingSession?.inputController;
     return ValueListenableBuilder<bool>(
         valueListenable: ScreenController.showDetailUseScrollView,
         builder: (context, usescrollview, child) {
@@ -91,8 +88,7 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
                   onPointerSignal: (PointerSignalEvent event) {
                     if (event is PointerScrollEvent) {
                       //this does not work on macos for touch bar, works for web.
-                      InputController.requestMouseScroll(
-                          WebrtcService.currentRenderingSession!.channel,
+                      _inputcontroller?.requestMouseScroll(
                           event.scrollDelta.dx,
                           event.scrollDelta.dy);
                     }
@@ -110,13 +106,11 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
                       final double yPercent =
                           (localPosition.dy / widgetSize.height)
                               .clamp(0.0, 1.0);
-                      InputController.requestMoveMouseAbsl(
-                          WebrtcService.currentRenderingSession!.channel,
+                      _inputcontroller?.requestMoveMouseAbsl(
                           xPercent,
                           yPercent,
                           WebrtcService.currentRenderingSession!.screenId);
-                      InputController.requestMouseClick(
-                          WebrtcService.currentRenderingSession!.channel,
+                      _inputcontroller?.requestMouseClick(
                           1,
                           _leftButtonDown);
                     } else if (event.kind == PointerDeviceKind.mouse) {
@@ -128,8 +122,7 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
                         WebrtcService.currentRenderingSession == null) return;
                     if (event.kind == PointerDeviceKind.touch) {
                       _leftButtonDown = false;
-                      InputController.requestMouseClick(
-                          WebrtcService.currentRenderingSession!.channel,
+                      _inputcontroller?.requestMouseClick(
                           1,
                           _leftButtonDown);
                     } else if (event.kind == PointerDeviceKind.mouse) {
@@ -147,8 +140,7 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
                         (localPosition.dx / widgetSize.width).clamp(0.0, 1.0);
                     final double yPercent =
                         (localPosition.dy / widgetSize.height).clamp(0.0, 1.0);
-                    InputController.requestMoveMouseAbsl(
-                        WebrtcService.currentRenderingSession!.channel,
+                    _inputcontroller?.requestMoveMouseAbsl(
                         xPercent,
                         yPercent,
                         WebrtcService.currentRenderingSession!.screenId);
@@ -163,8 +155,7 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
                         (localPosition.dx / widgetSize.width).clamp(0.0, 1.0);
                     final double yPercent =
                         (localPosition.dy / widgetSize.height).clamp(0.0, 1.0);
-                    InputController.requestMoveMouseAbsl(
-                        WebrtcService.currentRenderingSession!.channel,
+                    _inputcontroller?.requestMoveMouseAbsl(
                         xPercent,
                         yPercent,
                         WebrtcService.currentRenderingSession!.screenId);
@@ -189,8 +180,7 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
                             _pressedKey = _pressedKey + " Up";
                           }
                           print("${_pressedKey} at ${DateTime.now()}");*/
-                          InputController.requestKeyEvent(
-                              WebrtcService.currentRenderingSession!.channel,
+                          _inputcontroller?.requestKeyEvent(
                               physicalToWindowsKeyMap[event.physicalKey],
                               event is KeyDownEvent);
                         }

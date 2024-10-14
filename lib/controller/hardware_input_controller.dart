@@ -17,11 +17,19 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 typedef CursorUpdatedCallback = void Function(MouseCursor newcursor);
 
 class InputController {
-  static double lastx = 1;
-  static double lasty = 1;
-  static void requestMoveMouseAbsl(
-      RTCDataChannel? channel, double x, double y, int screenId) async {
-    if (channel == null) return;
+  double lastx = 1;
+  double lasty = 1;
+  RTCDataChannel channel;
+  bool reliable;
+  InputController(this.channel, this.reliable);
+
+  int outSequenceID = 0;
+
+  // latest handled sequence id.
+  int inSequenceID = 0;
+  
+  void requestMoveMouseAbsl(double x, double y, int screenId) async {
+    // user cursor moved out of scope
     if (screenId == -1) {
       x = lastx;
       y = lasty;
@@ -50,13 +58,13 @@ class InputController {
       lasty = y;
     }
     // 创建一个ByteData足够存储 LP_MOUSE, screenId, dx, dy
-    ByteData byteData = ByteData(10);
+    ByteData byteData = ByteData(0);
     byteData.setUint8(0, LP_MOUSEMOVE_ABSL);
     byteData.setUint8(1, screenId);
 
     // 将dx, dy转换为浮点数并存储
-    byteData.setFloat32(2, x, Endian.little);
-    byteData.setFloat32(6, y, Endian.little);
+    byteData.setFloat32(6, x, Endian.little);
+    byteData.setFloat32(10, y, Endian.little);
 
     // 转换ByteData为Uint8List
     Uint8List buffer = byteData.buffer.asUint8List();
@@ -65,7 +73,7 @@ class InputController {
     channel.send(RTCDataChannelMessage.fromBinary(buffer));
   }
 
-  static void handleMoveMouseAbsl(RTCDataChannelMessage message) {
+  void handleMoveMouseAbsl(RTCDataChannelMessage message) {
     if (!AppPlatform.isDeskTop) return;
     Uint8List buffer = message.binary;
     ByteData byteData = ByteData.sublistView(buffer);
@@ -77,9 +85,7 @@ class InputController {
   }
 
   // maybe we don't need screenId?
-  static void requestMoveMouseRelative(
-      RTCDataChannel? channel, double x, double y, int screenId) async {
-    if (channel == null) return;
+  void requestMoveMouseRelative(double x, double y, int screenId) async {
     // 创建一个ByteData足够存储 LP_MOUSE, screenId, dx, dy
     ByteData byteData = ByteData(10);
     byteData.setUint8(0, LP_MOUSEMOVE_RELATIVE);
@@ -96,7 +102,7 @@ class InputController {
     channel.send(RTCDataChannelMessage.fromBinary(buffer));
   }
 
-  static void handleMoveMouseRelative(RTCDataChannelMessage message) {
+  void handleMoveMouseRelative(RTCDataChannelMessage message) {
     if (!AppPlatform.isDeskTop) return;
     Uint8List buffer = message.binary;
     ByteData byteData = ByteData.sublistView(buffer);
@@ -107,9 +113,7 @@ class InputController {
     HardwareSimulator.mouse.performMouseMoveRelative(dx, dy, screenId);
   }
 
-  static void requestMouseClick(
-      RTCDataChannel? channel, int buttonId, bool isDown) async {
-    if (channel == null) return;
+  void requestMouseClick(int buttonId, bool isDown) async {
 
     // 创建一个 ByteData 足够存储 LP_MOUSEBUTTON, buttonId, isDown
     ByteData byteData = ByteData(3);
@@ -124,7 +128,7 @@ class InputController {
     channel.send(RTCDataChannelMessage.fromBinary(buffer));
   }
 
-  static void handleMouseClick(RTCDataChannelMessage message) {
+  void handleMouseClick(RTCDataChannelMessage message) {
     if (!AppPlatform.isDeskTop) return;
     Uint8List buffer = message.binary;
     ByteData byteData = ByteData.sublistView(buffer);
@@ -138,9 +142,7 @@ class InputController {
     HardwareSimulator.mouse.performMouseClick(buttonId, isDown);
   }
 
-  static void requestMouseScroll(
-      RTCDataChannel? channel, double? dx, double? dy) async {
-    if (channel == null) return;
+  void requestMouseScroll(double? dx, double? dy) async {
     dx ??= 0;
     dy ??= 0;
     // 创建一个 ByteData 足够存储 LP_MOUSEBUTTON, buttonId, isDown
@@ -157,7 +159,7 @@ class InputController {
     channel.send(RTCDataChannelMessage.fromBinary(buffer));
   }
 
-  static void handleMouseScroll(RTCDataChannelMessage message) {
+  void handleMouseScroll(RTCDataChannelMessage message) {
     if (!AppPlatform.isDeskTop) return;
     Uint8List buffer = message.binary;
     ByteData byteData = ByteData.sublistView(buffer);
@@ -167,9 +169,8 @@ class InputController {
     HardwareSimulator.mouse.performMouseScroll(dx, dy);
   }
 
-  static void requestKeyEvent(
-      RTCDataChannel? channel, int? keyCode, bool isDown) async {
-    if (channel == null || keyCode == null) return;
+  void requestKeyEvent(int? keyCode, bool isDown) async {
+    if (keyCode == null) return;
     // VLOG0("sending key event code {$keyCode} isDown {$isDown}");
     // 创建一个 ByteData 足够存储 LP_MOUSEBUTTON, buttonId, isDown
     ByteData byteData = ByteData(3);
@@ -184,7 +185,7 @@ class InputController {
     channel.send(RTCDataChannelMessage.fromBinary(buffer));
   }
 
-  static void handleKeyEvent(RTCDataChannelMessage message) {
+  void handleKeyEvent(RTCDataChannelMessage message) {
     if (!AppPlatform.isDeskTop) return;
     Uint8List buffer = message.binary;
     ByteData byteData = ByteData.sublistView(buffer);
@@ -243,37 +244,32 @@ class InputController {
       _cursorContext = null;
     }
   }
-
+  
+  // these callbacks should only for the current rendering session.
   static CursorMovedCallback cursorMovedCallback = (deltax, deltay) {
-    if (isCursorLocked &&
-        WebrtcService.currentRenderingSession != null &&
-        WebrtcService.currentRenderingSession!.channel != null) {
-      requestMoveMouseRelative(
-          WebrtcService.currentRenderingSession!.channel!, deltax, deltay, 0);
+    if (isCursorLocked){
+        WebrtcService.currentRenderingSession?.inputController?.
+      requestMoveMouseRelative( deltax, deltay, 0);
     }
   };
 
   static CursorPressedCallback cursorPressedCallback = (button, isDown) {
-    if (isCursorLocked &&
-        WebrtcService.currentRenderingSession != null &&
-        WebrtcService.currentRenderingSession!.channel != null) {
-      requestMouseClick(
-          WebrtcService.currentRenderingSession!.channel!, button, isDown);
+    if (isCursorLocked){
+      WebrtcService.currentRenderingSession?.inputController?.
+      requestMouseClick(button, isDown);
     }
   };
 
   static CursorWheelCallback cursorWheelCallback = (deltax, deltay) {
-    if (isCursorLocked &&
-        WebrtcService.currentRenderingSession != null &&
-        WebrtcService.currentRenderingSession!.channel != null) {
-      requestMouseScroll(
-          WebrtcService.currentRenderingSession!.channel!, deltax, deltay);
+      if (isCursorLocked){
+      WebrtcService.currentRenderingSession?.inputController?.
+      requestMouseScroll(deltax, deltay);
     }
   };
 
   static bool isCursorLocked = false;
 
-  static void handleCursorUpdate(RTCDataChannelMessage msg) async {
+  void handleCursorUpdate(RTCDataChannelMessage msg) async {
     Uint8List buffer = msg.binary;
     if (buffer[0] == LP_MOUSECURSOR_CHANGED_WITHBUFFER) {
       //cursor hash: 0 + size + hash + data
