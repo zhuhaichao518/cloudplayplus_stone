@@ -21,12 +21,22 @@ class InputController {
   double lasty = 1;
   RTCDataChannel channel;
   bool reliable;
+
+  //默认重传次数。确认丢包后再重传会提高延迟 所以直接发几次
+  int repeatCount = 3;
   InputController(this.channel, this.reliable);
 
   int outSequenceID = 0;
 
   // latest handled sequence id.
-  int inSequenceID = 0;
+  int lastHandledSequenceID = 0;
+  
+  Map<int, RTCDataChannelMessage> messagesToHandle = {};
+  // 接到一个消息的时候 outSequenceID.
+  // 如果刚好 = lastHandledSequenceID + 1, 完美, handle这个消息，并且继续处理待处理列表中的消息
+  // 如果 <= lastHandledSequenceID, 丢掉这个消息
+  // 否则加入待处理列表（如果ID重复则直接丢弃）,等待lastHandledSequenceID + 1的消息进来，最多等（20ms）。
+  // 假如时间到了lastHandledSequenceID + 1还没来, 直接处理完待处理列表。
   
   void requestMoveMouseAbsl(double x, double y, int screenId) async {
     // user cursor moved out of scope
@@ -58,30 +68,52 @@ class InputController {
       lasty = y;
     }
     // 创建一个ByteData足够存储 LP_MOUSE, screenId, dx, dy
-    ByteData byteData = ByteData(0);
-    byteData.setUint8(0, LP_MOUSEMOVE_ABSL);
-    byteData.setUint8(1, screenId);
+    if (reliable) {
+      ByteData byteData = ByteData(10);
+      byteData.setUint8(0, LP_MOUSEMOVE_ABSL);
+      byteData.setUint8(1, screenId);
 
-    // 将dx, dy转换为浮点数并存储
-    byteData.setFloat32(6, x, Endian.little);
-    byteData.setFloat32(10, y, Endian.little);
+      // 将dx, dy转换为浮点数并存储
+      byteData.setFloat32(2, x, Endian.little);
+      byteData.setFloat32(6, y, Endian.little);
 
-    // 转换ByteData为Uint8List
-    Uint8List buffer = byteData.buffer.asUint8List();
+      // 转换ByteData为Uint8List
+      Uint8List buffer = byteData.buffer.asUint8List();
 
-    // 发送消息
-    channel.send(RTCDataChannelMessage.fromBinary(buffer));
+      // 发送消息
+      channel.send(RTCDataChannelMessage.fromBinary(buffer));
+    } else {
+      ByteData byteData = ByteData(14);
+      byteData.setUint8(0, LP_MOUSEMOVE_ABSL);
+      byteData.setInt32(1, outSequenceID);
+      byteData.setUint8(5, screenId);
+
+      // 将dx, dy转换为浮点数并存储
+      byteData.setFloat32(6, x, Endian.little);
+      byteData.setFloat32(10, y, Endian.little);
+
+      // 转换ByteData为Uint8List
+      Uint8List buffer = byteData.buffer.asUint8List();
+
+      // 发送消息
+      for (int i = 0; i < repeatCount; i++){
+        channel.send(RTCDataChannelMessage.fromBinary(buffer));  
+      }
+    }
   }
 
   void handleMoveMouseAbsl(RTCDataChannelMessage message) {
     if (!AppPlatform.isDeskTop) return;
     Uint8List buffer = message.binary;
     ByteData byteData = ByteData.sublistView(buffer);
-    int screenId = byteData.getUint8(1);
-    double x = byteData.getFloat32(2, Endian.little);
-    double y = byteData.getFloat32(6, Endian.little);
-
-    HardwareSimulator.mouse.performMouseMoveAbsl(x, y, screenId);
+    if (reliable) {
+      int screenId = byteData.getUint8(1);
+      double x = byteData.getFloat32(2, Endian.little);
+      double y = byteData.getFloat32(6, Endian.little);
+      HardwareSimulator.mouse.performMouseMoveAbsl(x, y, screenId);
+    }else{
+      //不用处理，先处理第一位，再决定是立即处理，丢弃还是加入待处理列表
+    }
   }
 
   // maybe we don't need screenId?
