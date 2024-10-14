@@ -152,6 +152,11 @@ class StreamingSession {
     pc!.onDataChannel = (newchannel) {
       channel = newchannel;
       channel?.onMessage = (msg) {
+        /*if (msg.isBinary) {
+          //VLOG0(msg.binary);
+        } else {
+          VLOG0("at ${DateTime.now()}" + msg.text);
+        }*/
         processDataChannelMessageFromHost(msg);
       };
       channel?.send(RTCDataChannelMessage.fromBinary(

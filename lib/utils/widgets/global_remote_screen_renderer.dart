@@ -78,6 +78,7 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
     }
   }
 
+  //String _pressedKey = '';
   @override
   Widget build(BuildContext context) {
     return ValueListenableBuilder<bool>(
@@ -179,6 +180,15 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
                         if (event is KeyDownEvent || event is KeyUpEvent) {
                           // For web, there is a bug where an unexpected keyup is
                           // triggered. https://github.com/flutter/engine/pull/17742/files
+                          /*_pressedKey = event.logicalKey.keyLabel.isEmpty
+                              ? event.logicalKey.debugName ?? 'Unknown'
+                              : event.logicalKey.keyLabel;
+                          if (event is KeyDownEvent) {
+                            _pressedKey = _pressedKey + " Down";
+                          } else if (event is KeyUpEvent) {
+                            _pressedKey = _pressedKey + " Up";
+                          }
+                          print("${_pressedKey} at ${DateTime.now()}");*/
                           InputController.requestKeyEvent(
                               WebrtcService.currentRenderingSession!.channel,
                               physicalToWindowsKeyMap[event.physicalKey],
@@ -239,6 +249,10 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
                     ),
                   ),
                 ),
+                /*Text(
+                  'You pressed: $_pressedKey',
+                  style: TextStyle(fontSize: 24, color: Colors.red),
+                ),*/
                 BlocProvider(
                   create: (context) => MouseStyleBloc(),
                   child: const MouseStyleRegion(),
