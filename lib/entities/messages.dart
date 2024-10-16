@@ -13,6 +13,7 @@ const int LP_MOUSEBUTTON = 1 << 3; //8
 const int LP_MOUSECURSOR_CHANGED_WITHBUFFER = 9;
 const int LP_MOUSECURSOR_CHANGED = 10;
 const int LP_KEYPRESSED = 1 << 4; //16
+const int LP_EMPTY = 1 << 6; //64
 const int LP_DISCONNECT = 1 << 7;
 // [--end of message definitions--]
 

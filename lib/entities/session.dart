@@ -70,8 +70,8 @@ class StreamingSession {
   RTCDataChannel? channel;
 
   int datachannelMessageIndex = 0;
-
-  bool useUnsafeDatachannel = true;
+  
+  bool useUnsafeDatachannel = false;
   //Controller channel
   //use unreliable channel because there is noticeable latency on data loss.
   //work like udp.
@@ -161,10 +161,10 @@ class StreamingSession {
       //onAddRemoteStream?.call(event.track.kind!, event.streams[0]);
     };
     pc!.onDataChannel = (newchannel) {
-      if (newchannel.label == "userInput"){
+      if (newchannel.label == "userInputUnsafe"){
         UDPChannel = newchannel;
         inputController = InputController(UDPChannel!, false);
-        //This channel is only used to send user input
+        //This channel is only used to send unsafe user input
         /*
         channel?.onMessage = (msg) {
         };*/
@@ -354,7 +354,7 @@ class StreamingSession {
     RTCDataChannelInit reliableDataChannelDict = RTCDataChannelInit()
       ..maxRetransmits = 30
       ..ordered = true;
-    channel = await pc!.createDataChannel('safeMessage', reliableDataChannelDict);
+    channel = await pc!.createDataChannel('userInput', reliableDataChannelDict);
 
     channel?.onMessage = (RTCDataChannelMessage msg) {
       processDataChannelMessageFromClient(msg);
@@ -364,7 +364,7 @@ class StreamingSession {
       RTCDataChannelInit dataChannelDict = RTCDataChannelInit()
         ..maxRetransmits = 0
         ..ordered = false;
-      UDPChannel = await pc!.createDataChannel('userInput', dataChannelDict);
+      UDPChannel = await pc!.createDataChannel('userInputUnsafe', dataChannelDict);
 
       UDPChannel?.onMessage = (RTCDataChannelMessage msg) {
         processDataChannelMessageFromClient(msg);

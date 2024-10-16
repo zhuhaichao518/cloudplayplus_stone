@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:typed_data';
 
-import 'package:cloudplayplus/base/logging.dart';
 import 'package:cloudplayplus/services/app_info_service.dart';
 import 'package:cloudplayplus/services/webrtc_service.dart';
 import 'package:cloudplayplus/utils/widgets/cursor_change_widget.dart';
@@ -31,12 +30,19 @@ class InputController {
   // latest handled sequence id.
   int lastHandledSequenceID = 0;
   
+  // reliable = true的时候 处理类似tcp over udp。主要问题是datachannel在丢包时 要等很久才会触发要求重发
+  // 方案1 每个控制消息发送后 发送三个空包。如果丢包就会立即触发重发请求
+  bool sendEmptyPacket = true;
+  // 方案2 每个控制消息发送（3）次 不管丢包的消息 发送三次（同一个seq id） 基本上能保证顺序？
   Map<int, RTCDataChannelMessage> messagesToHandle = {};
-  // 接到一个消息的时候 outSequenceID.
+  // 方案3.接到一个消息的时候 outSequenceID.
   // 如果刚好 = lastHandledSequenceID + 1, 完美, handle这个消息，并且继续处理待处理列表中的消息
   // 如果 <= lastHandledSequenceID, 丢掉这个消息
   // 否则加入待处理列表（如果ID重复则直接丢弃）,等待lastHandledSequenceID + 1的消息进来，最多等（20ms）。
   // 假如时间到了lastHandledSequenceID + 1还没来, 直接处理完待处理列表。
+
+  RTCDataChannelMessage emptyMessage = RTCDataChannelMessage.fromBinary(
+                  Uint8List.fromList([LP_EMPTY]));
   
   void requestMoveMouseAbsl(double x, double y, int screenId) async {
     // user cursor moved out of scope
@@ -106,14 +112,11 @@ class InputController {
     if (!AppPlatform.isDeskTop) return;
     Uint8List buffer = message.binary;
     ByteData byteData = ByteData.sublistView(buffer);
-    if (reliable) {
-      int screenId = byteData.getUint8(1);
-      double x = byteData.getFloat32(2, Endian.little);
-      double y = byteData.getFloat32(6, Endian.little);
-      HardwareSimulator.mouse.performMouseMoveAbsl(x, y, screenId);
-    }else{
-      //不用处理，先处理第一位，再决定是立即处理，丢弃还是加入待处理列表
-    }
+
+    int screenId = byteData.getUint8(1);
+    double x = byteData.getFloat32(2, Endian.little);
+    double y = byteData.getFloat32(6, Endian.little);
+    HardwareSimulator.mouse.performMouseMoveAbsl(x, y, screenId);
   }
 
   // maybe we don't need screenId?
@@ -158,6 +161,13 @@ class InputController {
 
     // 发送消息
     channel.send(RTCDataChannelMessage.fromBinary(buffer));
+    
+    // 保证鼠标按下能立即发送到
+    if (sendEmptyPacket){
+      channel.send(emptyMessage);
+      channel.send(emptyMessage);
+      channel.send(emptyMessage);
+    }
   }
 
   void handleMouseClick(RTCDataChannelMessage message) {
@@ -169,7 +179,6 @@ class InputController {
     int buttonId = byteData.getUint8(1); // 第2个字节存储了 buttonId
     bool isDown = byteData.getUint8(2) == 1; // 第3个字节存储了 isDown (1 表示按下, 0 表示松开)
 
-    print("--handle mouse click:{$buttonId} {$isDown}");
     // 调用模拟点击的方法
     HardwareSimulator.mouse.performMouseClick(buttonId, isDown);
   }
@@ -215,6 +224,12 @@ class InputController {
 
     // 发送消息
     channel.send(RTCDataChannelMessage.fromBinary(buffer));
+
+    if (sendEmptyPacket){
+      channel.send(emptyMessage);
+      channel.send(emptyMessage);
+      channel.send(emptyMessage);
+    }
   }
 
   void handleKeyEvent(RTCDataChannelMessage message) {
