@@ -551,7 +551,7 @@ class StreamingSession {
     connectionState = StreamingSessionConnectionState.disconnected;
     controlled.connectionState.value = StreamingSessionConnectionState.free;
     if (streamSettings?.hookCursorImage == true &&
-        controlled.uid == ApplicationInfo.user.uid) {
+        selfSessionType == SelfSessionType.controlled) {
       if (AppPlatform.isDeskTop) {
         HardwareSimulator.removeCursorImageUpdated(cursorImageHookID);
       }
