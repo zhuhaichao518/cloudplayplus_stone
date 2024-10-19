@@ -74,6 +74,15 @@ class WebSocketService {
     await _socket?.connect();
   }
 
+  static Future<void> refreshDevices() async {
+    send('updateDeviceInfo', {
+      'deviceName': ApplicationInfo.deviceName,
+      'deviceType': ApplicationInfo.deviceTypeName,
+      'connective': ApplicationInfo.connectable,
+      'screenCount': ApplicationInfo.screenCount,
+    });
+  }
+
   static Future<void> onMessage(message) async {
     VLOG0("--got message from server------------------------");
     VLOG0(message);

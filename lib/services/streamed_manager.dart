@@ -55,9 +55,16 @@ class StreamedManager {
           'audio': false
         };
       }
-      localVideoStreams[settings.screenId!] =
-          await navigator.mediaDevices.getDisplayMedia(mediaConstraints);
-      localVideoStreamsCount[settings.screenId!] = 1;
+      try{
+        localVideoStreams[settings.screenId!] =
+            await navigator.mediaDevices.getDisplayMedia(mediaConstraints);
+        localVideoStreamsCount[settings.screenId!] = 1;
+      }catch(e){
+        //This happens on Web when user choose not to share the content.
+        VLOG0("getDisplayMedia failed.$e");
+        releaseLock();
+        return;
+      }
     } else {
       localVideoStreamsCount[settings.screenId!] =
           localVideoStreamsCount[settings.screenId!]! + 1;

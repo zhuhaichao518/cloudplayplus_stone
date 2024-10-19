@@ -40,9 +40,9 @@ class Device {
 final defaultDeviceList = [
   Device(
     uid: 0,
-    nickname: 'initializing...',
-    devicename: 'initializing...',
-    devicetype: 'initializing...',
+    nickname: '获取中...',
+    devicename: '初始化...',
+    devicetype: '初始化...',
     websocketSessionid: '',
     connective: false,
     screencount: 0,
