@@ -55,11 +55,11 @@ class StreamedManager {
           'audio': false
         };
       }
-      try{
+      try {
         localVideoStreams[settings.screenId!] =
             await navigator.mediaDevices.getDisplayMedia(mediaConstraints);
         localVideoStreamsCount[settings.screenId!] = 1;
-      }catch(e){
+      } catch (e) {
         //This happens on Web when user choose not to share the content.
         VLOG0("getDisplayMedia failed.$e");
         releaseLock();

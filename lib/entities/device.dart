@@ -5,7 +5,7 @@ class Device {
   //都用基本类型 传输简便
   final int uid;
   final String nickname;
-  final String devicename;
+  String devicename;
   final String devicetype;
   final String websocketSessionid;
   //allow this device to be connected

@@ -1,8 +1,9 @@
 import 'package:cloudplayplus/controller/screen_controller.dart';
 import 'package:cloudplayplus/global_settings/streaming_settings.dart';
+import 'package:cloudplayplus/services/shared_preferences_manager.dart';
 import 'package:cloudplayplus/services/streaming_manager.dart';
+import 'package:cloudplayplus/services/websocket_service.dart';
 import 'package:cloudplayplus/utils/widgets/global_remote_screen_renderer.dart';
-import 'package:cloudplayplus/utils/widgets/on_screen_keyboard.dart';
 import 'package:floating_menu_panel/floating_menu_panel.dart';
 import 'package:flutter/material.dart';
 import '../../base/logging.dart';
@@ -23,6 +24,7 @@ class DeviceDetailPage extends StatefulWidget {
 
 class _DeviceDetailPageState extends State<DeviceDetailPage> {
   late TextEditingController _shareController;
+  late TextEditingController _deviceNameController;
 
   /*void updateVideoRenderer(String mediatype, MediaStream stream) {
     setState(() {
@@ -39,12 +41,14 @@ class _DeviceDetailPageState extends State<DeviceDetailPage> {
   @override
   void initState() {
     super.initState();
+    _deviceNameController = TextEditingController();
     _shareController = TextEditingController();
     //StreamingManager.updateRendererCallback(widget.device, updateVideoRenderer);
   }
 
   @override
   void dispose() {
+    _deviceNameController.dispose();
     _shareController.dispose();
     super.dispose();
   }
@@ -52,6 +56,7 @@ class _DeviceDetailPageState extends State<DeviceDetailPage> {
   bool inbuilding = true;
   bool needSetstate = false;
   int _selectedMonitorId = 1;
+  bool _editingDeviceName = false;
   /*void setAspectRatio(double ratio) {
     if (aspectRatio == ratio) return;
     aspectRatio = ratio;
@@ -128,10 +133,55 @@ class _DeviceDetailPageState extends State<DeviceDetailPage> {
               crossAxisAlignment: CrossAxisAlignment.center,
               children: <Widget>[
                 // 使用更大的字体和粗体来突出设备类型
-                Text(
-                  "设备名称:${widget.device.devicename}",
+                const Text(
+                  "设备名称:",
+                  style: TextStyle(fontWeight: FontWeight.bold), // 突出显示标签
                 ),
-                SizedBox(height: 16), // 增加垂直间距
+                const SizedBox(width: 16), // 增加一些水平间距
+                // 用 Container 设置宽度，避免使用 Expanded
+                _editingDeviceName
+                    ? Container(
+                        width: 300, // 可以根据需要调整宽度
+                        child: TextField(
+                          controller: _deviceNameController,
+                          decoration: InputDecoration(
+                            hintText: widget.device.devicename, // 提示文本
+                          ),
+                          onChanged: (newName) {
+                            // 将新名称存储在一个临时变量中
+                            setState(() {
+                              //_newDeviceName = newName;
+                            });
+                          },
+                        ),
+                      )
+                    : Text(
+                        widget.device.devicename,
+                      ),
+                SizedBox(height: 8),
+                if (widget.device.websocketSessionid ==
+                    ApplicationInfo.thisDevice.websocketSessionid)
+                  ElevatedButton(
+                    onPressed: () {
+                      if (!_editingDeviceName) {
+                        setState(() {
+                          _editingDeviceName = true;
+                        });
+                      } else {
+                        setState(() {
+                          _editingDeviceName = false;
+                          widget.device.devicename = _deviceNameController.text;
+                          ApplicationInfo.deviceNameOverride =
+                              _deviceNameController.text;
+                          SharedPreferencesManager.setString(
+                              "deviceNameOverride", _deviceNameController.text);
+                          WebSocketService.updateDeviceInfo();
+                        });
+                      }
+                    },
+                    child: const Text("编辑设备名"),
+                  ),
+                const SizedBox(height: 16), // 增加垂直间距
                 // 使用更大的字体和粗体来突出设备类型
                 Text(
                   "设备平台:${widget.device.devicetype}",

@@ -29,7 +29,7 @@ class InputController {
 
   // latest handled sequence id.
   int lastHandledSequenceID = 0;
-  
+
   // reliable = true的时候 处理类似tcp over udp。主要问题是datachannel在丢包时 要等很久才会触发要求重发
   // 方案1 每个控制消息发送后 发送三个空包。如果丢包就会立即触发重发请求
   bool sendEmptyPacket = true;
@@ -41,9 +41,9 @@ class InputController {
   // 否则加入待处理列表（如果ID重复则直接丢弃）,等待lastHandledSequenceID + 1的消息进来，最多等（20ms）。
   // 假如时间到了lastHandledSequenceID + 1还没来, 直接处理完待处理列表。
 
-  RTCDataChannelMessage emptyMessage = RTCDataChannelMessage.fromBinary(
-                  Uint8List.fromList([LP_EMPTY]));
-  
+  RTCDataChannelMessage emptyMessage =
+      RTCDataChannelMessage.fromBinary(Uint8List.fromList([LP_EMPTY]));
+
   void requestMoveMouseAbsl(double x, double y, int screenId) async {
     // user cursor moved out of scope
     if (screenId == -1) {
@@ -102,8 +102,8 @@ class InputController {
       Uint8List buffer = byteData.buffer.asUint8List();
 
       // 发送消息
-      for (int i = 0; i < repeatCount; i++){
-        channel.send(RTCDataChannelMessage.fromBinary(buffer));  
+      for (int i = 0; i < repeatCount; i++) {
+        channel.send(RTCDataChannelMessage.fromBinary(buffer));
       }
     }
   }
@@ -149,7 +149,6 @@ class InputController {
   }
 
   void requestMouseClick(int buttonId, bool isDown) async {
-
     // 创建一个 ByteData 足够存储 LP_MOUSEBUTTON, buttonId, isDown
     ByteData byteData = ByteData(3);
     byteData.setUint8(0, LP_MOUSEBUTTON); // 操作符，用于指示鼠标按键操作
@@ -161,9 +160,9 @@ class InputController {
 
     // 发送消息
     channel.send(RTCDataChannelMessage.fromBinary(buffer));
-    
+
     // 保证鼠标按下能立即发送到
-    if (sendEmptyPacket){
+    if (sendEmptyPacket) {
       channel.send(emptyMessage);
       channel.send(emptyMessage);
       channel.send(emptyMessage);
@@ -225,7 +224,7 @@ class InputController {
     // 发送消息
     channel.send(RTCDataChannelMessage.fromBinary(buffer));
 
-    if (sendEmptyPacket){
+    if (sendEmptyPacket) {
       channel.send(emptyMessage);
       channel.send(emptyMessage);
       channel.send(emptyMessage);
@@ -291,26 +290,26 @@ class InputController {
       _cursorContext = null;
     }
   }
-  
+
   // these callbacks should only for the current rendering session.
   static CursorMovedCallback cursorMovedCallback = (deltax, deltay) {
-    if (isCursorLocked){
-        WebrtcService.currentRenderingSession?.inputController?.
-      requestMoveMouseRelative( deltax, deltay, 0);
+    if (isCursorLocked) {
+      WebrtcService.currentRenderingSession?.inputController
+          ?.requestMoveMouseRelative(deltax, deltay, 0);
     }
   };
 
   static CursorPressedCallback cursorPressedCallback = (button, isDown) {
-    if (isCursorLocked){
-      WebrtcService.currentRenderingSession?.inputController?.
-      requestMouseClick(button, isDown);
+    if (isCursorLocked) {
+      WebrtcService.currentRenderingSession?.inputController
+          ?.requestMouseClick(button, isDown);
     }
   };
 
   static CursorWheelCallback cursorWheelCallback = (deltax, deltay) {
-      if (isCursorLocked){
-      WebrtcService.currentRenderingSession?.inputController?.
-      requestMouseScroll(deltax, deltay);
+    if (isCursorLocked) {
+      WebrtcService.currentRenderingSession?.inputController
+          ?.requestMouseScroll(deltax, deltay);
     }
   };
 

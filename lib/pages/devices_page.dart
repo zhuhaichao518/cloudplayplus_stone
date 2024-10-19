@@ -81,6 +81,25 @@ class _DevicesPageState extends State<DevicesPage> {
                   fontWeight: FontWeight.bold, // 加粗文本
                 ),
               ),
+              trailing: IconButton(
+                icon: const Icon(Icons.refresh), // 刷新图标
+                color: Theme.of(context).iconTheme.color, // 使用主题中的图标颜色
+                onPressed: () {
+                  setState(() {
+                    _deviceList.clear();
+                    _deviceList.add(Device(
+                      uid: 0,
+                      nickname: '更新中...',
+                      devicename: '更新中...',
+                      devicetype: '更新中...',
+                      websocketSessionid: '',
+                      connective: false,
+                      screencount: 0,
+                    ));
+                  });
+                  WebSocketService.reconnect();
+                },
+              ),
               tileColor: Theme.of(context).primaryColor, // 使用主题中定义的主要颜色作为背景
             ),
           );
@@ -117,7 +136,7 @@ class _DevicesPageState extends State<DevicesPage> {
                       screencount: 0,
                     ));
                   });
-                  WebSocketService.refreshDevices();
+                  WebSocketService.reconnect();
                 },
               ),
               tileColor: Theme.of(context).primaryColor, // 使用主题中定义的主要颜色作为背景

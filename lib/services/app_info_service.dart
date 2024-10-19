@@ -10,6 +10,7 @@ class ApplicationInfo {
   //count of connected monitors.
   static int? screencount;
   static bool connectable = false;
+  static String? deviceNameOverride;
 
   static int get screenCount {
     if (screencount != null) {
@@ -21,6 +22,9 @@ class ApplicationInfo {
   static String get deviceName {
     if (AppPlatform.isWeb) {
       return '云玩家网页端';
+    }
+    if (deviceNameOverride != null && deviceNameOverride != "") {
+      return deviceNameOverride!;
     }
     return Platform.localHostname;
   }

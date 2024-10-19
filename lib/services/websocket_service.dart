@@ -37,6 +37,9 @@ class WebSocketService {
   static Function(dynamic list)? onDeviceListchanged;
 
   static void init() async {
+    if (connectionState == WebSocketConnectionState.connecting) {
+      return;
+    }
     if (DevelopSettings.useLocalServer) {
       if (AppPlatform.isAndroid) {
         //_baseUrl = "ws://10.0.2.2:8000/ws/";
@@ -67,20 +70,28 @@ class WebSocketService {
     _socket?.onMessage = (message) async {
       await onMessage(_decoder.convert(message));
     };
+
     _socket?.onClose = (code, message) async {
-      VLOG0(code!);
-      VLOG0(message!);
+      connectionState = WebSocketConnectionState.disconnected;
+      VLOG0(code);
+      VLOG0(message);
     };
     await _socket?.connect();
   }
 
-  static Future<void> refreshDevices() async {
+  static Future<void> updateDeviceInfo() async {
     send('updateDeviceInfo', {
       'deviceName': ApplicationInfo.deviceName,
       'deviceType': ApplicationInfo.deviceTypeName,
       'connective': ApplicationInfo.connectable,
       'screenCount': ApplicationInfo.screenCount,
     });
+  }
+
+  static Future<void> reconnect() async {
+    _socket?.close();
+    _socket = null;
+    init();
   }
 
   static Future<void> onMessage(message) async {

@@ -14,12 +14,14 @@ class AppInitService {
   static Future<int> getAppState() async {
     //SharedPreferencesManager.clear();
     //simulate loading time
-    await Future.delayed(const Duration(seconds: 2));
+    await Future.delayed(const Duration(seconds: 1));
     if (DevelopSettings.alwaysShowIntroPage) {
       return 0;
     }
     bool appintroFinished =
         SharedPreferencesManager.getBool('appintroFinished') ?? false;
+    ApplicationInfo.deviceNameOverride =
+        SharedPreferencesManager.getString('deviceNameOverride');
     if (!appintroFinished) return 0;
     bool isLoggedin = await LoginService.tryLoginWithCachedToken();
     if (!isLoggedin) {

@@ -70,7 +70,7 @@ class StreamingSession {
   RTCDataChannel? channel;
 
   int datachannelMessageIndex = 0;
-  
+
   bool useUnsafeDatachannel = false;
   //Controller channel
   //use unreliable channel because there is noticeable latency on data loss.
@@ -161,16 +161,16 @@ class StreamingSession {
       //onAddRemoteStream?.call(event.track.kind!, event.streams[0]);
     };
     pc!.onDataChannel = (newchannel) {
-      if (newchannel.label == "userInputUnsafe"){
+      if (newchannel.label == "userInputUnsafe") {
         UDPChannel = newchannel;
         inputController = InputController(UDPChannel!, false);
         //This channel is only used to send unsafe user input
         /*
         channel?.onMessage = (msg) {
         };*/
-      }else{
+      } else {
         channel = newchannel;
-        if (!useUnsafeDatachannel){
+        if (!useUnsafeDatachannel) {
           inputController = InputController(channel!, true);
         }
         channel?.onMessage = (msg) {
@@ -360,17 +360,18 @@ class StreamingSession {
       processDataChannelMessageFromClient(msg);
     };
 
-    if (useUnsafeDatachannel){
+    if (useUnsafeDatachannel) {
       RTCDataChannelInit dataChannelDict = RTCDataChannelInit()
         ..maxRetransmits = 0
         ..ordered = false;
-      UDPChannel = await pc!.createDataChannel('userInputUnsafe', dataChannelDict);
+      UDPChannel =
+          await pc!.createDataChannel('userInputUnsafe', dataChannelDict);
 
       UDPChannel?.onMessage = (RTCDataChannelMessage msg) {
         processDataChannelMessageFromClient(msg);
       };
       inputController = InputController(UDPChannel!, false);
-    }else{
+    } else {
       inputController = InputController(channel!, true);
     }
 
@@ -541,7 +542,7 @@ class StreamingSession {
       await channel?.close();
       channel = null;
     }
-    if (UDPChannel !=null){
+    if (UDPChannel != null) {
       await UDPChannel?.close();
       UDPChannel = null;
     }
@@ -557,14 +558,16 @@ class StreamingSession {
       }
     }
     if (WebrtcService.currentRenderingSession == this) {
-      if (HardwareSimulator.cursorlocked){
+      if (HardwareSimulator.cursorlocked) {
         if (AppPlatform.isDeskTop || AppPlatform.isWeb) {
           HardwareSimulator.cursorlocked = false;
           HardwareSimulator.unlockCursor();
-          HardwareSimulator.removeCursorMoved(InputController.cursorMovedCallback);
+          HardwareSimulator.removeCursorMoved(
+              InputController.cursorMovedCallback);
         }
         if (AppPlatform.isWeb) {
-          HardwareSimulator.removeCursorPressed(InputController.cursorPressedCallback);
+          HardwareSimulator.removeCursorPressed(
+              InputController.cursorPressedCallback);
           HardwareSimulator.addCursorWheel(InputController.cursorWheelCallback);
         }
       }
@@ -607,7 +610,7 @@ class StreamingSession {
       channel?.send(RTCDataChannelMessage.fromBinary(buffer));
     }
   }
-  
+
   void processDataChannelMessageFromClient(RTCDataChannelMessage message) {
     VLOG0("message from Client:${message.binary[0]}");
     if (message.isBinary) {
