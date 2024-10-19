@@ -74,6 +74,10 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
   //String _pressedKey = '';
   @override
   Widget build(BuildContext context) {
+    // set the default focus to remote desktop.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      focusNode.requestFocus();
+    });
     return ValueListenableBuilder<bool>(
         valueListenable: ScreenController.showDetailUseScrollView,
         builder: (context, usescrollview, child) {
