@@ -361,6 +361,40 @@ class InputController {
       } else if (message == HardwareSimulator.CURSOR_UPDATED_DEFAULT) {
         MouseCursor remotecursor;
         switch (msgInfo) {
+          //324开头的是mac有但是window没有的指针样式，和插件对应
+          case 32401:
+            remotecursor = SystemMouseCursors.grabbing;
+            break;
+          case 32402:
+            remotecursor = SystemMouseCursors.grab;
+            break;
+          case 32403:
+            remotecursor = SystemMouseCursors.resizeUp;
+            break;
+          case 32404:
+            remotecursor = SystemMouseCursors.resizeDown;
+            break;
+          case 32405:
+            remotecursor = SystemMouseCursors.resizeLeft;
+            break;
+          case 32406:
+            remotecursor = SystemMouseCursors.resizeRight;
+            break;
+          case 32407:
+            remotecursor = SystemMouseCursors.disappearing;
+            break;
+          case 32408:
+            remotecursor = SystemMouseCursors.contextMenu;
+            break;
+          case 32409:
+            remotecursor = SystemMouseCursors.alias;
+            break;
+          case 32410:
+            remotecursor = SystemMouseCursors.copy;
+            break;
+          case 32411:
+            remotecursor = SystemMouseCursors.verticalText;
+            break;
           case 32512: // IDC_ARROW
             remotecursor = SystemMouseCursors.basic;
             break;
