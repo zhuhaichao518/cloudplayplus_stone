@@ -39,8 +39,8 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
 
   bool _hasAudio = false;
 
-  void onAudioRenderStateChanged(bool has_audio){
-    if (_hasAudio!=has_audio){
+  void onAudioRenderStateChanged(bool has_audio) {
+    if (_hasAudio != has_audio) {
       setState(() {
         _hasAudio = has_audio;
       });
@@ -256,7 +256,9 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
                   create: (context) => MouseStyleBloc(),
                   child: const MouseStyleRegion(),
                 ),
-                _hasAudio? RTCVideoView(WebrtcService.globalAudioRenderer!):Container(),
+                _hasAudio
+                    ? RTCVideoView(WebrtcService.globalAudioRenderer!)
+                    : Container(),
                 const OnScreenVirtualKeyboard(), // 放置在Stack中，独立于Listener和RawKeyboardListener
               ],
             );

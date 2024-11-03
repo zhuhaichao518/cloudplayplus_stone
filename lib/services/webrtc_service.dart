@@ -57,7 +57,7 @@ class WebrtcService {
       globalAudioRenderer?.initialize().then((data) {
         if (currentDeviceId == deviceId) {
           globalAudioRenderer!.srcObject = audioStreams[deviceId];
-          if (audioStateChanged != null){
+          if (audioStateChanged != null) {
             audioStateChanged!(true);
           }
         }
@@ -67,9 +67,9 @@ class WebrtcService {
     } else {
       if (currentDeviceId == deviceId) {
         globalAudioRenderer!.srcObject = event.streams[0];
-          if (audioStateChanged != null){
-            audioStateChanged!(true);
-          }
+        if (audioStateChanged != null) {
+          audioStateChanged!(true);
+        }
       }
     }
   }
@@ -79,10 +79,10 @@ class WebrtcService {
     audioStreams.remove(deviceId);
     if (currentDeviceId == deviceId) {
       globalAudioRenderer!.srcObject = null;
-          if (audioStateChanged != null){
-            audioStateChanged!(false);
-            audioStateChanged = null;
-          }
+      if (audioStateChanged != null) {
+        audioStateChanged!(false);
+        audioStateChanged = null;
+      }
     }
   }
 

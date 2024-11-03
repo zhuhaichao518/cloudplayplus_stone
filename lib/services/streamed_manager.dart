@@ -10,6 +10,7 @@ import 'app_info_service.dart';
 
 // ignore: constant_identifier_names
 const int AUDIO_SYSTEM = 255;
+
 class StreamedManager {
   static Map<String, StreamingSession> sessions = {};
 

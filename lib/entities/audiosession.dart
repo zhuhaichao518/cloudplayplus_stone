@@ -59,20 +59,21 @@ class AudioSession {
   }
 
   AudioSession(this.channel, this.controller, this.controlled);
-  
+
   //client
-  Future<void> requestAudio() async{
+  Future<void> requestAudio() async {
     await channel.send(RTCDataChannelMessage.fromBinary(
-          Uint8List.fromList([LP_AUDIO_CONNECT])));
+        Uint8List.fromList([LP_AUDIO_CONNECT])));
     pc = await createRTCPeerConnection();
 
     pc!.onIceCandidate = (candidate) async {
-      Map<String, dynamic> mapData = {'candidate': {
-                  'sdpMLineIndex': candidate.sdpMLineIndex,
-                  'sdpMid': candidate.sdpMid,
-                  'candidate': candidate.candidate,
-                },
-              };
+      Map<String, dynamic> mapData = {
+        'candidate': {
+          'sdpMLineIndex': candidate.sdpMLineIndex,
+          'sdpMid': candidate.sdpMid,
+          'candidate': candidate.candidate,
+        },
+      };
       RTCDataChannelMessage msg = RTCDataChannelMessage(jsonEncode(mapData));
       await Future.delayed(
           const Duration(seconds: 1),
@@ -84,7 +85,7 @@ class AudioSession {
       WebrtcService.addAudioStream(controlled.websocketSessionid, event);
     };
   }
-  
+
   final locker = Mutex();
 
   void acquireLock() {
@@ -111,26 +112,27 @@ class AudioSession {
           : false,
     };
   }
+
   //host
   //调用这里时进行lock 防止candidate先到
   Future<void> audioRequested() async {
     acquireLock();
     // currently only support windows.
     //if (!AppPlatform.isWindows) return;
-    if (!StreamedManager.localAudioStreams.containsKey(AUDIO_SYSTEM)){
+    if (!StreamedManager.localAudioStreams.containsKey(AUDIO_SYSTEM)) {
       dynamic mediaConstraints = {
-      'audio': false,
-      'video':  {
-              'mandatory': {
-                'minWidth': '640',
-                'minHeight': '480',
-                'minFrameRate': '30',
-              },
-              'facingMode': 'user',
-              'optional': [],
-            },
+        'audio': false,
+        'video': {
+          'mandatory': {
+            'minWidth': '640',
+            'minHeight': '480',
+            'minFrameRate': '30',
+          },
+          'facingMode': 'user',
+          'optional': [],
+        },
       };
-      
+
       /*<String, dynamic>{
         'video': true,
         'audio': true, {
@@ -139,10 +141,11 @@ class AudioSession {
           }
         }
       };*/
-      
+
       //StreamedManager.localAudioStreams[AUDIO_SYSTEM] = await navigator.mediaDevices.getUserMedia(mediaConstraints);
-      StreamedManager.localAudioStreams[AUDIO_SYSTEM] = await navigator.mediaDevices
-        .getUserMedia(_getMediaConstraints(audio: true, video: false));
+      StreamedManager.localAudioStreams[AUDIO_SYSTEM] = await navigator
+          .mediaDevices
+          .getUserMedia(_getMediaConstraints(audio: true, video: false));
       //var devices = await navigator.mediaDevices.enumerateDevices();
       //Helper.selectAudioInput(devices[0].deviceId);
     }
@@ -153,26 +156,27 @@ class AudioSession {
       StreamedManager.localAudioStreams[AUDIO_SYSTEM]!
           .getAudioTracks()
           .forEach((track) async {
-        audioSender = (await pc!.addTrack(
-            track, StreamedManager.localAudioStreams[AUDIO_SYSTEM]!));
+        audioSender = (await pc!
+            .addTrack(track, StreamedManager.localAudioStreams[AUDIO_SYSTEM]!));
         StreamedManager.audioSenderCount++;
       });
     }
 
     pc!.onIceCandidate = (candidate) async {
-      Map<String, dynamic> mapData = {'candidate': {
-                  'sdpMLineIndex': candidate.sdpMLineIndex,
-                  'sdpMid': candidate.sdpMid,
-                  'candidate': candidate.candidate,
-                },
-              };
+      Map<String, dynamic> mapData = {
+        'candidate': {
+          'sdpMLineIndex': candidate.sdpMLineIndex,
+          'sdpMid': candidate.sdpMid,
+          'candidate': candidate.candidate,
+        },
+      };
       RTCDataChannelMessage msg = RTCDataChannelMessage(jsonEncode(mapData));
       await Future.delayed(
           const Duration(seconds: 1),
           //controller's candidate
           () => channel.send(msg));
     };
-    
+
     //await了的话 理论上进不来。如果进来说明有bug
     while (candidates.isNotEmpty) {
       VLOG0("-----warning:this should not be triggered.");
@@ -186,9 +190,8 @@ class AudioSession {
     transceivers?.forEach((transceiver) {
       if (transceiver.sender.senderId != audioSender?.senderId) return;
       var codecs = acaps?.codecs
-              ?.where((element) => element.mimeType
-                  .toLowerCase()
-                  .contains('OPUS'.toLowerCase()))
+              ?.where((element) =>
+                  element.mimeType.toLowerCase().contains('OPUS'.toLowerCase()))
               .toList() ??
           [];
       transceiver.setCodecPreferences(codecs);
@@ -201,12 +204,14 @@ class AudioSession {
       },
       'optional': [],
     };
-    
+
     RTCSessionDescription sdp = await pc!.createOffer(oaConstraints);
 
     await pc!.setLocalDescription(sdp);
 
-    Map<String, dynamic> mapData = {'offer': {'sdp': sdp.sdp, 'type': sdp.type}};
+    Map<String, dynamic> mapData = {
+      'offer': {'sdp': sdp.sdp, 'type': sdp.type}
+    };
     RTCDataChannelMessage msg = RTCDataChannelMessage(jsonEncode(mapData));
     channel.send(msg);
   }
@@ -223,13 +228,15 @@ class AudioSession {
       'optional': [],
     };
     RTCSessionDescription sdp = await pc!.createAnswer(oaConstraints);
-  
+
     await pc!.setLocalDescription(sdp);
     while (candidates.isNotEmpty) {
       await pc!.addCandidate(candidates[0]);
       candidates.removeAt(0);
     }
-    Map<String, dynamic> mapData = {'answer': {'sdp': sdp.sdp, 'type': sdp.type}};
+    Map<String, dynamic> mapData = {
+      'answer': {'sdp': sdp.sdp, 'type': sdp.type}
+    };
     RTCDataChannelMessage msg = RTCDataChannelMessage(jsonEncode(mapData));
     channel.send(msg);
   }
@@ -238,6 +245,7 @@ class AudioSession {
     await pc!.setRemoteDescription(
         RTCSessionDescription(anwser['sdp'], anwser['type']));
   }
+
 /*
   RTCSessionDescription _fixSdp(RTCSessionDescription s) {
     var sdp = s.sdp;
@@ -246,7 +254,7 @@ class AudioSession {
     return s;
   }
 */
-  Future<void> addCandidate(RTCIceCandidate candidate) async{
+  Future<void> addCandidate(RTCIceCandidate candidate) async {
     acquireLock();
     if (pc == null) {
       // This can not be triggered if we await properly. Keep this and We may resue this list in the future.
@@ -258,12 +266,12 @@ class AudioSession {
     }
     releaseLock();
   }
-  
+
   //TODO(haichao): answer,dispose, offer&answer in sessions.dart.
   Future<void> dispose() async {
-    if (controlled.websocketSessionid == AppStateService.websocketSessionid){
+    if (controlled.websocketSessionid == AppStateService.websocketSessionid) {
       StreamedManager.audioSenderCount--;
-      if (StreamedManager.audioSenderCount == 0){
+      if (StreamedManager.audioSenderCount == 0) {
         StreamedManager.localAudioStreams[AUDIO_SYSTEM]?.dispose();
         StreamedManager.localAudioStreams.remove(AUDIO_SYSTEM);
       }

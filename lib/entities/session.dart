@@ -164,7 +164,7 @@ class StreamingSession {
       //We used to this function to render the control. Currently we use overlay for convenience.
       //onAddRemoteStream?.call(event.track.kind!, event.streams[0]);
     };
-    pc!.onDataChannel = (newchannel) async{
+    pc!.onDataChannel = (newchannel) async {
       if (newchannel.label == "userInputUnsafe") {
         UDPChannel = newchannel;
         inputController = InputController(UDPChannel!, false);
@@ -180,7 +180,7 @@ class StreamingSession {
         channel?.onMessage = (msg) {
           processDataChannelMessageFromHost(msg);
         };
-        if (StreamingSettings.streamAudio!){
+        if (StreamingSettings.streamAudio!) {
           audioSession = AudioSession(channel!, controller, controlled);
           await audioSession!.requestAudio();
         }
@@ -667,8 +667,8 @@ class StreamingSession {
       switch (data.keys.first) {
         case "candidate":
           var candidateMap = data["candidate"];
-                RTCIceCandidate candidate = RTCIceCandidate(candidateMap['candidate'],
-          candidateMap['sdpMid'], candidateMap['sdpMLineIndex']);
+          RTCIceCandidate candidate = RTCIceCandidate(candidateMap['candidate'],
+              candidateMap['sdpMid'], candidateMap['sdpMLineIndex']);
           audioSession?.addCandidate(candidate);
           break;
         case "answer":
@@ -711,8 +711,8 @@ class StreamingSession {
       switch (data.keys.first) {
         case "candidate":
           var candidateMap = data['candidate'];
-                RTCIceCandidate candidate = RTCIceCandidate(candidateMap['candidate'],
-          candidateMap['sdpMid'], candidateMap['sdpMLineIndex']);
+          RTCIceCandidate candidate = RTCIceCandidate(candidateMap['candidate'],
+              candidateMap['sdpMid'], candidateMap['sdpMLineIndex']);
           audioSession?.addCandidate(candidate);
           break;
         case "offer":
