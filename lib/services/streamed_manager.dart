@@ -40,7 +40,7 @@ class StreamedManager {
       final Map<String, dynamic> mediaConstraints;
       if (AppPlatform.isWeb) {
         mediaConstraints = {
-          'audio': true,
+          'audio': false,
           'video': {
             'frameRate': {
               'ideal': settings.framerate,

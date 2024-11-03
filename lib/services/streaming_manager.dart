@@ -38,7 +38,7 @@ class StreamingManager {
     }
     if (sessions.isEmpty) {
       //TODO(Haichao:fix ConcurrentModificationError when sometimes disconnecting)
-      Future.delayed(const Duration(milliseconds: 200), () {
+      Future.delayed(const Duration(milliseconds: 1000), () {
         CustomMouseCursor.disposeAll();
       });
     }

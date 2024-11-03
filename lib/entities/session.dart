@@ -521,11 +521,13 @@ class StreamingSession {
       Function(String mediatype, MediaStream stream)? callback) {
     onAddRemoteStream = callback;
   }
-
+  
   void close() {
+    //-- this should be called only when ping timeout
     if (selfSessionType == SelfSessionType.controller) {
       StreamingManager.stopStreaming(controlled);
     }
+    //--
     if (selfSessionType == SelfSessionType.controlled) {
       StreamedManager.stopStreaming(controller);
     }
@@ -542,6 +544,11 @@ class StreamingSession {
     connectionState = StreamingSessionConnectionState.disconnecting;
     // We don't want to see more new connections when it is stopped. So we may want to use a lock.
     acquireLock();
+    
+    //clean audio session.
+    audioSession?.dispose();
+    audioSession = null;
+
     candidates.clear();
     inputController = null;
     if (channel != null) {

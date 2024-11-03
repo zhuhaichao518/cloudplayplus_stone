@@ -399,13 +399,18 @@ void FlutterMediaStream::SelectAudioInput(
   char strPlayoutGuid[256];
   int playout_devices = base_->audio_device_->RecordingDevices();
   bool found = false;
-  for (uint16_t i = 0; i < playout_devices; i++) {
-    base_->audio_device_->RecordingDeviceName(i, strPlayoutName,
-                                              strPlayoutGuid);
-    if (device_id != "" && device_id == strPlayoutGuid) {
-      base_->audio_device_->SetRecordingDevice(i);
-      found = true;
-      break;
+  if (device_id == "system"){
+    base_->audio_device_->SetRecordingDevice(playout_devices);
+    found = true;
+  } else {
+    for (uint16_t i = 0; i < playout_devices; i++) {
+      base_->audio_device_->RecordingDeviceName(i, strPlayoutName,
+                                                strPlayoutGuid);
+      if (device_id != "" && device_id == strPlayoutGuid) {
+        base_->audio_device_->SetRecordingDevice(i);
+        found = true;
+        break;
+      }
     }
   }
   if (!found) {
