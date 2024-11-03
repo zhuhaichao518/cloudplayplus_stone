@@ -33,6 +33,8 @@ class InputController {
   // reliable = true的时候 处理类似tcp over udp。主要问题是datachannel在丢包时 要等很久才会触发要求重发
   // 方案1 每个控制消息发送后 发送三个空包。如果丢包就会立即触发重发请求
   bool sendEmptyPacket = true;
+  
+  static int resendCount = 3;
   // 方案2 每个控制消息发送（3）次 不管丢包的消息 发送三次（同一个seq id） 基本上能保证顺序？
   Map<int, RTCDataChannelMessage> messagesToHandle = {};
   // 方案3.接到一个消息的时候 outSequenceID.
@@ -163,9 +165,9 @@ class InputController {
 
     // 保证鼠标按下能立即发送到
     if (sendEmptyPacket) {
-      channel.send(emptyMessage);
-      channel.send(emptyMessage);
-      channel.send(emptyMessage);
+      for (int i = 0; i< resendCount;i++){
+        channel.send(emptyMessage);
+      }
     }
   }
 
@@ -225,9 +227,9 @@ class InputController {
     channel.send(RTCDataChannelMessage.fromBinary(buffer));
 
     if (sendEmptyPacket) {
-      channel.send(emptyMessage);
-      channel.send(emptyMessage);
-      channel.send(emptyMessage);
+      for (int i = 0; i< resendCount;i++){
+        channel.send(emptyMessage);
+      }
     }
   }
 

@@ -666,6 +666,7 @@ class StreamingSession {
         case LP_AUDIO_CONNECT:
           audioSession = AudioSession(channel!, controller, controlled);
           audioSession?.audioRequested();
+          break;
         default:
           VLOG0("unhandled message.please debug");
       }
