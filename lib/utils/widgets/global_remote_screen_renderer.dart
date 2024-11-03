@@ -37,6 +37,16 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
   bool _backButtonDown = false;
   bool _forwardButtonDown = false;
 
+  bool _hasAudio = false;
+
+  void onAudioRenderStateChanged(bool has_audio){
+    if (_hasAudio!=has_audio){
+      setState(() {
+        _hasAudio = has_audio;
+      });
+    }
+  }
+
   void onLockedCursorMoved(double dx, double dy) {
     print("dx:{$dx}dy:{$dy}");
     //有没有必要await？如果不保序的概率极低 感觉可以不await
@@ -80,6 +90,7 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       focusNode.requestFocus();
     });
+    WebrtcService.audioStateChanged = onAudioRenderStateChanged;
     return ValueListenableBuilder<bool>(
         valueListenable: ScreenController.showDetailUseScrollView,
         builder: (context, usescrollview, child) {
@@ -245,6 +256,7 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
                   create: (context) => MouseStyleBloc(),
                   child: const MouseStyleRegion(),
                 ),
+                _hasAudio? RTCVideoView(WebrtcService.globalAudioRenderer!):Container(),
                 const OnScreenVirtualKeyboard(), // 放置在Stack中，独立于Listener和RawKeyboardListener
               ],
             );

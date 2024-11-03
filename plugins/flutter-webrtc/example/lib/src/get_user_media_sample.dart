@@ -54,7 +54,7 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
   // Platform messages are asynchronous, so we initialize in an async method.
   void _makeCall() async {
     final mediaConstraints = <String, dynamic>{
-      'audio': false,
+      'audio': true,
       'video': {
         'mandatory': {
           'minWidth':
@@ -71,6 +71,9 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
       var stream = await navigator.mediaDevices.getUserMedia(mediaConstraints);
       _mediaDevicesList = await navigator.mediaDevices.enumerateDevices();
       _localStream = stream;
+      stream.getAudioTracks().forEach((track) {
+        print(track.id);
+      });
       _localRenderer.srcObject = _localStream;
     } catch (e) {
       print(e.toString());

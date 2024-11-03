@@ -8,6 +8,8 @@ import '../entities/device.dart';
 import '../entities/session.dart';
 import 'app_info_service.dart';
 
+// ignore: constant_identifier_names
+const int AUDIO_SYSTEM = 255;
 class StreamedManager {
   static Map<String, StreamingSession> sessions = {};
 
@@ -15,6 +17,12 @@ class StreamedManager {
   //Screenid to MediaStream
   static Map<int, MediaStream> localVideoStreams = {};
   static Map<int, int> localVideoStreamsCount = {};
+
+  //255: system audio
+  //0~n: local microphones
+  //AUDIO_SYSTEM = 255;
+  static Map<int, MediaStream> localAudioStreams = {};
+  static int audioSenderCount = 0;
 
   //auto increment. used for cursor hooks.
   static int cursorImageHookID = 0;

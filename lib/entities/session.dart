@@ -1,8 +1,10 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:cloudplayplus/controller/hardware_input_controller.dart';
 import 'package:cloudplayplus/dev_settings.dart/develop_settings.dart';
+import 'package:cloudplayplus/entities/audiosession.dart';
 import 'package:cloudplayplus/entities/device.dart';
 import 'package:cloudplayplus/services/streamed_manager.dart';
 import 'package:cloudplayplus/services/streaming_manager.dart';
@@ -89,6 +91,8 @@ class StreamingSession {
 
   int cursorImageHookID = 0;
 
+  AudioSession? audioSession;
+
   StreamingSession(this.controller, this.controlled) {
     connectionState = StreamingSessionConnectionState.free;
     controlled.connectionState.value = StreamingSessionConnectionState.free;
@@ -160,7 +164,7 @@ class StreamingSession {
       //We used to this function to render the control. Currently we use overlay for convenience.
       //onAddRemoteStream?.call(event.track.kind!, event.streams[0]);
     };
-    pc!.onDataChannel = (newchannel) {
+    pc!.onDataChannel = (newchannel) async{
       if (newchannel.label == "userInputUnsafe") {
         UDPChannel = newchannel;
         inputController = InputController(UDPChannel!, false);
@@ -176,7 +180,11 @@ class StreamingSession {
         channel?.onMessage = (msg) {
           processDataChannelMessageFromHost(msg);
         };
-        channel?.send(RTCDataChannelMessage.fromBinary(
+        if (StreamingSettings.streamAudio!){
+          audioSession = AudioSession(channel!, controller, controlled);
+          await audioSession!.requestAudio();
+        }
+        await channel?.send(RTCDataChannelMessage.fromBinary(
             Uint8List.fromList([LP_PING, RP_PING])));
       }
     };
@@ -521,6 +529,7 @@ class StreamingSession {
     if (selfSessionType == SelfSessionType.controlled) {
       StreamedManager.stopStreaming(controller);
     }
+    pc?.close();
   }
 
   void stop() async {
@@ -612,8 +621,8 @@ class StreamingSession {
   }
 
   void processDataChannelMessageFromClient(RTCDataChannelMessage message) {
-    VLOG0("message from Client:${message.binary[0]}");
     if (message.isBinary) {
+      VLOG0("message from Client:${message.binary[0]}");
       switch (message.binary[0]) {
         case LP_PING:
           if (message.binary.length == 2 && message.binary[1] == RP_PING) {
@@ -645,11 +654,29 @@ class StreamingSession {
         case LP_DISCONNECT:
           close();
           break;
+        case LP_EMPTY:
+          break;
+        case LP_AUDIO_CONNECT:
+          audioSession = AudioSession(channel!, controller, controlled);
+          audioSession?.audioRequested();
         default:
           VLOG0("unhandled message.please debug");
       }
     } else {
-      VLOG0("Channel message: ${message.text}");
+      Map<String, dynamic> data = jsonDecode(message.text);
+      switch (data.keys.first) {
+        case "candidate":
+          var candidateMap = data["candidate"];
+                RTCIceCandidate candidate = RTCIceCandidate(candidateMap['candidate'],
+          candidateMap['sdpMid'], candidateMap['sdpMLineIndex']);
+          audioSession?.addCandidate(candidate);
+          break;
+        case "answer":
+          audioSession?.onAnswerReceived(data['answer']);
+          break;
+        default:
+          VLOG0("unhandled message from client.please debug");
+      }
     }
   }
 
@@ -679,6 +706,21 @@ class StreamingSession {
         default:
           VLOG0("unhandled message from host.please debug");
       }
-    } else {}
+    } else {
+      Map<String, dynamic> data = jsonDecode(message.text);
+      switch (data.keys.first) {
+        case "candidate":
+          var candidateMap = data['candidate'];
+                RTCIceCandidate candidate = RTCIceCandidate(candidateMap['candidate'],
+          candidateMap['sdpMid'], candidateMap['sdpMLineIndex']);
+          audioSession?.addCandidate(candidate);
+          break;
+        case "offer":
+          audioSession?.onOfferReceived(data['offer']);
+          break;
+        default:
+          VLOG0("unhandled message from host.please debug");
+      }
+    }
   }
 }
