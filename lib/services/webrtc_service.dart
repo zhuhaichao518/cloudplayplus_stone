@@ -11,8 +11,9 @@ class WebrtcService {
   static Map<String, MediaStream> streams = {};
   static Map<String, MediaStream> audioStreams = {};
   static String currentDeviceId = "";
-
-  static Function(bool)? audioStateChanged;
+  
+  //seems we dont need to actually render audio on page.
+  /*static Function(bool)? audioStateChanged;*/
 
   static Function()? userViewCallback;
 
@@ -57,9 +58,9 @@ class WebrtcService {
       globalAudioRenderer?.initialize().then((data) {
         if (currentDeviceId == deviceId) {
           globalAudioRenderer!.srcObject = audioStreams[deviceId];
-          if (audioStateChanged != null) {
+          /*if (audioStateChanged != null) {
             audioStateChanged!(true);
-          }
+          }*/
         }
       }).catchError((error) {
         VLOG0('Error: failed to create RTCVideoRenderer');
@@ -67,9 +68,11 @@ class WebrtcService {
     } else {
       if (currentDeviceId == deviceId) {
         globalAudioRenderer!.srcObject = event.streams[0];
+        /*
         if (audioStateChanged != null) {
           audioStateChanged!(true);
         }
+        */
       }
     }
   }
@@ -79,10 +82,10 @@ class WebrtcService {
     audioStreams.remove(deviceId);
     if (currentDeviceId == deviceId) {
       globalAudioRenderer!.srcObject = null;
-      if (audioStateChanged != null) {
+      /*if (audioStateChanged != null) {
         audioStateChanged!(false);
         audioStateChanged = null;
-      }
+      }*/
     }
   }
 
