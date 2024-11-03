@@ -18,7 +18,7 @@ import '../../entities/user.dart' as cpp_user;
 
 //macos build web:
 //flutter build web --local-web-sdk=wasm_release
-//flutter build web --local-web-sdk=wasm_release --release --web-renderer canvaskit --dart-define=FLUTTER_WEB_CANVASKIT_URL=/canvaskit/
+//flutter build web --local-web-sdk=wasm_release --release --web-renderer canvaskit --dart-define=FLUTTER_WEB_CANVASKIT_URL=canvaskit/
 class LoginService {
   //run python manage.py runserver 8000 before testing.
   //sudo service redis-server start before run server on windows WSL.

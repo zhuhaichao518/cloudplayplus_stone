@@ -123,27 +123,6 @@ class AudioSession {
       if (AppPlatform.isWindows){
         Helper.selectAudioInput("system");
       }
-      dynamic mediaConstraints = {
-        'audio': false,
-        'video': {
-          'mandatory': {
-            'minWidth': '640',
-            'minHeight': '480',
-            'minFrameRate': '30',
-          },
-          'facingMode': 'user',
-          'optional': [],
-        },
-      };
-
-      /*<String, dynamic>{
-        'video': true,
-        'audio': true, {
-          'optional': {
-            'sourceId': 'system'
-          }
-        }
-      };*/
 
       //StreamedManager.localAudioStreams[AUDIO_SYSTEM] = await navigator.mediaDevices.getUserMedia(mediaConstraints);
       StreamedManager.localAudioStreams[AUDIO_SYSTEM] = await navigator

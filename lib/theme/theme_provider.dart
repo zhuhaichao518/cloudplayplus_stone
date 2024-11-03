@@ -28,6 +28,7 @@ final lightTheme0 = FlexThemeData.light(
   useMaterial3: true,
   swapLegacyOnMaterial3: true,
   //fontFamily: GoogleFonts.notoSans().fontFamily,
+  fontFamily: 'heiti',
 );
 
 final darkTheme0 = FlexThemeData.dark(
@@ -56,6 +57,7 @@ final darkTheme0 = FlexThemeData.dark(
   useMaterial3: true,
   swapLegacyOnMaterial3: true,
   //fontFamily: GoogleFonts.notoSans().fontFamily,
+  fontFamily: 'heiti',
 );
 
 final lightTheme1 = FlexThemeData.light(
@@ -75,6 +77,7 @@ final lightTheme1 = FlexThemeData.light(
   useMaterial3: true,
   swapLegacyOnMaterial3: true,
   //fontFamily: GoogleFonts.notoSans().fontFamily,
+  fontFamily: 'heiti',
 );
 
 final darkTheme1 = FlexThemeData.dark(
@@ -94,6 +97,7 @@ final darkTheme1 = FlexThemeData.dark(
   useMaterial3: true,
   swapLegacyOnMaterial3: true,
   //fontFamily: GoogleFonts.notoSans().fontFamily,
+  fontFamily: 'heiti',
 );
 
 class ThemeProvider with ChangeNotifier {
