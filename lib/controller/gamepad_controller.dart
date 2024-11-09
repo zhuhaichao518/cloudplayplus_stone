@@ -2,7 +2,9 @@
 // in the callback of gamepad event it is still not updated yet.
 // ignore_for_file: always_put_control_body_on_new_line
 
-import 'package:cloudplayplus/base/logging.dart';
+import 'dart:io';
+
+import 'package:cloudplayplus/services/webrtc_service.dart';
 import 'package:gamepads_platform_interface/api/gamepad_event.dart';
 
 class CGamepadState {
@@ -94,6 +96,7 @@ class CGamepadState {
   }
 
   final Map<String, int> buttonMapping = {
+    //web
     'button 0': XINPUT_GAMEPAD_A,
     'button 1': XINPUT_GAMEPAD_B,
     'button 2': XINPUT_GAMEPAD_X,
@@ -102,19 +105,44 @@ class CGamepadState {
     'button 5': XINPUT_GAMEPAD_RIGHT_SHOULDER,
     'button 8': XINPUT_GAMEPAD_BACK,
     'button 9': XINPUT_GAMEPAD_START,
+    'button 10': XINPUT_GAMEPAD_LEFT_THUMB,
+    'button 11': XINPUT_GAMEPAD_RIGHT_THUMB,
     'button 12': XINPUT_GAMEPAD_DPAD_UP,
     'button 13': XINPUT_GAMEPAD_DPAD_DOWN,
     'button 14': XINPUT_GAMEPAD_DPAD_LEFT,
     'button 15': XINPUT_GAMEPAD_DPAD_RIGHT,
+    
+    //macos
+    'a.circle': XINPUT_GAMEPAD_A,
+    'b.circle': XINPUT_GAMEPAD_B,
+    'x.circle': XINPUT_GAMEPAD_X,
+    'y.circle': XINPUT_GAMEPAD_Y,
+    'lb.rectangle.roundedbottom': XINPUT_GAMEPAD_LEFT_SHOULDER,
+    'rb.rectangle.roundedbottom': XINPUT_GAMEPAD_RIGHT_SHOULDER,
+    'rectangle.fill.on.rectangle.fill.circle': XINPUT_GAMEPAD_BACK,
+    'line.horizontal.3.circle': XINPUT_GAMEPAD_START,
+    'l.joystick.down': XINPUT_GAMEPAD_LEFT_THUMB,
+    'r.joystick.press.down': XINPUT_GAMEPAD_RIGHT_THUMB,
+    'dpad - xAxis': XINPUT_GAMEPAD_DPAD_LEFT,
+    'dpad - yAxis': XINPUT_GAMEPAD_DPAD_UP,
   };
 
   final Map<String, int> analogMapping = {
+    //web
     'button 6': bLeftTrigger,
     'button 7': bRightTrigger,
     'analog 0': sThumbLX,
     'analog 1': sThumbLY,
     'analog 2': sThumbRX,
     'analog 3': sThumbRY,
+    
+    //macos
+    'lt.rectangle.roundedtop': bLeftTrigger,
+    'rt.rectangle.roundedtop': bRightTrigger,
+    'l.joystick - xAxis': sThumbLX,
+    'l.joystick - yAxis': sThumbLY,
+    'r.joystick - xAxis': sThumbRX,
+    'r.joystick - yAxis': sThumbRY,
   };
 
   /// Updates the state based on the given event.
@@ -133,7 +161,38 @@ class CGamepadState {
       case KeyType.button:
         final mapped = buttonMapping[event.key];
         if (mapped != null) {
-          buttonDown[mapped] = event.value != 0;
+          if (Platform.isMacOS){
+            if (mapped == XINPUT_GAMEPAD_DPAD_LEFT){
+              if (event.value == -1){
+                buttonDown[XINPUT_GAMEPAD_DPAD_LEFT] = true;
+              }
+              else if (event.value == 0){
+                buttonDown[XINPUT_GAMEPAD_DPAD_LEFT] = false;
+                buttonDown[XINPUT_GAMEPAD_DPAD_RIGHT] = false;
+              }
+              else if (event.value == 1){
+                buttonDown[XINPUT_GAMEPAD_DPAD_RIGHT] = true;
+              }
+            }
+            else if (mapped == XINPUT_GAMEPAD_DPAD_UP){
+              if (event.value == 1){
+                buttonDown[XINPUT_GAMEPAD_DPAD_UP] = true;
+              }
+              else if (event.value == 0){
+                buttonDown[XINPUT_GAMEPAD_DPAD_UP] = false;
+                buttonDown[XINPUT_GAMEPAD_DPAD_DOWN] = false;
+              }
+              else if (event.value == -1){
+                buttonDown[XINPUT_GAMEPAD_DPAD_DOWN] = true;
+              }
+            } else {
+              buttonDown[mapped] = event.value != 0;
+            }
+          }else{
+            buttonDown[mapped] = event.value != 0;
+          }
+        }else{
+          print("unimplemented gamepad event!");
         }
         break;
     }
@@ -150,6 +209,8 @@ class CGamepadController {
     }
     state = gamepadstates[event.gamepadId]!;
     state.update(event);
-    VLOG0(state.getStateString());
+    //VLOG0(state.getStateString());
+    WebrtcService.currentRenderingSession?.inputController
+        ?.requestGamePadEvent(event.gamepadId , state.getStateString());
   }
 }

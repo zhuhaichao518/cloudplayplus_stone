@@ -399,7 +399,7 @@ class StreamingSession {
 
     if (selfSessionType == SelfSessionType.controlled) {
       if (settings.codec == null || settings.codec == "default") {
-        if (AppPlatform.isMacos || AppPlatform.isWeb) {
+        if (AppPlatform.isMacos) {
           //TODO(haichao):h264 encoder is slow for my m3 mac max. check other platforms.
           //setPreferredCodec(sdp, audio: 'opus', video: 'vp8');
           setPreferredCodec(sdp, audio: 'opus', video: 'vp8');
@@ -682,6 +682,8 @@ class StreamingSession {
         case "answer":
           audioSession?.onAnswerReceived(data['answer']);
           break;
+        case "gamepad":
+          inputController?.handleGamePadEvent(data['gamepad']);
         default:
           VLOG0("unhandled message from client.please debug");
       }

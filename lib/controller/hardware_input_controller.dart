@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:cloudplayplus/base/logging.dart';
@@ -282,6 +283,34 @@ class InputController {
 
     // 调用模拟点击的方法
     HardwareSimulator.keyboard.performKeyEvent(keyCode, isDown);
+  }
+  
+  void requestGamePadEvent(String id, String event){
+    Map<String, dynamic> mapData = {
+      'gamepad': {
+        'id': id,
+        'event': event,
+      },
+    };
+    channel.send(RTCDataChannelMessage(jsonEncode(mapData)));
+  }
+
+  static int controllerCount = 0;
+  List<GameController> controllers = [];
+  //"gamepad: id message"
+  void handleGamePadEvent(dynamic message) async{
+    int id = int.parse(message['id']);
+    VLOG0("simulating game controller: $id ${message['event']}");
+    if (!AppPlatform.isWindows) return;
+    if (controllers.length < id) {
+      var controller = await HardwareSimulator.createGameController();
+      if (controller != null){
+        controllers.add(controller);
+      }
+    }
+    if (controllers.length >= id) {
+      controllers[id-1].simulate(message['event']);
+    }
   }
 
   static Map<int, MouseCursor> cachedCursors = {};
