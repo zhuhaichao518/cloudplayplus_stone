@@ -118,7 +118,7 @@ flutter:
   fonts:
     - family: heiti
       fonts:
-        - asset: assets/fonts/OpenSans-SemiBold.ttf
+        - asset: assets/fonts/NotoSans-Regular.ttf
   #       - asset: fonts/Schyler-Italic.ttf
   #         style: italic
   #   - family: Trajan Pro
