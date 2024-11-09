@@ -1,3 +1,4 @@
+import 'package:cloudplayplus/controller/hardware_input_controller.dart';
 import 'package:cloudplayplus/services/app_init_service.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -20,6 +21,7 @@ void main() async {
   //AppInitService depends on SharedPreferencesManager
   await AppInitService.init();
   StreamingSettings.init();
+  InputController.init();
   runApp(const MyApp());
   if (AppPlatform.isWindows || AppPlatform.isMacos || AppPlatform.isLinux) {
     doWhenWindowReady(() {

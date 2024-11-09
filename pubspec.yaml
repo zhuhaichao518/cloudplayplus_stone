@@ -50,6 +50,8 @@ dependencies:
   #    url: https://github.com/zhuhaichao518/flutter_sticky_header.git
   fullscreen_window:
     path: plugins/fullscreen_window
+  gamepads:
+    path: plugins/flutter_gamecontroller/packages/gamepads
   # First time usage introduction
   introduction_screen: ^3.1.14
   font_awesome_flutter: ^10.0.0

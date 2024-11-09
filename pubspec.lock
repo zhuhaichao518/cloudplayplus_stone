@@ -402,6 +402,62 @@ packages:
       relative: true
     source: path
     version: "1.1.0"
+  gamepads:
+    dependency: "direct main"
+    description:
+      path: "plugins/flutter_gamecontroller/packages/gamepads"
+      relative: true
+    source: path
+    version: "0.1.4"
+  gamepads_android:
+    dependency: transitive
+    description:
+      path: "plugins/flutter_gamecontroller/packages/gamepads_android"
+      relative: true
+    source: path
+    version: "0.1.2+2"
+  gamepads_darwin:
+    dependency: transitive
+    description:
+      path: "plugins/flutter_gamecontroller/packages/gamepads_darwin"
+      relative: true
+    source: path
+    version: "0.1.2+2"
+  gamepads_ios:
+    dependency: transitive
+    description:
+      path: "plugins/flutter_gamecontroller/packages/gamepads_ios"
+      relative: true
+    source: path
+    version: "0.1.2"
+  gamepads_linux:
+    dependency: transitive
+    description:
+      path: "plugins/flutter_gamecontroller/packages/gamepads_linux"
+      relative: true
+    source: path
+    version: "0.1.1"
+  gamepads_platform_interface:
+    dependency: transitive
+    description:
+      path: "plugins/flutter_gamecontroller/packages/gamepads_platform_interface"
+      relative: true
+    source: path
+    version: "0.1.1"
+  gamepads_web:
+    dependency: transitive
+    description:
+      path: "plugins/flutter_gamecontroller/packages/gamepads_web"
+      relative: true
+    source: path
+    version: "0.1.0"
+  gamepads_windows:
+    dependency: transitive
+    description:
+      path: "plugins/flutter_gamecontroller/packages/gamepads_windows"
+      relative: true
+    source: path
+    version: "0.1.1+3"
   get_it:
     dependency: transitive
     description:
@@ -465,6 +521,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.6.7"
+  js_interop:
+    dependency: transitive
+    description:
+      name: js_interop
+      sha256: "7ec859c296958ccea34dc770504bd3ff4ae52fdd9e7eeb2bacc7081ad476a1f5"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.0.1"
   leak_tracker:
     dependency: transitive
     description:
@@ -976,10 +1040,10 @@ packages:
     dependency: "direct main"
     description:
       name: web
-      sha256: d43c1d6b787bf0afad444700ae7f4db8827f701bc61c255ac8d328c6f4d52062
+      sha256: cd3543bd5798f6ad290ea73d210f423502e71900302dde696f8bff84bf89a1cb
       url: "https://pub.dev"
     source: hosted
-    version: "1.0.0"
+    version: "1.1.0"
   webrtc_interface:
     dependency: transitive
     description:

@@ -11,7 +11,7 @@ class WebrtcService {
   static Map<String, MediaStream> streams = {};
   static Map<String, MediaStream> audioStreams = {};
   static String currentDeviceId = "";
-  
+
   //seems we dont need to actually render audio on page.
   /*static Function(bool)? audioStateChanged;*/
 

@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'dart:typed_data';
 
+import 'package:cloudplayplus/base/logging.dart';
+import 'package:cloudplayplus/controller/gamepad_controller.dart';
 import 'package:cloudplayplus/services/app_info_service.dart';
 import 'package:cloudplayplus/services/webrtc_service.dart';
 import 'package:cloudplayplus/utils/widgets/cursor_change_widget.dart';
@@ -12,10 +14,46 @@ import 'package:hardware_simulator/hardware_simulator_platform_interface.dart';
 import 'dart:ui' as ui show Image, decodeImageFromPixels, PixelFormat;
 import '../entities/messages.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:gamepads/gamepads.dart';
 
 typedef CursorUpdatedCallback = void Function(MouseCursor newcursor);
 
 class InputController {
+  static StreamSubscription<GamepadEvent>? _subscription;
+
+  static List<GamepadController> _gamepads = [];
+
+  final Map<String, bool> buttonInputs = {};
+
+  static void init() {
+    _subscription = Gamepads.events.listen((event) {
+      CGamepadController.onEvent(event);
+      /* We can not implement by this way because the state is not updated yet when here is triggered.
+      event.gamepadId;
+      bool is_mapped = false;
+      int index = -1;
+      for (int i = 0; i< _gamepads.length; i++){
+        if (_gamepads[i].id == event.gamepadId){
+          is_mapped = true;
+          index = i;
+        }
+      }
+      if (!is_mapped){
+        _gamepads = await Gamepads.list();
+        for (int i = 0; i< _gamepads.length; i++){
+          if (_gamepads[i].id == event.gamepadId){
+            is_mapped = true;
+            index = i;
+          }
+        }
+      }
+      if (!is_mapped){
+        VLOG0("-----bug controller is not mapped! please debug.");
+      }
+      VLOG0(_gamepads[index].state.getStateString());*/
+    });
+  }
+
   double lastx = 1;
   double lasty = 1;
   RTCDataChannel channel;
@@ -33,7 +71,7 @@ class InputController {
   // reliable = true的时候 处理类似tcp over udp。主要问题是datachannel在丢包时 要等很久才会触发要求重发
   // 方案1 每个控制消息发送后 发送三个空包。如果丢包就会立即触发重发请求
   bool sendEmptyPacket = true;
-  
+
   static int resendCount = 3;
   // 方案2 每个控制消息发送（3）次 不管丢包的消息 发送三次（同一个seq id） 基本上能保证顺序？
   Map<int, RTCDataChannelMessage> messagesToHandle = {};
@@ -165,7 +203,7 @@ class InputController {
 
     // 保证鼠标按下能立即发送到
     if (sendEmptyPacket) {
-      for (int i = 0; i< resendCount;i++){
+      for (int i = 0; i < resendCount; i++) {
         channel.send(emptyMessage);
       }
     }
@@ -227,7 +265,7 @@ class InputController {
     channel.send(RTCDataChannelMessage.fromBinary(buffer));
 
     if (sendEmptyPacket) {
-      for (int i = 0; i< resendCount;i++){
+      for (int i = 0; i < resendCount; i++) {
         channel.send(emptyMessage);
       }
     }
