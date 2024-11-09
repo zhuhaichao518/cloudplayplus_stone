@@ -399,7 +399,7 @@ class StreamingSession {
 
     if (selfSessionType == SelfSessionType.controlled) {
       if (settings.codec == null || settings.codec == "default") {
-        if (AppPlatform.isMacos || AppPlatform.isWeb) {
+        if (AppPlatform.isMacos) {
           //TODO(haichao):h264 encoder is slow for my m3 mac max. check other platforms.
           //setPreferredCodec(sdp, audio: 'opus', video: 'vp8');
           setPreferredCodec(sdp, audio: 'opus', video: 'vp8');
@@ -521,7 +521,7 @@ class StreamingSession {
       Function(String mediatype, MediaStream stream)? callback) {
     onAddRemoteStream = callback;
   }
-  
+
   void close() {
     //-- this should be called only when ping timeout
     if (selfSessionType == SelfSessionType.controller) {
@@ -544,7 +544,7 @@ class StreamingSession {
     connectionState = StreamingSessionConnectionState.disconnecting;
     // We don't want to see more new connections when it is stopped. So we may want to use a lock.
     acquireLock();
-    
+
     //clean audio session.
     audioSession?.dispose();
     audioSession = null;
@@ -686,6 +686,8 @@ class StreamingSession {
         case "answer":
           audioSession?.onAnswerReceived(data['answer']);
           break;
+        case "gamepad":
+          inputController?.handleGamePadEvent(data['gamepad']);
         default:
           VLOG0("unhandled message from client.please debug");
       }

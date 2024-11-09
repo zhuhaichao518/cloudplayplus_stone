@@ -10,6 +10,7 @@
 #include <custom_mouse_cursor/custom_mouse_cursor_plugin.h>
 #include <flutter_secure_storage_linux/flutter_secure_storage_linux_plugin.h>
 #include <flutter_webrtc/flutter_web_r_t_c_plugin.h>
+#include <gamepads_linux/gamepads_linux_plugin.h>
 #include <hardware_simulator/hardware_simulator_plugin.h>
 #include <screen_retriever/screen_retriever_plugin.h>
 #include <url_launcher_linux/url_launcher_plugin.h>
@@ -28,6 +29,9 @@ void fl_register_plugins(FlPluginRegistry* registry) {
   g_autoptr(FlPluginRegistrar) flutter_webrtc_registrar =
       fl_plugin_registry_get_registrar_for_plugin(registry, "FlutterWebRTCPlugin");
   flutter_web_r_t_c_plugin_register_with_registrar(flutter_webrtc_registrar);
+  g_autoptr(FlPluginRegistrar) gamepads_linux_registrar =
+      fl_plugin_registry_get_registrar_for_plugin(registry, "GamepadsLinuxPlugin");
+  gamepads_linux_plugin_register_with_registrar(gamepads_linux_registrar);
   g_autoptr(FlPluginRegistrar) hardware_simulator_registrar =
       fl_plugin_registry_get_registrar_for_plugin(registry, "HardwareSimulatorPlugin");
   hardware_simulator_plugin_register_with_registrar(hardware_simulator_registrar);

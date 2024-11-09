@@ -173,6 +173,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                 SharedPreferencesManager.setString(
                                     'refresh_token', "");
                               }
+                              Navigator.pop(context);
                               Navigator.pushReplacement(
                                 context,
                                 MaterialPageRoute(

@@ -120,7 +120,7 @@ class AudioSession {
     // currently only support windows.
     //if (!AppPlatform.isWindows) return;
     if (!StreamedManager.localAudioStreams.containsKey(AUDIO_SYSTEM)) {
-      if (AppPlatform.isWindows){
+      if (AppPlatform.isWindows) {
         Helper.selectAudioInput("system");
       }
 
@@ -204,7 +204,7 @@ class AudioSession {
 
     final oaConstraints = <String, dynamic>{
       'mandatory': {
-        'OfferToReceiveAudio': true,
+        'OfferToReceiveAudio': false,
         'OfferToReceiveVideo': false,
       },
       'optional': [],
@@ -254,7 +254,7 @@ class AudioSession {
     if (controlled.websocketSessionid == AppStateService.websocketSessionid) {
       StreamedManager.audioSenderCount--;
       if (StreamedManager.audioSenderCount == 0) {
-        if (StreamedManager.localAudioStreams.containsKey(AUDIO_SYSTEM)){
+        if (StreamedManager.localAudioStreams.containsKey(AUDIO_SYSTEM)) {
           StreamedManager.localAudioStreams[AUDIO_SYSTEM]?.dispose();
           StreamedManager.localAudioStreams.remove(AUDIO_SYSTEM);
         }
