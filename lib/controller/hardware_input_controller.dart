@@ -302,14 +302,14 @@ class InputController {
     int id = int.parse(message['id']);
     VLOG0("simulating game controller: $id ${message['event']}");
     if (!AppPlatform.isWindows) return;
-    if (controllers.length < id) {
+    if (controllers.length <= id) {
       var controller = await HardwareSimulator.createGameController();
       if (controller != null){
         controllers.add(controller);
       }
     }
-    if (controllers.length >= id) {
-      controllers[id-1].simulate(message['event']);
+    if (controllers.length > id) {
+      controllers[id].simulate(message['event']);
     }
   }
 
