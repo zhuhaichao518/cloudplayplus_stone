@@ -104,7 +104,7 @@ class _LoginScreenState extends State<LoginScreen> {
       return const Center(child: CircularProgressIndicator());
     } else {
       return FlutterLogin(
-        savedEmail: _savedEmail ?? "pangdahai80",
+        savedEmail: _savedEmail ?? "pangdahai90",
         savedPassword: _savedPassword ?? "zhuhaichao",
         title: 'CloudPlay Plus',
         logo: const AssetImage('assets/images/cpp_logo.png'),

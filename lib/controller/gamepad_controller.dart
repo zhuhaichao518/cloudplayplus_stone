@@ -2,10 +2,9 @@
 // in the callback of gamepad event it is still not updated yet.
 // ignore_for_file: always_put_control_body_on_new_line
 
-import 'dart:io';
-
+import 'package:cloudplayplus/services/app_info_service.dart';
 import 'package:cloudplayplus/services/webrtc_service.dart';
-import 'package:gamepads_platform_interface/api/gamepad_event.dart';
+import 'package:gamepads/gamepads.dart';
 
 class CGamepadState {
   int word = 0;
@@ -155,13 +154,16 @@ class CGamepadState {
             analogs[mapped] = (event.value * 255).toInt();
           } else {
             analogs[mapped] = (event.value * 32767).toInt();
+            if (AppPlatform.isWeb && (mapped == sThumbLY || mapped == sThumbRY)){
+              analogs[mapped] = - analogs[mapped];
+            }
           }
         }
         break;
       case KeyType.button:
         final mapped = buttonMapping[event.key];
         if (mapped != null) {
-          if (Platform.isMacOS){
+          if (AppPlatform.isMacos){
             if (mapped == XINPUT_GAMEPAD_DPAD_LEFT){
               if (event.value == -1){
                 buttonDown[XINPUT_GAMEPAD_DPAD_LEFT] = true;
