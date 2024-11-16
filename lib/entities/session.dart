@@ -554,9 +554,13 @@ class StreamingSession {
     if (channel != null) {
       await channel?.send(RTCDataChannelMessage.fromBinary(
           Uint8List.fromList([LP_DISCONNECT, RP_PING])));
-
-      await channel?.close();
-      channel = null;
+      //TODO(haichao): sometimes pc is null so fail?
+      try{
+        await channel?.close();
+        channel = null;
+      }catch(e){
+        //figure out why pc is null;
+      }
     }
     if (UDPChannel != null) {
       await UDPChannel?.close();
