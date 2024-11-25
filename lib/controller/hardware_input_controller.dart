@@ -284,8 +284,8 @@ class InputController {
     // 调用模拟点击的方法
     HardwareSimulator.keyboard.performKeyEvent(keyCode, isDown);
   }
-  
-  void requestGamePadEvent(String id, String event){
+
+  void requestGamePadEvent(String id, String event) {
     Map<String, dynamic> mapData = {
       'gamepad': {
         'id': id,
@@ -298,7 +298,7 @@ class InputController {
   static int controllerCount = 0;
   List<GameController> controllers = [];
   //"gamepad: id message"
-  void handleGamePadEvent(dynamic message) async{
+  void handleGamePadEvent(dynamic message) async {
     int id = int.parse(message['id']);
     VLOG0("simulating game controller: $id ${message['event']}");
     if (!AppPlatform.isWindows) return;
@@ -306,7 +306,7 @@ class InputController {
       //提前增加 防止同时来多个消息导致多生成控制器
       controllerCount++;
       var controller = await HardwareSimulator.createGameController();
-      if (controller != null){
+      if (controller != null) {
         controllers.add(controller);
       }
     }

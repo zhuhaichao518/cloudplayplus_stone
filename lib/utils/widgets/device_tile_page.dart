@@ -4,6 +4,7 @@ import 'package:cloudplayplus/services/shared_preferences_manager.dart';
 import 'package:cloudplayplus/services/streaming_manager.dart';
 import 'package:cloudplayplus/services/websocket_service.dart';
 import 'package:cloudplayplus/utils/widgets/global_remote_screen_renderer.dart';
+import 'package:cloudplayplus/utils/widgets/message_box.dart';
 import 'package:floating_menu_panel/floating_menu_panel.dart';
 import 'package:flutter/material.dart';
 import '../../base/logging.dart';
@@ -77,12 +78,28 @@ class _DeviceDetailPageState extends State<DeviceDetailPage> {
   Widget build(BuildContext context) {
     inbuilding = true;
 
+    MessageBoxManager().init(context);
     WebrtcService.updateCurrentRenderingDevice(
         widget.device.websocketSessionid, onRemoteScreenReceived);
 
     return ValueListenableBuilder<StreamingSessionConnectionState>(
         valueListenable: widget.device.connectionState,
         builder: (context, value, child) {
+          if (value == StreamingSessionConnectionState.connceting) {
+            return const Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  CircularProgressIndicator(), // 显示加载动画
+                  SizedBox(height: 16), // 添加加载动画和文字之间的间距
+                  Text(
+                    '正在连接视频...',
+                    style: TextStyle(fontSize: 16, color: Colors.grey),
+                  ),
+                ],
+              ),
+            );
+          }
           if (value == StreamingSessionConnectionState.connected) {
             WidgetsBinding.instance.addPostFrameCallback((_) {
               ScreenController.showDetailUseScrollView.value = false;

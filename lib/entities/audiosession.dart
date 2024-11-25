@@ -20,6 +20,8 @@ class AudioSession {
   //store candidates which came too early.
   List<RTCIceCandidate> candidates = [];
 
+  int retryTimes = 2;
+
   Device controller, controlled;
 
   Future<RTCPeerConnection> createRTCPeerConnection() async {
@@ -83,6 +85,20 @@ class AudioSession {
 
     pc!.onTrack = (event) {
       WebrtcService.addAudioStream(controlled.websocketSessionid, event);
+    };
+
+    pc!.onConnectionState = (state) {
+      if (state == RTCPeerConnectionState.RTCPeerConnectionStateFailed) {
+        pc!.close();
+        pc = null;
+        //wait for 2 seconds and retry
+        if (retryTimes > 0) {
+          retryTimes--;
+          Future.delayed(const Duration(seconds: 2), () {
+            requestAudio();
+          });
+        }
+      }
     };
   }
 
@@ -157,6 +173,13 @@ class AudioSession {
           const Duration(seconds: 1),
           //controller's candidate
           () => channel.send(msg));
+    };
+
+    pc!.onConnectionState = (state) {
+      if (state == RTCPeerConnectionState.RTCPeerConnectionStateFailed) {
+        pc!.close();
+        pc = null;
+      }
     };
 
     //await了的话 理论上进不来。如果进来说明有bug

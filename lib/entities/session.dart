@@ -9,7 +9,9 @@ import 'package:cloudplayplus/entities/device.dart';
 import 'package:cloudplayplus/services/streamed_manager.dart';
 import 'package:cloudplayplus/services/streaming_manager.dart';
 import 'package:cloudplayplus/services/websocket_service.dart';
+import 'package:cloudplayplus/utils/widgets/message_box.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'package:hardware_simulator/hardware_simulator.dart';
 import 'package:mutex/mutex.dart';
@@ -39,6 +41,8 @@ enum StreamingSessionConnectionState {
   offerSent,
   answerSent,
   answerReceived,
+  // TODO: use RTCPeerConnectionState instead.
+  connceting,
   connected,
   disconnecting,
   disconnected,
@@ -95,7 +99,7 @@ class StreamingSession {
 
   StreamingSession(this.controller, this.controlled) {
     connectionState = StreamingSessionConnectionState.free;
-    controlled.connectionState.value = StreamingSessionConnectionState.free;
+    //controlled.connectionState.value = StreamingSessionConnectionState.free;
   }
 
   Function(String mediatype, MediaStream stream)? onAddRemoteStream;
@@ -115,9 +119,33 @@ class StreamingSession {
     selfSessionType = SelfSessionType.controller;
 
     acquireLock();
+
+    controlled.connectionState.value =
+        StreamingSessionConnectionState.connceting;
+
     streamSettings = StreamedSettings.fromJson(StreamingSettings.toJson());
     connectionState = StreamingSessionConnectionState.requestSent;
     pc = await createRTCPeerConnection();
+
+    pc!.onConnectionState = (state) {
+      if (state == RTCPeerConnectionState.RTCPeerConnectionStateConnecting) {
+        controlled.connectionState.value =
+            StreamingSessionConnectionState.connceting;
+      }
+      if (state == RTCPeerConnectionState.RTCPeerConnectionStateConnected) {
+        //有些时候即使未能建立连接也报connected，因此依然需要pingpong message.
+        controlled.connectionState.value =
+            StreamingSessionConnectionState.connected;
+      } else if (state == RTCPeerConnectionState.RTCPeerConnectionStateFailed) {
+        controlled.connectionState.value =
+            StreamingSessionConnectionState.disconnected;
+        MessageBoxManager()
+            .showMessage("未能建立连接。请切换网络重试或在设置中启动turn服务器。", "连接失败");
+      } else if (state == RTCPeerConnectionState.RTCPeerConnectionStateClosed) {
+        controlled.connectionState.value =
+            StreamingSessionConnectionState.disconnected;
+      }
+    };
 
     pc!.onIceCandidate = (candidate) async {
       /*if (streamSettings!.turnServerSettings == 2) {
@@ -155,8 +183,8 @@ class StreamingSession {
 
     pc!.onTrack = (event) {
       connectionState = StreamingSessionConnectionState.connected;
-      controlled.connectionState.value =
-          StreamingSessionConnectionState.connected;
+      /*controlled.connectionState.value =
+          StreamingSessionConnectionState.connected;*/
       //tell the device tile page to render the rtc video.
       //StreamingManager.runUserViewCallback();
       WebrtcService.addStream(controlled.websocketSessionid, event);
@@ -555,10 +583,10 @@ class StreamingSession {
       await channel?.send(RTCDataChannelMessage.fromBinary(
           Uint8List.fromList([LP_DISCONNECT, RP_PING])));
       //TODO(haichao): sometimes pc is null so fail?
-      try{
+      try {
         await channel?.close();
         channel = null;
-      }catch(e){
+      } catch (e) {
         //figure out why pc is null;
       }
     }
@@ -570,7 +598,7 @@ class StreamingSession {
     pc?.close();
     pc = null;
     connectionState = StreamingSessionConnectionState.disconnected;
-    controlled.connectionState.value = StreamingSessionConnectionState.free;
+    //controlled.connectionState.value = StreamingSessionConnectionState.free;
     if (streamSettings?.hookCursorImage == true &&
         selfSessionType == SelfSessionType.controlled) {
       if (AppPlatform.isDeskTop) {
@@ -604,6 +632,10 @@ class StreamingSession {
       // 超过15秒没收到pingpong，断开连接
       VLOG0("No ping message received within 15 seconds, disconnecting...");
       close();
+      if (selfSessionType == SelfSessionType.controller) {
+        MessageBoxManager()
+            .showMessage("未能建立连接。请切换网络重试或在设置中启动turn服务器。", "建立连接失败");
+      }
     });
   }
 
@@ -681,6 +713,9 @@ class StreamingSession {
           var candidateMap = data["candidate"];
           RTCIceCandidate candidate = RTCIceCandidate(candidateMap['candidate'],
               candidateMap['sdpMid'], candidateMap['sdpMLineIndex']);
+          if (audioSession == null) {
+            VLOG0("bug!audiosession not created");
+          }
           audioSession?.addCandidate(candidate);
           break;
         case "answer":
@@ -727,6 +762,9 @@ class StreamingSession {
           var candidateMap = data['candidate'];
           RTCIceCandidate candidate = RTCIceCandidate(candidateMap['candidate'],
               candidateMap['sdpMid'], candidateMap['sdpMLineIndex']);
+          if (audioSession == null) {
+            VLOG0("bug2!audiosession not created");
+          }
           audioSession?.addCandidate(candidate);
           break;
         case "offer":

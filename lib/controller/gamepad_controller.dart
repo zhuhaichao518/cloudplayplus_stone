@@ -110,7 +110,7 @@ class CGamepadState {
     'button 13': XINPUT_GAMEPAD_DPAD_DOWN,
     'button 14': XINPUT_GAMEPAD_DPAD_LEFT,
     'button 15': XINPUT_GAMEPAD_DPAD_RIGHT,
-    
+
     //macos
     'a.circle': XINPUT_GAMEPAD_A,
     'b.circle': XINPUT_GAMEPAD_B,
@@ -134,7 +134,7 @@ class CGamepadState {
     'analog 1': sThumbLY,
     'analog 2': sThumbRX,
     'analog 3': sThumbRY,
-    
+
     //macos
     'lt.rectangle.roundedtop': bLeftTrigger,
     'rt.rectangle.roundedtop': bRightTrigger,
@@ -154,8 +154,9 @@ class CGamepadState {
             analogs[mapped] = (event.value * 255).toInt();
           } else {
             analogs[mapped] = (event.value * 32767).toInt();
-            if (AppPlatform.isWeb && (mapped == sThumbLY || mapped == sThumbRY)){
-              analogs[mapped] = - analogs[mapped];
+            if (AppPlatform.isWeb &&
+                (mapped == sThumbLY || mapped == sThumbRY)) {
+              analogs[mapped] = -analogs[mapped];
             }
           }
         }
@@ -163,37 +164,32 @@ class CGamepadState {
       case KeyType.button:
         final mapped = buttonMapping[event.key];
         if (mapped != null) {
-          if (AppPlatform.isMacos){
-            if (mapped == XINPUT_GAMEPAD_DPAD_LEFT){
-              if (event.value == -1){
+          if (AppPlatform.isMacos) {
+            if (mapped == XINPUT_GAMEPAD_DPAD_LEFT) {
+              if (event.value == -1) {
                 buttonDown[XINPUT_GAMEPAD_DPAD_LEFT] = true;
-              }
-              else if (event.value == 0){
+              } else if (event.value == 0) {
                 buttonDown[XINPUT_GAMEPAD_DPAD_LEFT] = false;
                 buttonDown[XINPUT_GAMEPAD_DPAD_RIGHT] = false;
-              }
-              else if (event.value == 1){
+              } else if (event.value == 1) {
                 buttonDown[XINPUT_GAMEPAD_DPAD_RIGHT] = true;
               }
-            }
-            else if (mapped == XINPUT_GAMEPAD_DPAD_UP){
-              if (event.value == 1){
+            } else if (mapped == XINPUT_GAMEPAD_DPAD_UP) {
+              if (event.value == 1) {
                 buttonDown[XINPUT_GAMEPAD_DPAD_UP] = true;
-              }
-              else if (event.value == 0){
+              } else if (event.value == 0) {
                 buttonDown[XINPUT_GAMEPAD_DPAD_UP] = false;
                 buttonDown[XINPUT_GAMEPAD_DPAD_DOWN] = false;
-              }
-              else if (event.value == -1){
+              } else if (event.value == -1) {
                 buttonDown[XINPUT_GAMEPAD_DPAD_DOWN] = true;
               }
             } else {
               buttonDown[mapped] = event.value != 0;
             }
-          }else{
+          } else {
             buttonDown[mapped] = event.value != 0;
           }
-        }else{
+        } else {
           print("unimplemented gamepad event!");
         }
         break;
@@ -213,6 +209,6 @@ class CGamepadController {
     state.update(event);
     //VLOG0(state.getStateString());
     WebrtcService.currentRenderingSession?.inputController
-        ?.requestGamePadEvent(event.gamepadId , state.getStateString());
+        ?.requestGamePadEvent(event.gamepadId, state.getStateString());
   }
 }
