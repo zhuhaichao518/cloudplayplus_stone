@@ -296,7 +296,7 @@ class InputController {
   }
 
   static int controllerCount = 0;
-  List<GameController> controllers = [];
+  static List<GameController> controllers = [];
   //"gamepad: id message"
   void handleGamePadEvent(dynamic message) async {
     int id = int.parse(message['id']);
