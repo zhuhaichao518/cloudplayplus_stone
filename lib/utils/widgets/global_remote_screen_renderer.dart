@@ -259,7 +259,7 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
                 /*_hasAudio
                     ? RTCVideoView(WebrtcService.globalAudioRenderer!)
                     : Container(),*/
-                const OnScreenVirtualKeyboard(), // 放置在Stack中，独立于Listener和RawKeyboardListener
+                const OnScreenVirtualKeyboard(), // 放置在Stack中，独立于Listener和RawKeyboardListener,
               ],
             );
           }

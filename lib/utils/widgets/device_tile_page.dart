@@ -90,10 +90,11 @@ class _DeviceDetailPageState extends State<DeviceDetailPage> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
+                  SizedBox(height: 16),
                   CircularProgressIndicator(), // 显示加载动画
                   SizedBox(height: 16), // 添加加载动画和文字之间的间距
                   Text(
-                    '正在连接视频...',
+                    '正在连接远程桌面...',
                     style: TextStyle(fontSize: 16, color: Colors.grey),
                   ),
                 ],

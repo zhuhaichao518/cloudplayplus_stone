@@ -141,7 +141,7 @@ class _VirtualKeyboardState extends State<VirtualKeyboard> {
 
   Widget _keyLayout(List<List<VirtualKeyboardKey>> layout) {
     // arbritrary
-    keySpacing = 8.0;
+    keySpacing = 4.0;
     double totalSpacing = keySpacing * (layout.length + 1);
     keyHeight = (height - totalSpacing) / layout.length;
 
