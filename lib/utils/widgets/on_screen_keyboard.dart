@@ -12,7 +12,6 @@ class OnScreenVirtualKeyboard extends StatefulWidget {
 }
 
 class _VideoScreenState extends State<OnScreenVirtualKeyboard> {
-  final TextEditingController textController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -52,7 +51,9 @@ class _VideoScreenState extends State<OnScreenVirtualKeyboard> {
                   keyBackgroundColor: Colors.grey,
                   height: scaledHeight, // 将缩放后的高度传递给键盘
                   type: VirtualKeyboardType.Alphanumeric, // 设置键盘类型
-                  textController: textController,
+                  keyPressedCallback:(keyCode, isDown) {
+                    
+                  },
                 ),
               ),
             );

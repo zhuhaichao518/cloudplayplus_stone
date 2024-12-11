@@ -6,13 +6,14 @@ const double _virtualKeyboardDefaultHeight = 300;
 
 const int _virtualKeyboardBackspaceEventPerioud = 250;
 
+typedef KeyPressedCallback = void Function(int keyCode, bool isDown);
+
 /// Virtual Keyboard widget.
 class VirtualKeyboard extends StatefulWidget {
   /// Keyboard Type: Should be inited in creation time.
   final VirtualKeyboardType type;
 
-  /// The text controller
-  final TextEditingController textController;
+  final KeyPressedCallback keyPressedCallback;
 
   /// Virtual keyboard height. Default is 300
   final double height;
@@ -36,7 +37,7 @@ class VirtualKeyboard extends StatefulWidget {
   VirtualKeyboard({
     Key? key,
     required this.type,
-    required this.textController,
+    required this.keyPressedCallback,
     this.builder,
     this.height = _virtualKeyboardDefaultHeight,
     this.textColor = Colors.black,
@@ -65,7 +66,7 @@ class _VirtualKeyboardState extends State<VirtualKeyboard> {
   late double height;
   late double width;
   TextSelection? cursorPosition;
-  late TextEditingController textController;
+  late KeyPressedCallback keyPressedCallback;
   late Color textColor;
   late double fontSize;
   late bool alwaysCaps;
@@ -93,27 +94,15 @@ class _VirtualKeyboardState extends State<VirtualKeyboard> {
     });
   }
 
-  void textControllerEvent() {
-    if (textController.selection.toString() != "TextSelection.invalid") {
-      cursorPosition = textController.selection;
-    } else {
-      if (cursorPosition == null) {
-        cursorPosition = TextSelection(baseOffset: 0, extentOffset: 0);
-      } else {}
-    }
-  }
-
   @override
   void initState() {
     super.initState();
-    textController = widget.textController;
+    keyPressedCallback = widget.keyPressedCallback;
     type = widget.type;
     height = widget.height;
     textColor = widget.textColor;
     fontSize = widget.fontSize;
     alwaysCaps = widget.alwaysCaps;
-
-    textController.addListener(textControllerEvent);
 
     // Init the Text Style for keys.
     textStyle = TextStyle(
@@ -134,6 +123,8 @@ class _VirtualKeyboardState extends State<VirtualKeyboard> {
         return _keyLayout(usLayout);
       case VirtualKeyboardType.Symbolic:
         return _keyLayout(symbolLayout);
+      case VirtualKeyboardType.Hardware:
+        return _keyLayout(hardwareLayout);
       default:
         throw new Error();
     }
@@ -189,6 +180,9 @@ class _VirtualKeyboardState extends State<VirtualKeyboard> {
             case VirtualKeyboardKeyType.Action:
               // Draw action key.
               keyWidget = _keyboardDefaultActionKey(virtualKeyboardKey);
+              break;
+            case VirtualKeyboardKeyType.Hardware:
+              keyWidget = _keyboardDefaultHardwareKey(virtualKeyboardKey);
               break;
           }
         } else {
@@ -257,7 +251,7 @@ class _VirtualKeyboardState extends State<VirtualKeyboard> {
 
   void _onKeyPress(VirtualKeyboardKey key) {
     if (key.keyType == VirtualKeyboardKeyType.String) {
-      String text = textController.text;
+      /*String text = textController.text;
       if (cursorPosition == null) textControllerEvent();
       textController.text = cursorPosition!.textBefore(text) +
           (isShiftEnabled ? key.capsText! : key.text!) +
@@ -265,11 +259,11 @@ class _VirtualKeyboardState extends State<VirtualKeyboard> {
 
       cursorPosition = TextSelection(
           baseOffset: cursorPosition!.baseOffset + 1,
-          extentOffset: cursorPosition!.extentOffset + 1);
+          extentOffset: cursorPosition!.extentOffset + 1);*/
     } else if (key.keyType == VirtualKeyboardKeyType.Action) {
       switch (key.action) {
         case VirtualKeyboardKeyAction.Backspace:
-          if (textController.text.length == 0) return;
+          /*if (textController.text.length == 0) return;
           if (cursorPosition!.start == 0) return;
           String text = textController.text;
           if (cursorPosition == null) textControllerEvent();
@@ -279,13 +273,13 @@ class _VirtualKeyboardState extends State<VirtualKeyboard> {
                   text.substring(cursorPosition!.start);
           cursorPosition = TextSelection(
               baseOffset: cursorPosition!.baseOffset - 1,
-              extentOffset: cursorPosition!.extentOffset - 1);
+              extentOffset: cursorPosition!.extentOffset - 1);*/
           break;
         case VirtualKeyboardKeyAction.Return:
-          textController.text += '\n';
+          //textController.text += '\n';
           break;
         case VirtualKeyboardKeyAction.Space:
-          textController.text += key.text!;
+          //textController.text += key.text!;
           break;
         case VirtualKeyboardKeyAction.Shift:
           break;
@@ -391,5 +385,34 @@ class _VirtualKeyboardState extends State<VirtualKeyboard> {
     } else {
       return finalKey;
     }
+  }
+
+  /// Creates default UI element for keyboard Hardware Key.
+  Widget _keyboardDefaultHardwareKey(VirtualKeyboardKey key) {
+    return Material(
+        color: widget.keyBackgroundColor,
+        clipBehavior: Clip.hardEdge,
+        borderRadius: widget.keyBorderRadius,
+        child: InkWell(
+          highlightColor: widget.keyHighlightColor,
+          borderRadius: widget.keyBorderRadius,
+          onTapDown: (details) {
+            keyPressedCallback(key.keyCode!,true);
+          },
+          onTapUp: (details) {
+            keyPressedCallback(key.keyCode!,false);
+          },
+          child: Container(
+            width: keyHeight,
+            height: keyHeight,
+            child: Center(
+                child: Text(
+              alwaysCaps
+                  ? key.capsText!
+                  : (isShiftEnabled ? key.capsText! : key.text!),
+              style: textStyle,
+            )),
+          ),
+        ));
   }
 }

@@ -193,3 +193,52 @@ List<List<VirtualKeyboardKey>> numericLayout = [
   // Row 1
   [TextKey('.'), TextKey('0'), ActionKey(VirtualKeyboardKeyAction.Backspace)],
 ];
+
+/// Hardware keyboard layout
+List<List<VirtualKeyboardKey>> hardwareLayout = [
+  // Row 1
+  [
+    HardwareKey("q", 81),
+    HardwareKey("w", 87),
+    HardwareKey("e", 69),
+    HardwareKey("r", 82),
+    HardwareKey("t", 84),
+    HardwareKey("y", 89),
+    HardwareKey("u", 85),
+    HardwareKey("i", 73),
+    HardwareKey("o", 79),
+    HardwareKey("p", 80),
+  ],
+  // Row 2
+  [
+    HardwareKey("a", 65),
+    HardwareKey("s", 83),
+    HardwareKey("d", 68),
+    HardwareKey("f", 70),
+    HardwareKey("g", 71),
+    HardwareKey("h", 72),
+    HardwareKey("j", 74),
+    HardwareKey("k", 75),
+    HardwareKey("l", 76),
+  ],
+  // Row 3
+  [
+    ActionKey(VirtualKeyboardKeyAction.Shift),
+    HardwareKey("z", 90),
+    HardwareKey("x", 88),
+    HardwareKey("c", 67),
+    HardwareKey("v", 86),
+    HardwareKey("b", 66),
+    HardwareKey("n", 78),
+    HardwareKey("m", 77),
+    ActionKey(VirtualKeyboardKeyAction.Backspace),
+  ],
+  // Row 4
+  [
+    ActionKey(VirtualKeyboardKeyAction.Symbols),
+    TextKey(','),
+    ActionKey(VirtualKeyboardKeyAction.Space),
+    TextKey('.'),
+    ActionKey(VirtualKeyboardKeyAction.Return),
+  ]
+];

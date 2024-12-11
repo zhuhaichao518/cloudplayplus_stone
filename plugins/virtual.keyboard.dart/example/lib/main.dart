@@ -83,10 +83,14 @@ class _MyHomePageState extends State<MyHomePage> {
               child: VirtualKeyboard(
                   keyBackgroundColor: Colors.grey,
                   height: 400,
-                  type: isNumericMode
+                  type: VirtualKeyboardType.Hardware,
+                  /*isNumericMode
                       ? VirtualKeyboardType.Numeric
-                      : VirtualKeyboardType.Alphanumeric,
-                  textController: _controllerText),
+                      : VirtualKeyboardType.Alphanumeric,*/
+                  keyPressedCallback: (keyCode, isDown) {
+                    print(keyCode);
+                    print(isDown);
+                  },),
             )
           ],
         ),
