@@ -125,6 +125,8 @@ class _VirtualKeyboardState extends State<VirtualKeyboard> {
         return _keyLayout(symbolLayout);
       case VirtualKeyboardType.Hardware:
         return _keyLayout(hardwareLayout);
+      case VirtualKeyboardType.HardwareExt:
+        return _keyLayout(hardwareLayoutExt1);
       default:
         throw new Error();
     }
@@ -135,6 +137,10 @@ class _VirtualKeyboardState extends State<VirtualKeyboard> {
     keySpacing = 4.0;
     double totalSpacing = keySpacing * (layout.length + 1);
     keyHeight = (height - totalSpacing) / layout.length;
+    
+    if (type == VirtualKeyboardType.HardwareExt){
+      keyHeight = keyHeight * 0.8;
+    }
 
     int maxLengthRow = 0;
     for (var layoutRow in layout) {
@@ -285,12 +291,12 @@ class _VirtualKeyboardState extends State<VirtualKeyboard> {
           break;
         case VirtualKeyboardKeyAction.Alpha:
           setState(() {
-            type = VirtualKeyboardType.Alphanumeric;
+            type = VirtualKeyboardType.Hardware;
           });
           break;
         case VirtualKeyboardKeyAction.Symbols:
           setState(() {
-            type = VirtualKeyboardType.Symbolic;
+            type = VirtualKeyboardType.HardwareExt;
           });
           break;
         default:

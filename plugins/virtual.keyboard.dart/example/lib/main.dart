@@ -82,7 +82,7 @@ class _MyHomePageState extends State<MyHomePage> {
               color: Colors.transparent,
               child: VirtualKeyboard(
                   keyBackgroundColor: Colors.grey,
-                  height: 400,
+                  height: 200,
                   type: VirtualKeyboardType.Hardware,
                   /*isNumericMode
                       ? VirtualKeyboardType.Numeric

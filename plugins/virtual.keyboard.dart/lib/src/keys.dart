@@ -242,3 +242,68 @@ List<List<VirtualKeyboardKey>> hardwareLayout = [
     ActionKey(VirtualKeyboardKeyAction.Return),
   ]
 ];
+
+/// esc ~ f12, 1 ~ 0, ctrl, etc, no charactors
+List<List<VirtualKeyboardKey>> hardwareLayoutExt1 = [
+  // Row 1
+  [
+    HardwareKey("⎋", 27),
+    HardwareKey("F1", 112),
+    HardwareKey("F2", 113),
+    HardwareKey("F3", 114),
+    HardwareKey("F4", 115),
+    HardwareKey("F5", 116),
+    HardwareKey("F6", 117),
+    HardwareKey("F7", 118),
+    HardwareKey("F8", 119),
+    HardwareKey("F9", 120),
+    HardwareKey("F10", 121),
+    HardwareKey("F11", 122),
+    HardwareKey("F12", 123),
+  ],
+  // Row 2
+  [
+    HardwareKey("↹", 9),
+    HardwareKey("`", 192, capsText: "~"),
+    HardwareKey("-", 189, capsText: "_"),
+    HardwareKey("=", 187, capsText: "+"),
+    HardwareKey("[", 219, capsText: "{"),
+    HardwareKey("]", 221, capsText: "}"),
+    HardwareKey("\\", 220, capsText: "|"),
+    HardwareKey(";", 186, capsText: ":"),
+    HardwareKey("'", 222, capsText: "\""),
+    HardwareKey(",", 188, capsText: "<"),
+    HardwareKey(".", 190, capsText: ">"),
+    HardwareKey("/", 191, capsText: "?"),
+  ],
+  // Row 3
+  [
+    ActionKey(VirtualKeyboardKeyAction.Shift),
+    HardwareKey("⇪", 49),
+    HardwareKey("1", 49, capsText: "!"),
+    HardwareKey("2", 50, capsText: "@"),
+    HardwareKey("3", 51, capsText: "#"),
+    HardwareKey("4", 52, capsText: "\$"),
+    HardwareKey("5", 53, capsText: "%"),
+    HardwareKey("6", 54, capsText: "^"),
+    HardwareKey("7", 55, capsText: "&"),
+    HardwareKey("8", 56, capsText: "*"),
+    HardwareKey("9", 57, capsText: "("),
+    HardwareKey("↑", 38, capsText: "↑"),
+    HardwareKey("0", 48, capsText: ")"),
+  ],
+  // Row 4
+  [
+    ActionKey(VirtualKeyboardKeyAction.Alpha),
+    HardwareKey("⌃", 77), //TODO
+    HardwareKey("⊞", 77), //TODO
+    HardwareKey("⎇", 77), //TODO
+    ActionKey(VirtualKeyboardKeyAction.Space),
+    HardwareKey("⎇", 77), //TODO
+    HardwareKey("⊞", 77), //TODO
+    HardwareKey("⌃", 77), //TODO
+    HardwareKey("←", 37),
+    HardwareKey("↓", 40),
+    HardwareKey("→", 39),
+  ]
+];
