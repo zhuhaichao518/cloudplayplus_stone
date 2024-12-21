@@ -7,5 +7,8 @@ enum VirtualKeyboardKeyAction {
   Shift,
   Space,
   Symbols,
-  Alpha
+  Alpha,
+  Alt,
+  Ctrl,
+  Win
 }

@@ -5,7 +5,7 @@ part of virtual_keyboard;
 /// `Action` - Can be action key - Return, Backspace, etc.
 ///
 /// `String` - Keys that have text value - `Letters`, `Numbers`, `@` `.`
-enum VirtualKeyboardKeyType { Action, String , Hardware}
+enum VirtualKeyboardKeyType { Action, String, Hardware, HardwareAction }
 
 /// Virtual Keyboard key
 class VirtualKeyboardKey {
@@ -18,7 +18,11 @@ class VirtualKeyboardKey {
   final VirtualKeyboardKeyAction? action;
 
   VirtualKeyboardKey(
-      {this.text, this.capsText, this.keyCode, required this.keyType, this.action});
+      {this.text,
+      this.capsText,
+      this.keyCode,
+      required this.keyType,
+      this.action});
 }
 
 /// Shorthand for creating a simple text key
@@ -55,11 +59,22 @@ class ActionKey extends VirtualKeyboardKey {
 
 /// Shorthand for creating hardware keys
 class HardwareKey extends VirtualKeyboardKey {
-  HardwareKey(String text, int keyCode, {String? capsText})
-      : super(text: text,
-            keyCode:keyCode,
+  HardwareKey(String text, int keyCode, {String? capsText, bool? willExpand})
+      : super(
+            text: text,
+            keyCode: keyCode,
             capsText: capsText == null ? text.toUpperCase() : capsText,
             keyType: VirtualKeyboardKeyType.Hardware) {
+    if (willExpand == true) {
+      super.willExpand = willExpand!;
+    }
+  }
+}
+
+/// Shorthand for creating hardware keys
+class HardwareActionKey extends VirtualKeyboardKey {
+  HardwareActionKey(VirtualKeyboardKeyAction action,{int? keyCode})
+      : super(keyType: VirtualKeyboardKeyType.HardwareAction, action: action, keyCode: keyCode) {
     switch (action) {
       case VirtualKeyboardKeyAction.Space:
         super.text = ' ';
@@ -78,5 +93,3 @@ class HardwareKey extends VirtualKeyboardKey {
     }
   }
 }
-
-//Hardwarekey2:

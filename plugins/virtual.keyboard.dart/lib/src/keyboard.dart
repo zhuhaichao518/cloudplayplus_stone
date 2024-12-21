@@ -75,6 +75,9 @@ class _VirtualKeyboardState extends State<VirtualKeyboard> {
 
   // True if shift is enabled.
   bool isShiftEnabled = false;
+  bool isAltEnabled = false;
+  bool isCtrlEnabled = false;
+  bool isWinEnabled = false;
 
   @override
   void didUpdateWidget(VirtualKeyboard oldWidget) {
@@ -137,8 +140,8 @@ class _VirtualKeyboardState extends State<VirtualKeyboard> {
     keySpacing = 4.0;
     double totalSpacing = keySpacing * (layout.length + 1);
     keyHeight = (height - totalSpacing) / layout.length;
-    
-    if (type == VirtualKeyboardType.HardwareExt){
+
+    if (type == VirtualKeyboardType.HardwareExt) {
       keyHeight = keyHeight * 0.8;
     }
 
@@ -189,6 +192,9 @@ class _VirtualKeyboardState extends State<VirtualKeyboard> {
               break;
             case VirtualKeyboardKeyType.Hardware:
               keyWidget = _keyboardDefaultHardwareKey(virtualKeyboardKey);
+              break;
+            case VirtualKeyboardKeyType.HardwareAction:
+              keyWidget = _keyboardHardwareActionKey(virtualKeyboardKey);
               break;
           }
         } else {
@@ -359,6 +365,11 @@ class _VirtualKeyboardState extends State<VirtualKeyboard> {
       case VirtualKeyboardKeyAction.Alpha:
         actionKey = Icon(Icons.sort_by_alpha, color: textColor);
         break;
+      case VirtualKeyboardKeyAction.Ctrl:
+        actionKey = Icon(FontAwesomeIcons.arrowUp, color: isCtrlEnabled?Colors.lime : textColor);
+        break;
+      default:
+        actionKey = Container();
     }
     var finalKey = Material(
       color: widget.keyBackgroundColor,
@@ -370,6 +381,12 @@ class _VirtualKeyboardState extends State<VirtualKeyboard> {
         onTap: () {
           if (key.action == VirtualKeyboardKeyAction.Shift) {
             if (!alwaysCaps) {
+              if (isShiftEnabled) {
+                //vk_shift
+                keyPressedCallback(160, false);
+              } else {
+                keyPressedCallback(160, true);
+              }
               setState(() {
                 isShiftEnabled = !isShiftEnabled;
               });
@@ -403,10 +420,31 @@ class _VirtualKeyboardState extends State<VirtualKeyboard> {
           highlightColor: widget.keyHighlightColor,
           borderRadius: widget.keyBorderRadius,
           onTapDown: (details) {
-            keyPressedCallback(key.keyCode!,true);
+            keyPressedCallback(key.keyCode!, true);
+
+            if(isCtrlEnabled || isShiftEnabled || isWinEnabled || isAltEnabled){
+              if (isCtrlEnabled){
+                isCtrlEnabled = !isCtrlEnabled;
+                keyPressedCallback(162, false);
+              }
+              /*if (isShiftEnabled){
+                isShiftEnabled = !isShiftEnabled;
+                keyPressedCallback(160, false);
+              }*/
+              if (isWinEnabled){
+                isWinEnabled = !isWinEnabled;
+                keyPressedCallback(91, false);
+              }
+              if (isAltEnabled){
+                isAltEnabled = !isAltEnabled;
+                keyPressedCallback(164, false);
+              }
+              setState(() {
+              });
+            }
           },
           onTapUp: (details) {
-            keyPressedCallback(key.keyCode!,false);
+            keyPressedCallback(key.keyCode!, false);
           },
           child: Container(
             width: keyHeight,
@@ -420,5 +458,104 @@ class _VirtualKeyboardState extends State<VirtualKeyboard> {
             )),
           ),
         ));
+  }
+
+  /// Creates default UI element for keyboard Hardware Key.
+  Widget _keyboardHardwareActionKey(VirtualKeyboardKey key) {
+    Widget actionKey;
+    switch (key.keyCode!) {
+      case 91: //left win
+      case 92: //right win
+        actionKey = Icon(FontAwesomeIcons.windows,
+            color: isWinEnabled ? Colors.lime : textColor);
+        break;
+      case 160: //left shift
+      case 161: //right shift
+        actionKey = Icon(Icons.arrow_upward,
+            color: isShiftEnabled ? Colors.lime : textColor);
+        break;
+      case 164: // left alt
+      case 165: // right alt
+        actionKey = Center(
+            child: Text(
+          "⎇",
+          style: TextStyle(
+            fontSize: fontSize,
+            color: isAltEnabled ? Colors.lime : textColor,
+          ),
+        ));
+        break;
+      case 162: // left ctrl
+      case 163: // right ctrl
+        actionKey = Center(
+            child: Text(
+          "⌃",
+          style: TextStyle(
+            fontSize: fontSize,
+            color: isCtrlEnabled ? Colors.lime : textColor,
+          ),
+        ));
+        break;
+      case 32:
+        actionKey = Icon(Icons.space_bar, color: textColor);
+        break;
+      default:
+        actionKey = Container();
+        break;
+    }
+
+    var finalKey = Material(
+      color: widget.keyBackgroundColor,
+      clipBehavior: Clip.hardEdge,
+      borderRadius: widget.keyBorderRadius,
+      child: InkWell(
+        borderRadius: widget.keyBorderRadius,
+        highlightColor: widget.keyHighlightColor,
+        onTap: () {
+          if (key.action == VirtualKeyboardKeyAction.Shift) {
+            keyPressedCallback(key.keyCode!, !isShiftEnabled);
+            setState(() {
+              isShiftEnabled = !isShiftEnabled;
+            });
+          } else if (key.action == VirtualKeyboardKeyAction.Alt) {
+            keyPressedCallback(key.keyCode!, !isAltEnabled);
+            setState(() {
+              isAltEnabled = !isAltEnabled;
+            });
+          } else if (key.action == VirtualKeyboardKeyAction.Ctrl) {
+            keyPressedCallback(key.keyCode!, !isCtrlEnabled);
+            setState(() {
+              isCtrlEnabled = !isCtrlEnabled;
+            });
+          } else if (key.action == VirtualKeyboardKeyAction.Win) {
+            keyPressedCallback(key.keyCode!, !isWinEnabled);
+            setState(() {
+              isWinEnabled = !isWinEnabled;
+            });
+          }
+        },
+        onTapDown: (details) {
+          if (key.action == VirtualKeyboardKeyAction.Space || key.action == VirtualKeyboardKeyAction.Return || key.action == VirtualKeyboardKeyAction.Backspace){
+            keyPressedCallback(key.keyCode!, true);
+          }
+        },
+        onTapUp: (details) {
+          if (key.action == VirtualKeyboardKeyAction.Space || key.action == VirtualKeyboardKeyAction.Return || key.action == VirtualKeyboardKeyAction.Backspace){
+            keyPressedCallback(key.keyCode!, false);
+          }
+        },
+        child: Container(
+          width: keyHeight,
+          height: keyHeight,
+          child: actionKey,
+        ),
+      ),
+    );
+
+    if (key.willExpand) {
+      return Expanded(child: finalKey);
+    } else {
+      return finalKey;
+    }
   }
 }

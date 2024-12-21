@@ -1,4 +1,5 @@
 //render the global remote screen in an infinite vertical scroll view.
+import 'package:cloudplayplus/services/webrtc_service.dart';
 import 'package:flutter/material.dart';
 import 'package:vk/vk.dart';
 
@@ -12,7 +13,6 @@ class OnScreenVirtualKeyboard extends StatefulWidget {
 }
 
 class _VideoScreenState extends State<OnScreenVirtualKeyboard> {
-
   @override
   Widget build(BuildContext context) {
     return ValueListenableBuilder<bool>(
@@ -50,9 +50,12 @@ class _VideoScreenState extends State<OnScreenVirtualKeyboard> {
                 child: VirtualKeyboard(
                   keyBackgroundColor: Colors.grey,
                   height: scaledHeight, // 将缩放后的高度传递给键盘
-                  type: VirtualKeyboardType.Alphanumeric, // 设置键盘类型
-                  keyPressedCallback:(keyCode, isDown) {
-                    
+                  type: VirtualKeyboardType.Hardware, // 设置键盘类型
+                  keyPressedCallback: (keyCode, isDown) {
+                          WebrtcService.currentRenderingSession?.inputController
+                              ?.requestKeyEvent(
+                                  keyCode,
+                                  isDown);
                   },
                 ),
               ),

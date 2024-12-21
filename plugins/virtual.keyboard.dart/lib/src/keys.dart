@@ -231,15 +231,16 @@ List<List<VirtualKeyboardKey>> hardwareLayout = [
     HardwareKey("b", 66),
     HardwareKey("n", 78),
     HardwareKey("m", 77),
-    ActionKey(VirtualKeyboardKeyAction.Backspace),
+    HardwareActionKey(VirtualKeyboardKeyAction.Backspace, keyCode: 8),
   ],
   // Row 4
   [
     ActionKey(VirtualKeyboardKeyAction.Symbols),
-    TextKey(','),
-    ActionKey(VirtualKeyboardKeyAction.Space),
-    TextKey('.'),
-    ActionKey(VirtualKeyboardKeyAction.Return),
+    HardwareActionKey(VirtualKeyboardKeyAction.Ctrl,keyCode: 162),
+    HardwareKey(",", 188, capsText: "<"),
+    HardwareActionKey(VirtualKeyboardKeyAction.Space, keyCode: 32),
+    HardwareKey(".", 190, capsText: ">"),
+    HardwareActionKey(VirtualKeyboardKeyAction.Return, keyCode: 13),
   ]
 ];
 
@@ -263,7 +264,7 @@ List<List<VirtualKeyboardKey>> hardwareLayoutExt1 = [
   ],
   // Row 2
   [
-    HardwareKey("↹", 9),
+    HardwareKey("↹", 9, willExpand: true),
     HardwareKey("`", 192, capsText: "~"),
     HardwareKey("-", 189, capsText: "_"),
     HardwareKey("=", 187, capsText: "+"),
@@ -278,8 +279,10 @@ List<List<VirtualKeyboardKey>> hardwareLayoutExt1 = [
   ],
   // Row 3
   [
-    ActionKey(VirtualKeyboardKeyAction.Shift),
-    HardwareKey("⇪", 49),
+    //ActionKey(VirtualKeyboardKeyAction.Shift),
+    //HardWareActionKey(),
+    HardwareActionKey(VirtualKeyboardKeyAction.Shift, keyCode: 160),
+    HardwareKey("⇪", 20),
     HardwareKey("1", 49, capsText: "!"),
     HardwareKey("2", 50, capsText: "@"),
     HardwareKey("3", 51, capsText: "#"),
@@ -295,13 +298,16 @@ List<List<VirtualKeyboardKey>> hardwareLayoutExt1 = [
   // Row 4
   [
     ActionKey(VirtualKeyboardKeyAction.Alpha),
-    HardwareKey("⌃", 77), //TODO
-    HardwareKey("⊞", 77), //TODO
-    HardwareKey("⎇", 77), //TODO
-    ActionKey(VirtualKeyboardKeyAction.Space),
-    HardwareKey("⎇", 77), //TODO
-    HardwareKey("⊞", 77), //TODO
-    HardwareKey("⌃", 77), //TODO
+    //HardwareKey("⌃", 162),
+    //HardwareKey("⊞", 91),
+    //HardwareKey("⎇", 164),
+    HardwareActionKey(VirtualKeyboardKeyAction.Ctrl,keyCode: 162),
+    HardwareActionKey(VirtualKeyboardKeyAction.Win,keyCode: 91),
+    HardwareActionKey(VirtualKeyboardKeyAction.Alt,keyCode: 164),
+    HardwareActionKey(VirtualKeyboardKeyAction.Space, keyCode: 32),
+    HardwareKey("⎇", 165),
+    HardwareKey("⊞", 92),
+    HardwareKey("⌃", 163), 
     HardwareKey("←", 37),
     HardwareKey("↓", 40),
     HardwareKey("→", 39),

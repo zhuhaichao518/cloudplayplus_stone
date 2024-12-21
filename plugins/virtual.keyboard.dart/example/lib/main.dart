@@ -81,16 +81,17 @@ class _MyHomePageState extends State<MyHomePage> {
             Container(
               color: Colors.transparent,
               child: VirtualKeyboard(
-                  keyBackgroundColor: Colors.grey,
-                  height: 200,
-                  type: VirtualKeyboardType.Hardware,
-                  /*isNumericMode
+                keyBackgroundColor: Colors.grey,
+                height: 200,
+                type: VirtualKeyboardType.Hardware,
+                /*isNumericMode
                       ? VirtualKeyboardType.Numeric
                       : VirtualKeyboardType.Alphanumeric,*/
-                  keyPressedCallback: (keyCode, isDown) {
-                    print(keyCode);
-                    print(isDown);
-                  },),
+                keyPressedCallback: (keyCode, isDown) {
+                  print(keyCode);
+                  print(isDown);
+                },
+              ),
             )
           ],
         ),
