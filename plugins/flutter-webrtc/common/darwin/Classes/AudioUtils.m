@@ -14,6 +14,7 @@
       session.category != AVAudioSessionCategoryMultiRoute || true) {//这里改了修好了 为啥
     config.category = AVAudioSessionCategoryPlayAndRecord;
     config.categoryOptions =
+        AVAudioSessionCategoryOptionDefaultToSpeaker |
         AVAudioSessionCategoryOptionAllowBluetooth |
         AVAudioSessionCategoryOptionAllowBluetoothA2DP |
         AVAudioSessionCategoryOptionAllowAirPlay;

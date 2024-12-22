@@ -145,15 +145,23 @@ class CGamepadState {
   };
 
   /// Updates the state based on the given event.
-  void update(GamepadEvent event) {
+  bool update(GamepadEvent event) {
     switch (event.type) {
       case KeyType.analog:
         final mapped = analogMapping[event.key];
         if (mapped != null) {
           if (mapped == bLeftTrigger || mapped == bRightTrigger) {
+            int oldValue = analogs[mapped];
             analogs[mapped] = (event.value * 255).toInt();
+            // 防止触发太频繁，设置3% gap
+            if ((analogs[mapped] - oldValue).abs() < 8) return false;
           } else {
+            //5% deadzone.
+            if (analogs[mapped]<0.05) analogs[mapped] = 0;
+            int oldValue = analogs[mapped];
             analogs[mapped] = (event.value * 32767).toInt();
+            // 防止触发太频繁，设置3% gap
+            if ((analogs[mapped] - oldValue).abs() < 100) return false;
             if (AppPlatform.isWeb &&
                 (mapped == sThumbLY || mapped == sThumbRY)) {
               analogs[mapped] = -analogs[mapped];
@@ -164,7 +172,7 @@ class CGamepadState {
       case KeyType.button:
         final mapped = buttonMapping[event.key];
         if (mapped != null) {
-          if (AppPlatform.isMacos) {
+          if (AppPlatform.isMacos || AppPlatform.isIOS) {
             if (mapped == XINPUT_GAMEPAD_DPAD_LEFT) {
               if (event.value == -1) {
                 buttonDown[XINPUT_GAMEPAD_DPAD_LEFT] = true;
@@ -194,6 +202,7 @@ class CGamepadState {
         }
         break;
     }
+    return true;
   }
 }
 
@@ -206,9 +215,10 @@ class CGamepadController {
       gamepadstates[event.gamepadId] = CGamepadState();
     }
     state = gamepadstates[event.gamepadId]!;
-    state.update(event);
-    //VLOG0(state.getStateString());
-    WebrtcService.currentRenderingSession?.inputController
+    if (state.update(event)){
+      WebrtcService.currentRenderingSession?.inputController
         ?.requestGamePadEvent(event.gamepadId, state.getStateString());
+    }
+    //VLOG0(state.getStateString());
   }
 }
