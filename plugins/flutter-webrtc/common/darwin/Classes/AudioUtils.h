@@ -8,6 +8,7 @@
 + (BOOL)selectAudioInput:(AVAudioSessionPort)type;
 + (void)setSpeakerphoneOn:(BOOL)enable;
 + (void)setSpeakerphoneOnButPreferBluetooth;
+//+ (void)activeRtcAudioSession;
 + (void)deactiveRtcAudioSession;
 + (void) setAppleAudioConfiguration:(NSDictionary*)configuration;
 @end

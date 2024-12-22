@@ -541,6 +541,7 @@ static FlutterWebRTCPlugin *sharedSingleton;
                      config:[self RTCDataChannelConfiguration:dataChannelDict]
                   messenger:_messenger
                      result:result];
+      //[AudioUtils activeRtcAudioSession];
   } else if ([@"dataChannelSend" isEqualToString:call.method]) {
     NSDictionary* argsMap = call.arguments;
     NSString* peerConnectionId = argsMap[@"peerConnectionId"];
@@ -606,6 +607,9 @@ static FlutterWebRTCPlugin *sharedSingleton;
       RTCMediaStreamTrack* track = [self trackForId:trackId peerConnectionId:nil];
       if (track != nil) {
         if ([track isKindOfClass:[RTCAudioTrack class]]) {
+            /*#if TARGET_OS_IPHONE
+                 [self ensureAudioSessionOn];
+            #endif*/
           RTCAudioTrack* audioTrack = (RTCAudioTrack*)track;
           [stream addAudioTrack:audioTrack];
         } else if ([track isKindOfClass:[RTCVideoTrack class]]) {
@@ -676,7 +680,11 @@ static FlutterWebRTCPlugin *sharedSingleton;
     }
     [_localTracks removeObjectForKey:trackId];
     if (audioTrack) {
+//#if TARGET_OS_IPHONE
+//      // https://github.com/flutter-webrtc/flutter-webrtc/issues/1230
+//#else
       [self ensureAudioSession];
+//#endif
     }
     result(nil);
   } else if ([@"restartIce" isEqualToString:call.method]) {
@@ -1422,6 +1430,13 @@ static FlutterWebRTCPlugin *sharedSingleton;
   }
   return NO;
 }
+/*
+- (void)ensureAudioSessionOn {
+#if TARGET_OS_IPHONE
+    [AudioUtils setSpeakerphoneOnButPreferBluetooth];
+#endif
+}
+*/
 
 - (void)ensureAudioSession {
 #if TARGET_OS_IPHONE

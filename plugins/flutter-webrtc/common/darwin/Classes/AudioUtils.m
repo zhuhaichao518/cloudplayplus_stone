@@ -11,7 +11,7 @@
   RTCAudioSessionConfiguration* config = [RTCAudioSessionConfiguration webRTCConfiguration];
   // require audio session to be either PlayAndRecord or MultiRoute
   if (recording && session.category != AVAudioSessionCategoryPlayAndRecord &&
-      session.category != AVAudioSessionCategoryMultiRoute) {
+      session.category != AVAudioSessionCategoryMultiRoute || true) {//这里改了修好了 为啥
     config.category = AVAudioSessionCategoryPlayAndRecord;
     config.categoryOptions =
         AVAudioSessionCategoryOptionAllowBluetooth |
@@ -32,6 +32,13 @@
     config.mode = AVAudioSessionModeDefault;
     [session lockForConfiguration];
     NSError* error = nil;
+      /*if (![session isActive]) {
+        BOOL success = [session setActive:YES error:&error];
+        if (!success)
+          NSLog(@"RTC Audio session deactive failed: %@", error);
+        else
+          NSLog(@"RTC AudioSession deactive is successful ");
+      }*/
     bool success = [session setMode:config.mode error:&error];
     if (!success)
       NSLog(@"ensureAudioSessionWithRecording[false]: setMode failed due to: %@", error);
@@ -126,6 +133,22 @@
     NSLog(@"AudioSession override with bluetooth preference via setSpeakerphoneOnButPreferBluetooth successfull ");
   [session unlockForConfiguration];
 }
+
+/*
++ (void)activeRtcAudioSession {
+  NSError* error = nil;
+  RTCAudioSession* session = [RTCAudioSession sharedInstance];
+  [session lockForConfiguration];
+  if (![session isActive]) {
+    BOOL success = [session setActive:YES error:&error];
+    if (!success)
+      NSLog(@"RTC Audio session deactive failed: %@", error);
+    else
+      NSLog(@"RTC AudioSession deactive is successful ");
+  }
+  [session unlockForConfiguration];
+}
+*/
 
 + (void)deactiveRtcAudioSession {
   NSError* error = nil;
