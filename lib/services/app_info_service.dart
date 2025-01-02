@@ -26,6 +26,9 @@ class ApplicationInfo {
     if (deviceNameOverride != null && deviceNameOverride != "") {
       return deviceNameOverride!;
     }
+    if (AppPlatform.isIOS) {
+      return 'Iphone设备';
+    }
     return Platform.localHostname;
   }
 
