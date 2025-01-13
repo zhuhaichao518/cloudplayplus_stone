@@ -5,7 +5,7 @@ CloudPlayPlus is a remote desktop software designed to provide users with a seam
 However, there are still many exciting features under development, including H.265 hardware encoding and support for various hardware decoding solutions. CloudPlayPlus aims to continuously enhance performance and user experience in remote gaming.
 
 ## Getting Started
-You can build and it as a simple flutter project. Run this project on Windows or MacOS as host, and you will be able to control the host on another clint, or https://www.cloudplayplus.com/ .
+You can build and it as a simple flutter project. Run this project on Windows or MacOS as host, and you will be able to control the host on another client, or https://www.cloudplayplus.com/.
 
 # Linux
 Personally I use steam deck to develop this project. Here is the list of commands to make flutter runnable on steam deck:
