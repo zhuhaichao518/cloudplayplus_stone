@@ -51,6 +51,13 @@ class ScreenController {
     }
   }
 
+  static ValueNotifier<bool> showVirtualMouse = ValueNotifier(false);
+  static void setShowVirtualMouse(bool value) {
+    if (showVirtualMouse.value != value) {
+      showVirtualMouse.value = value;
+    }
+  }
+
   //1: Expand To Width
   //2: Expand to Both
   /*static ValueNotifier<int> detailViewExpandMode = ValueNotifier(1);

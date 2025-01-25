@@ -2,6 +2,7 @@
 import 'package:cloudplayplus/base/logging.dart';
 import 'package:cloudplayplus/services/webrtc_service.dart';
 import 'package:cloudplayplus/utils/widgets/on_screen_keyboard.dart';
+import 'package:cloudplayplus/utils/widgets/on_screen_mouse.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
@@ -31,11 +32,14 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
 
   late Size widgetSize;
   RenderBox? renderBox;
+  RenderBox? parentBox;
   bool _leftButtonDown = false;
   bool _rightButtonDown = false;
   bool _middleButtonDown = false;
   bool _backButtonDown = false;
   bool _forwardButtonDown = false;
+
+  final Offset _virtualMousePosition = const Offset(100, 100);
 
   /*bool _hasAudio = false;
 
@@ -235,6 +239,7 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
                                             });
                                           }, onRenderBoxUpdated:
                                                   (newRenderBox) {
+                                            parentBox = context.findRenderObject() as RenderBox;
                                             renderBox = newRenderBox;
                                             widgetSize = newRenderBox.size;
                                           })));
@@ -242,6 +247,7 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
                               })
                           : RTCVideoView(WebrtcService.globalVideoRenderer!,
                               onRenderBoxUpdated: (newRenderBox) {
+                              parentBox = context.findRenderObject() as RenderBox;
                               renderBox = newRenderBox;
                               widgetSize = newRenderBox.size;
                             }),
@@ -260,6 +266,53 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
                     ? RTCVideoView(WebrtcService.globalAudioRenderer!)
                     : Container(),*/
                 const OnScreenVirtualKeyboard(), // 放置在Stack中，独立于Listener和RawKeyboardListener,
+                OnScreenVirtualMouse(
+                  initialPosition: _virtualMousePosition,
+                  onPositionChanged: (pos) {
+                    if (renderBox == null || parentBox == null) return;
+                    /*final Offset globalPosition =
+                        parentBox.localToGlobal(Offset.zero);*/
+                    final Offset globalPosition = parentBox!.localToGlobal(pos);
+                    final Offset localPosition =
+                          renderBox!.globalToLocal(globalPosition);
+                    final double xPercent =
+                        (localPosition.dx / widgetSize.width).clamp(0.0, 1.0);
+                    final double yPercent =
+                        (localPosition.dy / widgetSize.height).clamp(0.0, 1.0);
+                    print("dx:{$xPercent},dy{$yPercent},");
+                    WebrtcService.currentRenderingSession!.inputController
+                        ?.requestMoveMouseAbsl(xPercent, yPercent,
+                            WebrtcService.currentRenderingSession!.screenId);
+                  },
+                  onLeftPressed: () {
+                    if (_leftButtonDown == false) {
+                      _leftButtonDown = !_leftButtonDown;
+                      WebrtcService.currentRenderingSession?.inputController
+                          ?.requestMouseClick(1, _leftButtonDown);
+                    }
+                  },
+                  onLeftReleased: () {
+                    if (_leftButtonDown == true) {
+                      _leftButtonDown = !_leftButtonDown;
+                      WebrtcService.currentRenderingSession?.inputController
+                          ?.requestMouseClick(1, _leftButtonDown);
+                    }
+                  },
+                  onRightPressed: () {
+                    if (_rightButtonDown == false) {
+                      _rightButtonDown = !_rightButtonDown;
+                      WebrtcService.currentRenderingSession?.inputController
+                          ?.requestMouseClick(3, _rightButtonDown);
+                    }
+                  },
+                  onRightReleased: () {
+                    if (_rightButtonDown == true) {
+                      _rightButtonDown = !_rightButtonDown;
+                      WebrtcService.currentRenderingSession?.inputController
+                          ?.requestMouseClick(3, _rightButtonDown);
+                    }
+                  }
+                ),
               ],
             );
           }

@@ -113,6 +113,8 @@ class _DeviceDetailPageState extends State<DeviceDetailPage> {
                     if (index == 0) {
                       await ScreenController.setIsFullScreen(
                           !ScreenController.isFullScreen);
+                      ScreenController.setOnlyShowRemoteScreen(
+                          true);
                     }
                     if (index == 1) {
                       /*ScreenController.setShowNavBar(
@@ -126,6 +128,9 @@ class _DeviceDetailPageState extends State<DeviceDetailPage> {
                           !ScreenController.showVirtualKeyboard.value);
                     }
                     if (index == 3) {
+                      ScreenController.setShowVirtualMouse(true);
+                    }
+                    if (index == 4) {
                       ScreenController.setshowDetailUseScrollView(true);
                       ScreenController.setOnlyShowRemoteScreen(false);
                       StreamingManager.stopStreaming(widget.device);
@@ -135,6 +140,7 @@ class _DeviceDetailPageState extends State<DeviceDetailPage> {
                     Icons.crop_free,
                     Icons.open_in_full,
                     Icons.keyboard,
+                    Icons.mouse,
                     Icons.close,
                   ],
                 ),
