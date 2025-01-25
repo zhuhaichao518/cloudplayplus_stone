@@ -1,21 +1,14 @@
 # cloudplayplus
 
-A new Flutter project.
+CloudPlayPlus is a remote desktop software designed to provide users with a seamless and smooth experience for playing remote games. Currently, it achieves 2K resolution at 60 FPS with a latency of just 40ms (from company to home) using a customized version of libWebRTC for online game streaming.
+
+However, there are still many exciting features under development, including H.265 hardware encoding and support for various hardware decoding solutions. CloudPlayPlus aims to continuously enhance performance and user experience in remote gaming.
 
 ## Getting Started
-
-This project is a starting point for a Flutter application.
-
-A few resources to get you started if this is your first Flutter project:
-
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+You can build and it as a simple flutter project. Run this project on Windows or MacOS as host, and you will be able to control the host on another client, or https://www.cloudplayplus.com/.
 
 # Linux
+Personally I use steam deck to develop this project. Here is the list of commands to make flutter runnable on steam deck:
 steamdeck flutter:
 sudo pacman-key --init
 sudo pacman-key --populate archlinux
@@ -23,7 +16,7 @@ sudo steamos-readonly disable
 sudo pacman-key --populate holo 
 sudo pacman -S base-devel cmake ninja glibc linux-api-headers gtk3 pango glib2 sysprof harfbuzz freetype2 libpng util-linux fribidi cairo lzo pixman gdk-pixbuf2 libcloudproviders atk at-spi2-atk dbus at-spi2-core libx11 xorgproto
 
-github desktop
+To login to github desktop:
 sudo pacman -S kwalletmanager
 sudo pacman -S kwallet
 
