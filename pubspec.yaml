@@ -79,6 +79,7 @@ dependencies:
   sdp_transform: ^0.3.2
   flutter_bloc: ^8.1.6
   custom_mouse_cursor: ^1.1.2
+  chinese_font_library: ^1.2.0
 
 dev_dependencies:
   flutter_test:
@@ -117,10 +118,10 @@ flutter:
   # "family" key with the font family name, and a "fonts" key with a
   # list giving the asset and other descriptors for the font. For
   # example:
-  fonts:
-    - family: heiti
-      fonts:
-        - asset: assets/fonts/NotoSans-Regular.ttf
+  #fonts:
+  #  - family: heiti
+  #    fonts:
+  #      - asset: assets/fonts/NotoSans-Regular.ttf
   #       - asset: fonts/Schyler-Italic.ttf
   #         style: italic
   #   - family: Trajan Pro

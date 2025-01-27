@@ -1,3 +1,4 @@
+import 'package:chinese_font_library/chinese_font_library.dart';
 import 'package:flutter/material.dart';
 import 'package:flex_color_scheme/flex_color_scheme.dart';
 //import 'package:google_fonts/google_fonts.dart';
@@ -97,7 +98,7 @@ final darkTheme1 = FlexThemeData.dark(
   useMaterial3: true,
   swapLegacyOnMaterial3: true,
   //fontFamily: GoogleFonts.notoSans().fontFamily,
-  fontFamily: 'heiti',
+  //fontFamily: 'heiti',
 );
 
 class ThemeProvider with ChangeNotifier {
@@ -140,7 +141,7 @@ class ThemeProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  ThemeData get lightTheme => _currentlightTheme;
+  ThemeData get lightTheme => _currentlightTheme.useSystemChineseFont(Brightness.light);
 
-  ThemeData get darkTheme => _currentdarkTheme;
+  ThemeData get darkTheme => _currentdarkTheme.useSystemChineseFont(Brightness.dark);
 }
