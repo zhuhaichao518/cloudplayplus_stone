@@ -464,6 +464,43 @@ class _VirtualKeyboardState extends State<VirtualKeyboard> {
   Widget _keyboardHardwareActionKey(VirtualKeyboardKey key) {
     Widget actionKey;
     switch (key.keyCode!) {
+      case 8:
+        /*actionKey = GestureDetector(
+            onLongPress: () {
+              longPress = true;
+              // Start sending backspace key events while longPress is true
+              Timer.periodic(
+                  Duration(milliseconds: _virtualKeyboardBackspaceEventPerioud),
+                  (timer) {
+                if (longPress) {
+                  keyPressedCallback(key.keyCode!, true);
+                } else {
+                  // Cancel timer.
+                  timer.cancel();
+                }
+              });
+            },
+            onLongPressUp: () {
+              // Cancel event loop
+              longPress = false;
+            },
+            child: Container(
+              height: double.infinity,
+              width: double.infinity,
+              child: Icon(
+                Icons.backspace,
+                color: textColor,
+              ),
+            ));*/
+        actionKey = Icon(Icons.backspace,
+            color: textColor);
+        break;
+      case 13: //return
+        actionKey = Icon(
+          Icons.keyboard_return,
+          color: textColor,
+        );
+        break;
       case 91: //left win
       case 92: //right win
         actionKey = Icon(FontAwesomeIcons.windows,
