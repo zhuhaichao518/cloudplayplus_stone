@@ -597,6 +597,7 @@ class StreamingSession {
     //TODO:理论上不需要removetrack pc会自动close 但是需要验证
     pc?.close();
     pc = null;
+    controlled.connectionState.value = StreamingSessionConnectionState.disconnected;
     connectionState = StreamingSessionConnectionState.disconnected;
     //controlled.connectionState.value = StreamingSessionConnectionState.free;
     if (streamSettings?.hookCursorImage == true &&
