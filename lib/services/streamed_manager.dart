@@ -1,5 +1,5 @@
-//这个文件负责管理所有别的app控制本电脑的状态。
 import 'package:cloudplayplus/global_settings/streaming_settings.dart';
+import 'package:cloudplayplus/utils/hash_util.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'package:mutex/mutex.dart';
 
@@ -29,6 +29,11 @@ class StreamedManager {
   static int cursorImageHookID = 0;
 
   static void startStreaming(Device target, StreamedSettings settings) async {
+    bool allowConnect = ApplicationInfo.connectable;
+    if (!allowConnect) return;
+    // 旧版本可能不传这个值，或者bug导致没有传connectPassword
+    if (settings.connectPassword == null) return;
+    if (StreamingSettings.connectPasswordHash != HashUtil.hash(settings.connectPassword!)) return;
     acquireLock();
     if (sessions.containsKey(target.websocketSessionid)) {
       VLOG0(

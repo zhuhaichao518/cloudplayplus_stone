@@ -10,9 +10,9 @@ import 'package:flutter/material.dart';
 import '../../base/logging.dart';
 import '../../entities/device.dart';
 import '../../entities/session.dart';
-import '../../services/app_info_service.dart'; // 假设你的Device实体在这里定义
-import 'package:qr_flutter/qr_flutter.dart';
+import '../../services/app_info_service.dart';
 import '../../services/webrtc_service.dart';
+import '../hash_util.dart';
 
 class DeviceDetailPage extends StatefulWidget {
   final Device device;
@@ -232,21 +232,41 @@ class _DeviceDetailPageState extends State<DeviceDetailPage> {
                 ),
                 SizedBox(height: 48), // 增加垂直间距
                 // 使用按钮来提供连接设备的交互
-                //widget.device.websocketSessionid ==
-                //        ApplicationInfo.thisDevice.websocketSessionid?
+                (widget.device.websocketSessionid !=
+                        ApplicationInfo.thisDevice.websocketSessionid && widget.device.connective)?
+                  ElevatedButton(
+                    onPressed: () => _connectDevice(context),
+                    child: const Text('连接设备', style: TextStyle(fontSize: 18)),
+                    style: ElevatedButton.styleFrom(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                  )
+                : widget.device.websocketSessionid !=
+                        ApplicationInfo.thisDevice.websocketSessionid?
+                const SizedBox(): ApplicationInfo.connectable?
                 ElevatedButton(
-                  onPressed: () => _connectDevice(context),
-                  child: const Text('连接设备', style: TextStyle(fontSize: 18)),
-                  style: ElevatedButton.styleFrom(
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
+                    onPressed: () => _unhostDevice(context),
+                    child: const Text('不允许本设备被连接', style: TextStyle(fontSize: 18)),
+                    style: ElevatedButton.styleFrom(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                  )
+                :ElevatedButton(
+                    onPressed: () => _hostDevice(context),
+                    child: const Text('允许本设备被连接', style: TextStyle(fontSize: 18)),
+                    style: ElevatedButton.styleFrom(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
                     ),
                   ),
-                ),
-                // : Container(),
                 SizedBox(height: 24), // 增加垂直间距
                 // 如果设备是用户的，显示分享组件
-                if (widget.device.uid == ApplicationInfo.user.uid) ...[
+/*                if (widget.device.uid == ApplicationInfo.user.uid) ...[
                   TextField(
                     controller: _shareController,
                     decoration: InputDecoration(
@@ -267,18 +287,100 @@ class _DeviceDetailPageState extends State<DeviceDetailPage> {
                         // 按钮样式
                         ),
                   ),
-                ],
+                ],*/
               ],
             ),
           );
         });
   }
 
-  void _connectDevice(BuildContext context) {
+  Future<String?> _showPasswordDialog(BuildContext context) async {
+    TextEditingController controller = TextEditingController();
+    return showDialog<String>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text("二级密码（无密码不填）"),
+          content: TextField(
+            controller: controller,
+            obscureText: true,
+            decoration: const InputDecoration(
+              hintText: "请输入密码",
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, null),
+              child: const Text("取消"),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(context, controller.text),
+              child: const Text("确定"),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _connectDevice(BuildContext context) async{
     // 连接设备的逻辑
+    String? password = await _showPasswordDialog(context);
     StreamingSettings.updateScreenId(_selectedMonitorId - 1);
+    StreamingSettings.connectPassword = password;
     StreamingManager.startStreaming(widget.device);
     VLOG0('连接设备: ${widget.device.devicename}');
+  }
+
+  TextEditingController passwordController = TextEditingController();
+
+  void _unhostDevice(BuildContext context) {
+    ApplicationInfo.connectable = false;
+    SharedPreferencesManager.setBool('allowConnect',false);
+    setState(() {
+    });
+    WebSocketService.updateDeviceInfo();
+  }
+
+  void _hostDevice(BuildContext context) async {
+    //主持设备
+    String? result = await showDialog<String>(
+      context: context,
+      barrierDismissible: false, // 不允许点击外部关闭
+      builder: (context) {
+        return AlertDialog(
+          title: Text('请设置密码，不填则无密码'),
+          content: TextField(
+            controller: passwordController,
+            obscureText: true, // 隐藏输入
+            decoration: InputDecoration(
+              labelText: '二级密码',
+              border: OutlineInputBorder(),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, null), // 取消返回 null
+              child: Text('取消'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(context, passwordController.text), // 返回密码
+              child: Text('确认'),
+            ),
+          ],
+        );
+      },
+    );
+    if (result != null){
+      SharedPreferencesManager.setBool('allowConnect',true);
+      String hash = HashUtil.hash(result);
+      SharedPreferencesManager.setString("connectPasswordHash", hash);
+      ApplicationInfo.connectable = true;
+      StreamingSettings.connectPasswordHash = hash;
+    }
+    setState(() {
+    });
+    WebSocketService.updateDeviceInfo();
   }
 
   void _shareDevice(BuildContext context) {

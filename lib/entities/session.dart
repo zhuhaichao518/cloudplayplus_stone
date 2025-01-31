@@ -119,7 +119,7 @@ class StreamingSession {
     selfSessionType = SelfSessionType.controller;
 
     acquireLock();
-
+    restartPingTimeoutTimer();
     controlled.connectionState.value =
         StreamingSessionConnectionState.connceting;
 
@@ -141,6 +141,7 @@ class StreamingSession {
             StreamingSessionConnectionState.disconnected;
         MessageBoxManager()
             .showMessage("未能建立连接。请切换网络重试或在设置中启动turn服务器。", "连接失败");
+        close();
       } else if (state == RTCPeerConnectionState.RTCPeerConnectionStateClosed) {
         controlled.connectionState.value =
             StreamingSessionConnectionState.disconnected;
@@ -282,6 +283,14 @@ class StreamingSession {
       ...iceServers,
       ...{'sdpSemantics': 'unified-plan'}
     }, config);
+  }
+
+  void onRequestRejected() {
+    controlled.connectionState.value =
+        StreamingSessionConnectionState.disconnected;
+    MessageBoxManager()
+        .showMessage("未能建立连接。密码错误或者该设备不允许被连接。", "连接失败");
+    close();
   }
 
   //accept request and send offer to the peer. you should verify this is authorized before calling this funciton.
@@ -626,16 +635,16 @@ class StreamingSession {
 
   Timer? _pingTimeoutTimer;
 
-  // We take 15s as timeout from remote peer.
+  // We take 10s as timeout from remote peer.
   void restartPingTimeoutTimer() {
     _pingTimeoutTimer?.cancel(); // 取消之前的Timer
-    _pingTimeoutTimer = Timer(const Duration(seconds: 15), () {
+    _pingTimeoutTimer = Timer(const Duration(seconds: 10), () {
       // 超过15秒没收到pingpong，断开连接
-      VLOG0("No ping message received within 15 seconds, disconnecting...");
+      VLOG0("No ping message received within 10 seconds, disconnecting...");
       close();
       if (selfSessionType == SelfSessionType.controller) {
         MessageBoxManager()
-            .showMessage("未能建立连接。请切换网络重试或在设置中启动turn服务器。", "建立连接失败");
+            .showMessage("未能建立连接。请检查密码, 切换网络重试或在设置中启动turn服务器。", "建立连接失败");
       }
     });
   }

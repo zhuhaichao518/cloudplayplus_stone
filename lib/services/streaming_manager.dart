@@ -27,6 +27,19 @@ class StreamingManager {
     sessions[target.websocketSessionid] = session;
   }
 
+/* TODO: 错误密码返回通知到对方的逻辑太麻烦 并且容易被攻击 以后处理
+  static void rejectStreaming(Device target) {
+    if (sessions.containsKey(target.websocketSessionid)) {
+      StreamingSession? session = sessions[target.websocketSessionid];
+      
+      session?.stop();
+      sessions.remove(target.websocketSessionid);
+      WebrtcService.removeStream(target.websocketSessionid);
+    } else {
+      VLOG0("No session found with sessionId: $target.websocketSessionid");
+    }
+  }
+*/
   static void stopStreaming(Device target) {
     if (sessions.containsKey(target.websocketSessionid)) {
       StreamingSession? session = sessions[target.websocketSessionid];

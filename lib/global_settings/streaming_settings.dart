@@ -19,7 +19,6 @@ var cloudPlayPlusStun = {
 class StreamingSettings {
   static int? framerate;
   static int? bitrate;
-  static int? targetScreenId;
   //the remote peer will render the cursor.
   static bool? showRemoteCursor;
 
@@ -32,6 +31,11 @@ class StreamingSettings {
   static String? customTurnServerAddress;
   static String? customTurnServerUsername;
   static String? customTurnServerPassword;
+
+  static String connectPasswordHash = "";
+  //这两项会在连接的瞬间更新
+  static int? targetScreenId;
+  static String? connectPassword;
 
   static void init() {
     framerate =
@@ -72,6 +76,9 @@ class StreamingSettings {
     codec = SharedPreferencesManager.getString('codec') ?? 'default';
 
     hookCursorImage ??= (AppPlatform.isWeb || AppPlatform.isDeskTop);
+
+    connectPasswordHash =
+        SharedPreferencesManager.getString('connectPasswordHash') ?? ""; 
   }
 
   //Screen id setting is not global, so we need to call before start streaming.
@@ -93,6 +100,7 @@ class StreamingSettings {
       'targetScreenId': targetScreenId,
       'codec': codec,
       'hookCursorImage': hookCursorImage,
+      'connectPassword': connectPassword,
     };
     data.removeWhere((key, value) => value == null);
     return data;
@@ -118,6 +126,8 @@ class StreamedSettings {
   String? turnServerPassword;*/
   String? codec;
   bool? hookCursorImage;
+  //设备的连接密码
+  String? connectPassword = "";
   static StreamedSettings fromJson(Map<String, dynamic> settings) {
     return StreamedSettings()
       ..framerate = settings['framerate'] as int?
@@ -131,6 +141,7 @@ class StreamedSettings {
       ..turnServerPassword = settings['turnServerPassword'] as String?*/
       ..screenId = settings['targetScreenId'] as int?
       ..codec = settings['codec'] as String?
-      ..hookCursorImage = settings['hookCursorImage'] as bool?;
+      ..hookCursorImage = settings['hookCursorImage'] as bool?
+      ..connectPassword = settings['connectPassword'] as String?;
   }
 }
