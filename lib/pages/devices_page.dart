@@ -26,6 +26,7 @@ class _DevicesPageState extends State<DevicesPage> {
         //We set owner id to -1 to identify it is the device of ourself.
         //device['owner_id'] = -1;
         //}
+        if (device['connective'] == false) continue;
         _deviceList.add(Device(
             uid: device['owner_id'],
             nickname: device['owner_nickname'],
