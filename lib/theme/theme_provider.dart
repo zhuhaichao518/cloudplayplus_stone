@@ -1,4 +1,5 @@
 import 'package:chinese_font_library/chinese_font_library.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flex_color_scheme/flex_color_scheme.dart';
 //import 'package:google_fonts/google_fonts.dart';
@@ -7,7 +8,7 @@ import '../services/shared_preferences_manager.dart';
 final lightTheme0 = FlexThemeData.light(
   colors: const FlexSchemeColor(
     primary: Color(0xff1145a4),
-    primaryContainer: Color(0xffacc7f6),
+    primaryContainer: Color.fromARGB(255, 76, 141, 255),
     secondary: Color(0xffb61d1d),
     secondaryContainer: Color(0xffec9f9f),
     tertiary: Color(0xff376bca),
@@ -141,7 +142,11 @@ class ThemeProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  ThemeData get lightTheme => _currentlightTheme.useSystemChineseFont(Brightness.light);
+  ThemeData get lightTheme => kIsWeb 
+      ? _currentlightTheme 
+      : _currentlightTheme.useSystemChineseFont(Brightness.light);
 
-  ThemeData get darkTheme => _currentdarkTheme.useSystemChineseFont(Brightness.dark);
+  ThemeData get darkTheme => kIsWeb 
+      ? _currentdarkTheme 
+      : _currentdarkTheme.useSystemChineseFont(Brightness.dark);
 }

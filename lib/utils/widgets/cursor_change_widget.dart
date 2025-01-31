@@ -57,7 +57,7 @@ class _MouseStyleRegionState extends State<MouseStyleRegion> {
         },
         onExit: (event) {
           //修复快速移出无法移动到边角的问题。
-          WebrtcService.currentRenderingSession!.inputController
+          WebrtcService.currentRenderingSession?.inputController
               ?.requestMoveMouseAbsl(0, 0, -1);
         },
       ),
