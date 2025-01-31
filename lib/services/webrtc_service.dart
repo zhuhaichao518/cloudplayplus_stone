@@ -43,11 +43,13 @@ class WebrtcService {
   }
 
   static void removeStream(String deviceId) {
-    streams[deviceId]!.dispose();
-    streams.remove(deviceId);
-    if (currentDeviceId == deviceId) {
-      globalVideoRenderer!.srcObject = null;
-      currentRenderingSession = null;
+    if (streams[deviceId]!=null){
+      streams[deviceId]!.dispose();
+      streams.remove(deviceId);
+      if (currentDeviceId == deviceId) {
+        globalVideoRenderer!.srcObject = null;
+        currentRenderingSession = null;
+      }
     }
   }
 
