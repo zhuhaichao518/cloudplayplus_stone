@@ -326,6 +326,7 @@ class _DeviceDetailPageState extends State<DeviceDetailPage> {
   void _connectDevice(BuildContext context) async{
     // 连接设备的逻辑
     String? password = await _showPasswordDialog(context);
+    if (password == null) return;
     StreamingSettings.updateScreenId(_selectedMonitorId - 1);
     StreamingSettings.connectPassword = password;
     StreamingManager.startStreaming(widget.device);
