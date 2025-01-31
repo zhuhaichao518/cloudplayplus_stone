@@ -78,7 +78,7 @@ class StreamingSettings {
     hookCursorImage ??= (AppPlatform.isWeb || AppPlatform.isDeskTop);
 
     connectPasswordHash =
-        SharedPreferencesManager.getString('connectPasswordHash') ?? ""; 
+        SharedPreferencesManager.getString('connectPasswordHash') ?? "";
   }
 
   //Screen id setting is not global, so we need to call before start streaming.

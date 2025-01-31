@@ -288,8 +288,7 @@ class StreamingSession {
   void onRequestRejected() {
     controlled.connectionState.value =
         StreamingSessionConnectionState.disconnected;
-    MessageBoxManager()
-        .showMessage("未能建立连接。密码错误或者该设备不允许被连接。", "连接失败");
+    MessageBoxManager().showMessage("未能建立连接。密码错误或者该设备不允许被连接。", "连接失败");
     close();
   }
 
@@ -606,7 +605,8 @@ class StreamingSession {
     //TODO:理论上不需要removetrack pc会自动close 但是需要验证
     pc?.close();
     pc = null;
-    controlled.connectionState.value = StreamingSessionConnectionState.disconnected;
+    controlled.connectionState.value =
+        StreamingSessionConnectionState.disconnected;
     connectionState = StreamingSessionConnectionState.disconnected;
     //controlled.connectionState.value = StreamingSessionConnectionState.free;
     if (streamSettings?.hookCursorImage == true &&

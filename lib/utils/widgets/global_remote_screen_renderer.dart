@@ -239,7 +239,9 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
                                             });
                                           }, onRenderBoxUpdated:
                                                   (newRenderBox) {
-                                            parentBox = context.findRenderObject() as RenderBox;
+                                            parentBox =
+                                                context.findRenderObject()
+                                                    as RenderBox;
                                             renderBox = newRenderBox;
                                             widgetSize = newRenderBox.size;
                                           })));
@@ -247,7 +249,8 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
                               })
                           : RTCVideoView(WebrtcService.globalVideoRenderer!,
                               onRenderBoxUpdated: (newRenderBox) {
-                              parentBox = context.findRenderObject() as RenderBox;
+                              parentBox =
+                                  context.findRenderObject() as RenderBox;
                               renderBox = newRenderBox;
                               widgetSize = newRenderBox.size;
                             }),
@@ -267,52 +270,53 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
                     : Container(),*/
                 const OnScreenVirtualKeyboard(), // 放置在Stack中，独立于Listener和RawKeyboardListener,
                 OnScreenVirtualMouse(
-                  initialPosition: _virtualMousePosition,
-                  onPositionChanged: (pos) {
-                    if (renderBox == null || parentBox == null) return;
-                    /*final Offset globalPosition =
+                    initialPosition: _virtualMousePosition,
+                    onPositionChanged: (pos) {
+                      if (renderBox == null || parentBox == null) return;
+                      /*final Offset globalPosition =
                         parentBox.localToGlobal(Offset.zero);*/
-                    final Offset globalPosition = parentBox!.localToGlobal(pos);
-                    final Offset localPosition =
+                      final Offset globalPosition =
+                          parentBox!.localToGlobal(pos);
+                      final Offset localPosition =
                           renderBox!.globalToLocal(globalPosition);
-                    final double xPercent =
-                        (localPosition.dx / widgetSize.width).clamp(0.0, 1.0);
-                    final double yPercent =
-                        (localPosition.dy / widgetSize.height).clamp(0.0, 1.0);
-                    print("dx:{$xPercent},dy{$yPercent},");
-                    WebrtcService.currentRenderingSession!.inputController
-                        ?.requestMoveMouseAbsl(xPercent, yPercent,
-                            WebrtcService.currentRenderingSession!.screenId);
-                  },
-                  onLeftPressed: () {
-                    if (_leftButtonDown == false) {
-                      _leftButtonDown = !_leftButtonDown;
-                      WebrtcService.currentRenderingSession?.inputController
-                          ?.requestMouseClick(1, _leftButtonDown);
-                    }
-                  },
-                  onLeftReleased: () {
-                    if (_leftButtonDown == true) {
-                      _leftButtonDown = !_leftButtonDown;
-                      WebrtcService.currentRenderingSession?.inputController
-                          ?.requestMouseClick(1, _leftButtonDown);
-                    }
-                  },
-                  onRightPressed: () {
-                    if (_rightButtonDown == false) {
-                      _rightButtonDown = !_rightButtonDown;
-                      WebrtcService.currentRenderingSession?.inputController
-                          ?.requestMouseClick(3, _rightButtonDown);
-                    }
-                  },
-                  onRightReleased: () {
-                    if (_rightButtonDown == true) {
-                      _rightButtonDown = !_rightButtonDown;
-                      WebrtcService.currentRenderingSession?.inputController
-                          ?.requestMouseClick(3, _rightButtonDown);
-                    }
-                  }
-                ),
+                      final double xPercent =
+                          (localPosition.dx / widgetSize.width).clamp(0.0, 1.0);
+                      final double yPercent =
+                          (localPosition.dy / widgetSize.height)
+                              .clamp(0.0, 1.0);
+                      print("dx:{$xPercent},dy{$yPercent},");
+                      WebrtcService.currentRenderingSession!.inputController
+                          ?.requestMoveMouseAbsl(xPercent, yPercent,
+                              WebrtcService.currentRenderingSession!.screenId);
+                    },
+                    onLeftPressed: () {
+                      if (_leftButtonDown == false) {
+                        _leftButtonDown = !_leftButtonDown;
+                        WebrtcService.currentRenderingSession?.inputController
+                            ?.requestMouseClick(1, _leftButtonDown);
+                      }
+                    },
+                    onLeftReleased: () {
+                      if (_leftButtonDown == true) {
+                        _leftButtonDown = !_leftButtonDown;
+                        WebrtcService.currentRenderingSession?.inputController
+                            ?.requestMouseClick(1, _leftButtonDown);
+                      }
+                    },
+                    onRightPressed: () {
+                      if (_rightButtonDown == false) {
+                        _rightButtonDown = !_rightButtonDown;
+                        WebrtcService.currentRenderingSession?.inputController
+                            ?.requestMouseClick(3, _rightButtonDown);
+                      }
+                    },
+                    onRightReleased: () {
+                      if (_rightButtonDown == true) {
+                        _rightButtonDown = !_rightButtonDown;
+                        WebrtcService.currentRenderingSession?.inputController
+                            ?.requestMouseClick(3, _rightButtonDown);
+                      }
+                    }),
               ],
             );
           }

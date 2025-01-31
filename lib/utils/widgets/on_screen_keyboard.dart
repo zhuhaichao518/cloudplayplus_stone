@@ -52,10 +52,8 @@ class _VideoScreenState extends State<OnScreenVirtualKeyboard> {
                   height: scaledHeight, // 将缩放后的高度传递给键盘
                   type: VirtualKeyboardType.Hardware, // 设置键盘类型
                   keyPressedCallback: (keyCode, isDown) {
-                          WebrtcService.currentRenderingSession?.inputController
-                              ?.requestKeyEvent(
-                                  keyCode,
-                                  isDown);
+                    WebrtcService.currentRenderingSession?.inputController
+                        ?.requestKeyEvent(keyCode, isDown);
                   },
                 ),
               ),

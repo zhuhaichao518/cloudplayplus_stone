@@ -3,14 +3,15 @@ import 'package:flutter/material.dart';
 import 'dart:math';
 
 class OnScreenVirtualMouse extends StatefulWidget {
-    final Offset initialPosition;
+  final Offset initialPosition;
   final Function(Offset)? onPositionChanged;
   final VoidCallback? onLeftPressed;
   final VoidCallback? onLeftReleased;
   final VoidCallback? onRightPressed;
   final VoidCallback? onRightReleased;
 
-  const OnScreenVirtualMouse({super.key, 
+  const OnScreenVirtualMouse({
+    super.key,
     this.initialPosition = const Offset(100, 100),
     this.onPositionChanged,
     this.onLeftPressed,
@@ -132,7 +133,8 @@ class _VirtualMouseState extends State<OnScreenVirtualMouse> {
                           width: 40,
                           height: 40,
                           decoration: BoxDecoration(
-                            color: _leftPressed ? Colors.blue[800] : Colors.blue,
+                            color:
+                                _leftPressed ? Colors.blue[800] : Colors.blue,
                             borderRadius: BorderRadius.circular(4),
                           ),
                         ),

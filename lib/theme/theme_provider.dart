@@ -142,11 +142,11 @@ class ThemeProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  ThemeData get lightTheme => kIsWeb 
-      ? _currentlightTheme 
+  ThemeData get lightTheme => kIsWeb
+      ? _currentlightTheme
       : _currentlightTheme.useSystemChineseFont(Brightness.light);
 
-  ThemeData get darkTheme => kIsWeb 
-      ? _currentdarkTheme 
+  ThemeData get darkTheme => kIsWeb
+      ? _currentdarkTheme
       : _currentdarkTheme.useSystemChineseFont(Brightness.dark);
 }

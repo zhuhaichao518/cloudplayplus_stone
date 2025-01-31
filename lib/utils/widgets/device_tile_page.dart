@@ -113,8 +113,7 @@ class _DeviceDetailPageState extends State<DeviceDetailPage> {
                     if (index == 0) {
                       await ScreenController.setIsFullScreen(
                           !ScreenController.isFullScreen);
-                      ScreenController.setOnlyShowRemoteScreen(
-                          true);
+                      ScreenController.setOnlyShowRemoteScreen(true);
                     }
                     if (index == 1) {
                       /*ScreenController.setShowNavBar(
@@ -128,7 +127,8 @@ class _DeviceDetailPageState extends State<DeviceDetailPage> {
                           !ScreenController.showVirtualKeyboard.value);
                     }
                     if (index == 3) {
-                      ScreenController.setShowVirtualMouse(!ScreenController.showVirtualMouse.value);
+                      ScreenController.setShowVirtualMouse(
+                          !ScreenController.showVirtualMouse.value);
                     }
                     if (index == 4) {
                       ScreenController.setshowDetailUseScrollView(true);
@@ -233,37 +233,42 @@ class _DeviceDetailPageState extends State<DeviceDetailPage> {
                 SizedBox(height: 48), // 增加垂直间距
                 // 使用按钮来提供连接设备的交互
                 (widget.device.websocketSessionid !=
-                        ApplicationInfo.thisDevice.websocketSessionid && widget.device.connective)?
-                  ElevatedButton(
-                    onPressed: () => _connectDevice(context),
-                    child: const Text('连接设备', style: TextStyle(fontSize: 18)),
-                    style: ElevatedButton.styleFrom(
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                    ),
-                  )
-                : widget.device.websocketSessionid !=
-                        ApplicationInfo.thisDevice.websocketSessionid?
-                const SizedBox(): ApplicationInfo.connectable?
-                ElevatedButton(
-                    onPressed: () => _unhostDevice(context),
-                    child: const Text('不允许本设备被连接', style: TextStyle(fontSize: 18)),
-                    style: ElevatedButton.styleFrom(
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                    ),
-                  )
-                :ElevatedButton(
-                    onPressed: () => _hostDevice(context),
-                    child: const Text('允许本设备被连接', style: TextStyle(fontSize: 18)),
-                    style: ElevatedButton.styleFrom(
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                    ),
-                  ),
+                            ApplicationInfo.thisDevice.websocketSessionid &&
+                        widget.device.connective)
+                    ? ElevatedButton(
+                        onPressed: () => _connectDevice(context),
+                        child:
+                            const Text('连接设备', style: TextStyle(fontSize: 18)),
+                        style: ElevatedButton.styleFrom(
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                      )
+                    : widget.device.websocketSessionid !=
+                            ApplicationInfo.thisDevice.websocketSessionid
+                        ? const SizedBox()
+                        : ApplicationInfo.connectable
+                            ? ElevatedButton(
+                                onPressed: () => _unhostDevice(context),
+                                child: const Text('不允许本设备被连接',
+                                    style: TextStyle(fontSize: 18)),
+                                style: ElevatedButton.styleFrom(
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                ),
+                              )
+                            : ElevatedButton(
+                                onPressed: () => _hostDevice(context),
+                                child: const Text('允许本设备被连接',
+                                    style: TextStyle(fontSize: 18)),
+                                style: ElevatedButton.styleFrom(
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                ),
+                              ),
                 SizedBox(height: 24), // 增加垂直间距
                 // 如果设备是用户的，显示分享组件
 /*                if (widget.device.uid == ApplicationInfo.user.uid) ...[
@@ -323,7 +328,7 @@ class _DeviceDetailPageState extends State<DeviceDetailPage> {
     );
   }
 
-  void _connectDevice(BuildContext context) async{
+  void _connectDevice(BuildContext context) async {
     // 连接设备的逻辑
     String? password = await _showPasswordDialog(context);
     if (password == null) return;
@@ -337,9 +342,8 @@ class _DeviceDetailPageState extends State<DeviceDetailPage> {
 
   void _unhostDevice(BuildContext context) {
     ApplicationInfo.connectable = false;
-    SharedPreferencesManager.setBool('allowConnect',false);
-    setState(() {
-    });
+    SharedPreferencesManager.setBool('allowConnect', false);
+    setState(() {});
     WebSocketService.updateDeviceInfo();
   }
 
@@ -365,22 +369,22 @@ class _DeviceDetailPageState extends State<DeviceDetailPage> {
               child: Text('取消'),
             ),
             TextButton(
-              onPressed: () => Navigator.pop(context, passwordController.text), // 返回密码
+              onPressed: () =>
+                  Navigator.pop(context, passwordController.text), // 返回密码
               child: Text('确认'),
             ),
           ],
         );
       },
     );
-    if (result != null){
-      SharedPreferencesManager.setBool('allowConnect',true);
+    if (result != null) {
+      SharedPreferencesManager.setBool('allowConnect', true);
       String hash = HashUtil.hash(result);
       SharedPreferencesManager.setString("connectPasswordHash", hash);
       ApplicationInfo.connectable = true;
       StreamingSettings.connectPasswordHash = hash;
     }
-    setState(() {
-    });
+    setState(() {});
     WebSocketService.updateDeviceInfo();
   }
 

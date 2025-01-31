@@ -33,7 +33,8 @@ class StreamedManager {
     if (!allowConnect) return;
     // 旧版本可能不传这个值，或者bug导致没有传connectPassword
     if (settings.connectPassword == null) return;
-    if (StreamingSettings.connectPasswordHash != HashUtil.hash(settings.connectPassword!)) return;
+    if (StreamingSettings.connectPasswordHash !=
+        HashUtil.hash(settings.connectPassword!)) return;
     acquireLock();
     if (sessions.containsKey(target.websocketSessionid)) {
       VLOG0(

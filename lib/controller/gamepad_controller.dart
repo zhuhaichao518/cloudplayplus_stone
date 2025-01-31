@@ -157,7 +157,7 @@ class CGamepadState {
             if ((analogs[mapped] - oldValue).abs() < 8) return false;
           } else {
             //5% deadzone.
-            if (analogs[mapped]<0.05) analogs[mapped] = 0;
+            if (analogs[mapped] < 0.05) analogs[mapped] = 0;
             int oldValue = analogs[mapped];
             analogs[mapped] = (event.value * 32767).toInt();
             // 防止触发太频繁，设置3% gap
@@ -215,9 +215,9 @@ class CGamepadController {
       gamepadstates[event.gamepadId] = CGamepadState();
     }
     state = gamepadstates[event.gamepadId]!;
-    if (state.update(event)){
+    if (state.update(event)) {
       WebrtcService.currentRenderingSession?.inputController
-        ?.requestGamePadEvent(event.gamepadId, state.getStateString());
+          ?.requestGamePadEvent(event.gamepadId, state.getStateString());
     }
     //VLOG0(state.getStateString());
   }

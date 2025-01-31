@@ -366,7 +366,8 @@ class _VirtualKeyboardState extends State<VirtualKeyboard> {
         actionKey = Icon(Icons.sort_by_alpha, color: textColor);
         break;
       case VirtualKeyboardKeyAction.Ctrl:
-        actionKey = Icon(FontAwesomeIcons.arrowUp, color: isCtrlEnabled?Colors.lime : textColor);
+        actionKey = Icon(FontAwesomeIcons.arrowUp,
+            color: isCtrlEnabled ? Colors.lime : textColor);
         break;
       default:
         actionKey = Container();
@@ -422,8 +423,11 @@ class _VirtualKeyboardState extends State<VirtualKeyboard> {
           onTapDown: (details) {
             keyPressedCallback(key.keyCode!, true);
 
-            if(isCtrlEnabled || isShiftEnabled || isWinEnabled || isAltEnabled){
-              if (isCtrlEnabled){
+            if (isCtrlEnabled ||
+                isShiftEnabled ||
+                isWinEnabled ||
+                isAltEnabled) {
+              if (isCtrlEnabled) {
                 isCtrlEnabled = !isCtrlEnabled;
                 keyPressedCallback(162, false);
               }
@@ -431,16 +435,15 @@ class _VirtualKeyboardState extends State<VirtualKeyboard> {
                 isShiftEnabled = !isShiftEnabled;
                 keyPressedCallback(160, false);
               }*/
-              if (isWinEnabled){
+              if (isWinEnabled) {
                 isWinEnabled = !isWinEnabled;
                 keyPressedCallback(91, false);
               }
-              if (isAltEnabled){
+              if (isAltEnabled) {
                 isAltEnabled = !isAltEnabled;
                 keyPressedCallback(164, false);
               }
-              setState(() {
-              });
+              setState(() {});
             }
           },
           onTapUp: (details) {
@@ -492,8 +495,7 @@ class _VirtualKeyboardState extends State<VirtualKeyboard> {
                 color: textColor,
               ),
             ));*/
-        actionKey = Icon(Icons.backspace,
-            color: textColor);
+        actionKey = Icon(Icons.backspace, color: textColor);
         break;
       case 13: //return
         actionKey = Icon(
@@ -572,12 +574,16 @@ class _VirtualKeyboardState extends State<VirtualKeyboard> {
           }
         },
         onTapDown: (details) {
-          if (key.action == VirtualKeyboardKeyAction.Space || key.action == VirtualKeyboardKeyAction.Return || key.action == VirtualKeyboardKeyAction.Backspace){
+          if (key.action == VirtualKeyboardKeyAction.Space ||
+              key.action == VirtualKeyboardKeyAction.Return ||
+              key.action == VirtualKeyboardKeyAction.Backspace) {
             keyPressedCallback(key.keyCode!, true);
           }
         },
         onTapUp: (details) {
-          if (key.action == VirtualKeyboardKeyAction.Space || key.action == VirtualKeyboardKeyAction.Return || key.action == VirtualKeyboardKeyAction.Backspace){
+          if (key.action == VirtualKeyboardKeyAction.Space ||
+              key.action == VirtualKeyboardKeyAction.Return ||
+              key.action == VirtualKeyboardKeyAction.Backspace) {
             keyPressedCallback(key.keyCode!, false);
           }
         },

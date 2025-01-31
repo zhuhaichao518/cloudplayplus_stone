@@ -43,7 +43,7 @@ class WebrtcService {
   }
 
   static void removeStream(String deviceId) {
-    if (streams[deviceId]!=null){
+    if (streams[deviceId] != null) {
       streams[deviceId]!.dispose();
       streams.remove(deviceId);
       if (currentDeviceId == deviceId) {

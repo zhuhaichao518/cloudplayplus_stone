@@ -73,8 +73,11 @@ class HardwareKey extends VirtualKeyboardKey {
 
 /// Shorthand for creating hardware keys
 class HardwareActionKey extends VirtualKeyboardKey {
-  HardwareActionKey(VirtualKeyboardKeyAction action,{int? keyCode})
-      : super(keyType: VirtualKeyboardKeyType.HardwareAction, action: action, keyCode: keyCode) {
+  HardwareActionKey(VirtualKeyboardKeyAction action, {int? keyCode})
+      : super(
+            keyType: VirtualKeyboardKeyType.HardwareAction,
+            action: action,
+            keyCode: keyCode) {
     switch (action) {
       case VirtualKeyboardKeyAction.Space:
         super.text = ' ';
