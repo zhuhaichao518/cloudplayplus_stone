@@ -9,6 +9,7 @@ list(APPEND FLUTTER_PLUGIN_LIST
   fullscreen_window
   hardware_simulator
   screen_retriever
+  system_tray
   url_launcher_windows
   window_manager
 )

@@ -1,8 +1,9 @@
 import 'package:cloudplayplus/controller/screen_controller.dart';
+import 'package:cloudplayplus/services/app_info_service.dart';
 import 'package:cloudplayplus/services/websocket_service.dart';
+import 'package:cloudplayplus/utils/system_tray_manager.dart';
 import 'package:flutter/material.dart';
 import '../settings_screen.dart';
-import '../utils/widgets/rtc_video_page.dart';
 import 'devices_page.dart';
 
 class MainScreen extends StatefulWidget {
@@ -19,6 +20,9 @@ class _MainScreenState extends State<MainScreen> {
   initState() {
     super.initState();
     WebSocketService.init();
+    if (ApplicationInfo.isSystem){
+      SystemTrayManager().initialize();
+    }
     _children = [
       DevicesPage(),
       //Grouped(),

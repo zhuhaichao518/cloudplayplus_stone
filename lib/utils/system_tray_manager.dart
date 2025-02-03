@@ -1,0 +1,107 @@
+// system_tray_manager.dart
+import 'dart:io';
+import 'package:cloudplayplus/services/app_info_service.dart';
+import 'package:hardware_simulator/hardware_simulator.dart';
+import 'package:system_tray/system_tray.dart';
+import 'package:bitsdojo_window/bitsdojo_window.dart';
+
+class SystemTrayManager {
+  static final SystemTrayManager _instance = SystemTrayManager._internal();
+  final SystemTray _systemTray = SystemTray();
+  final Menu _menu = Menu();
+
+  bool _isInitialized = false;
+
+  factory SystemTrayManager() => _instance;
+
+  SystemTrayManager._internal();
+
+  Future<void> initialize({
+    String iconPath = 'assets/images/cpp_logo',
+    //String tooltip = '',
+    bool hideDockIconOnStart = false,
+  }) async {
+    if (_isInitialized) return;
+
+    // 处理 macOS Dock 图标
+    if ((Platform.isMacOS && hideDockIconOnStart) || Platform.isWindows) {
+      appWindow.hide();
+    }
+
+    // 初始化系统托盘
+    final trayIconPath = _getPlatformIconPath(iconPath);
+    await _systemTray.initSystemTray(iconPath: trayIconPath);
+    //_systemTray.setToolTip(tooltip);
+
+    // 构建菜单
+    await _buildContextMenu();
+
+    // 注册托盘事件
+    _systemTray.registerSystemTrayEventHandler(_handleTrayEvent);
+
+    _isInitialized = true;
+  }
+
+  Future<void> _buildContextMenu() async {
+    await _menu.buildFrom([
+      MenuItemLabel(
+        label: '显示窗口',
+        onClicked: (_) => showWindow(),
+      ),
+      MenuItemLabel(
+        label: '隐藏窗口',
+        onClicked: (_) => hideWindow(),
+      ),
+      MenuSeparator(),
+      MenuItemLabel(
+        label: '退出',
+        onClicked: (_) => exitApp(),
+      ),
+    ]);
+    await _systemTray.setContextMenu(_menu);
+  }
+
+  void _handleTrayEvent(String eventName) {
+    switch (eventName) {
+      case kSystemTrayEventClick:
+        Platform.isWindows ? showWindow() : _systemTray.popUpContextMenu();
+        break;
+      case kSystemTrayEventRightClick:
+        Platform.isWindows ? _systemTray.popUpContextMenu() : showWindow();
+        break;
+    }
+  }
+
+  String _getPlatformIconPath(String basePath) {
+    return Platform.isWindows ? '$basePath.ico' : '$basePath.png';
+  }
+
+  // 公共操作方法
+  void showWindow() {
+    appWindow.show();
+    if (Platform.isMacOS) {
+      appWindow.minimize();
+      appWindow.restore();
+    }
+  }
+
+  void hideWindow() => appWindow.hide();
+
+  void exitApp() {
+    if (AppPlatform.isWindows && ApplicationInfo.isSystem) {
+      HardwareSimulator.unregisterService();
+    } else {
+      appWindow.close();
+      exit(0);
+    }
+  }
+
+  // 高级配置方法
+  Future<void> updateTooltip(String newTooltip) async {
+    await _systemTray.setToolTip(newTooltip);
+  }
+
+  Future<void> updateIcon(String newIconPath) async {
+    await _systemTray.setImage(_getPlatformIconPath(newIconPath));
+  }
+}
