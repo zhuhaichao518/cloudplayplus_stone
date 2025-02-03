@@ -230,7 +230,20 @@ class _DeviceDetailPageState extends State<DeviceDetailPage> {
                 Text(
                   "会话ID: ${widget.device.websocketSessionid.toString().substring(widget.device.websocketSessionid.toString().length - 6)}",
                 ),
-                SizedBox(height: 48), // 增加垂直间距
+                SizedBox(height: 16), // 增加垂直间距
+                (widget.device.websocketSessionid !=
+                            ApplicationInfo.thisDevice.websocketSessionid &&
+                        widget.device.connective)
+                    ? TextField(
+                        controller: _passwordController,
+                        obscureText: true,
+                        decoration: InputDecoration(
+                          labelText: '连接密码',
+                          border: OutlineInputBorder(),
+                        ),
+                      )
+                    : Container(),
+                SizedBox(height: 16),
                 // 使用按钮来提供连接设备的交互
                 (widget.device.websocketSessionid !=
                             ApplicationInfo.thisDevice.websocketSessionid &&
@@ -299,6 +312,7 @@ class _DeviceDetailPageState extends State<DeviceDetailPage> {
         });
   }
 
+  /*
   Future<String?> _showPasswordDialog(BuildContext context) async {
     TextEditingController controller = TextEditingController();
     return showDialog<String>(
@@ -327,13 +341,15 @@ class _DeviceDetailPageState extends State<DeviceDetailPage> {
       },
     );
   }
+  */
+  final TextEditingController _passwordController = TextEditingController();
 
   void _connectDevice(BuildContext context) async {
     // 连接设备的逻辑
-    String? password = await _showPasswordDialog(context);
-    if (password == null) return;
+    // String? password = await _showPasswordDialog(context);
+    // if (password == null) return;
     StreamingSettings.updateScreenId(_selectedMonitorId - 1);
-    StreamingSettings.connectPassword = password;
+    StreamingSettings.connectPassword = _passwordController.text;
     StreamingManager.startStreaming(widget.device);
     VLOG0('连接设备: ${widget.device.devicename}');
   }
