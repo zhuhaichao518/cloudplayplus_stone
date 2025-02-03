@@ -96,7 +96,7 @@ VOID WINAPI ServiceMain(DWORD dwArgc, LPTSTR* lpszArgv) {
         // TODO: Redirect stdout to file and set CREATE_NO_WINDOW
         PROCESS_INFORMATION process_info;
         if (!CreateProcessAsUserW(console_token,
-            L"CloudPlayPlusService.exe",
+            L"cloudplayplus.exe",
             NULL,
             NULL,
             NULL,

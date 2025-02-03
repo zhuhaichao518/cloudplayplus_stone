@@ -1,4 +1,5 @@
 import 'package:cloudplayplus/controller/screen_controller.dart';
+import 'package:cloudplayplus/dev_settings.dart/develop_settings.dart';
 import 'package:cloudplayplus/global_settings/streaming_settings.dart';
 import 'package:cloudplayplus/services/shared_preferences_manager.dart';
 import 'package:cloudplayplus/services/streaming_manager.dart';
@@ -7,6 +8,7 @@ import 'package:cloudplayplus/utils/widgets/global_remote_screen_renderer.dart';
 import 'package:cloudplayplus/utils/widgets/message_box.dart';
 import 'package:floating_menu_panel/floating_menu_panel.dart';
 import 'package:flutter/material.dart';
+import 'package:hardware_simulator/hardware_simulator.dart';
 import '../../base/logging.dart';
 import '../../entities/device.dart';
 import '../../entities/session.dart';
@@ -261,7 +263,7 @@ class _DeviceDetailPageState extends State<DeviceDetailPage> {
                     : widget.device.websocketSessionid !=
                             ApplicationInfo.thisDevice.websocketSessionid
                         ? const SizedBox()
-                        : ApplicationInfo.connectable
+                        : ApplicationInfo.connectable || (AppPlatform.isWindows && (ApplicationInfo.isSystem || SharedPreferencesManager.getBool('allowConnect')==true))
                             ? ElevatedButton(
                                 onPressed: () => _unhostDevice(context),
                                 child: const Text('不允许本设备被连接',
@@ -361,16 +363,24 @@ class _DeviceDetailPageState extends State<DeviceDetailPage> {
     SharedPreferencesManager.setBool('allowConnect', false);
     setState(() {});
     WebSocketService.updateDeviceInfo();
+    if (AppPlatform.isWindows){
+      //这样写会有个问题就是用户打开系统权限的app取消注册会退出app 暂时先这样吧
+      HardwareSimulator.unregisterService();
+    }
   }
 
   void _hostDevice(BuildContext context) async {
     //主持设备
+    var txt = '请设置密码，不填则无密码';
+    if (!ApplicationInfo.isSystem){
+      txt = '请设置密码，不填则无密码(可能需要在弹出窗口重新登陆)';
+    }
     String? result = await showDialog<String>(
       context: context,
       barrierDismissible: false, // 不允许点击外部关闭
       builder: (context) {
         return AlertDialog(
-          title: Text('请设置密码，不填则无密码'),
+          title: Text(txt),
           content: TextField(
             controller: passwordController,
             obscureText: true, // 隐藏输入
@@ -399,6 +409,13 @@ class _DeviceDetailPageState extends State<DeviceDetailPage> {
       SharedPreferencesManager.setString("connectPasswordHash", hash);
       ApplicationInfo.connectable = true;
       StreamingSettings.connectPasswordHash = hash;
+    }
+    if (AppPlatform.isWindows){
+      HardwareSimulator.registerService();
+      // Don't host the non_system app on windows.
+      if (!ApplicationInfo.isSystem) {
+        ApplicationInfo.connectable = false;
+      }
     }
     setState(() {});
     WebSocketService.updateDeviceInfo();

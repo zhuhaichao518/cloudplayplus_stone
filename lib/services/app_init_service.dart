@@ -1,4 +1,5 @@
 import 'package:cloudplayplus/services/login_service.dart';
+import 'package:hardware_simulator/hardware_simulator.dart';
 
 import '../dev_settings.dart/develop_settings.dart';
 import 'app_info_service.dart';
@@ -34,5 +35,10 @@ class AppInitService {
     appInitState = getAppState();
     ApplicationInfo.connectable =
         SharedPreferencesManager.getBool('allowConnect') ?? false;
+    bool? isSystem = await HardwareSimulator.isRunningAsSystem();
+    if (isSystem == false) {
+      ApplicationInfo.isSystem = false;
+      ApplicationInfo.connectable = false;
+    }
   }
 }
