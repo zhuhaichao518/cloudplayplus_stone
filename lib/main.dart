@@ -11,6 +11,7 @@ import 'services/secure_storage_manager.dart';
 import 'services/shared_preferences_manager.dart';
 import 'theme/theme_provider.dart';
 import 'package:bitsdojo_window/bitsdojo_window.dart';
+import 'package:flutter_web_plugins/url_strategy.dart';
 
 void main() async {
   LoginService.init();
@@ -22,6 +23,9 @@ void main() async {
   await AppInitService.init();
   StreamingSettings.init();
   InputController.init();
+  if (AppPlatform.isWeb) {
+    setUrlStrategy(null);
+  }
   runApp(const MyApp());
   if (AppPlatform.isWindows || AppPlatform.isMacos || AppPlatform.isLinux) {
     doWhenWindowReady(() {
