@@ -135,13 +135,6 @@ class StreamingSession {
       }
       if (state == RTCPeerConnectionState.RTCPeerConnectionStateConnected) {
         //有些时候即使未能建立连接也报connected，因此依然需要pingpong message.
-        if (AppPlatform.isDeskTop &&
-            ApplicationInfo.isSystem &&
-            selfSessionType == SelfSessionType.controlled) {
-          NotificationManager().initialize();
-          NotificationManager().showSimpleNotification(
-              title: "新的连接", body: "${controller.nickname}连接到了本设备");
-        }
         controlled.connectionState.value =
             StreamingSessionConnectionState.connected;
       } else if (state == RTCPeerConnectionState.RTCPeerConnectionStateFailed) {
@@ -400,6 +393,18 @@ class StreamingSession {
                   'candidate': candidate.candidate,
                 },
               }));
+    };
+
+    pc!.onConnectionState = (state) {
+      if (state == RTCPeerConnectionState.RTCPeerConnectionStateConnected) {
+        if (AppPlatform.isDeskTop &&
+            /*ApplicationInfo.isSystem &&*/
+            selfSessionType == SelfSessionType.controlled) {
+          NotificationManager().initialize();
+          NotificationManager().showSimpleNotification(
+              title: "${controller.nickname} (${controller.devicetype})的连接", body: "${controller.devicename}连接到了本设备");
+        }
+      }
     };
 
     //create data channel
