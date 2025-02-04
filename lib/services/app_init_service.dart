@@ -38,7 +38,10 @@ class AppInitService {
     bool? isSystem = await HardwareSimulator.isRunningAsSystem();
     if (isSystem == false) {
       ApplicationInfo.isSystem = false;
-      ApplicationInfo.connectable = false;
+      //ApplicationInfo.connectable = false;
     }
+    /*if (ApplicationInfo.isSystem && AppPlatform.isWindows) {
+      ApplicationInfo.connectable = true;
+    }*/
   }
 }

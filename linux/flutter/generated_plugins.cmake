@@ -7,6 +7,7 @@ list(APPEND FLUTTER_PLUGIN_LIST
   custom_mouse_cursor
   flutter_secure_storage_linux
   flutter_webrtc
+  flutter_window_close
   gamepads_linux
   hardware_simulator
   screen_retriever

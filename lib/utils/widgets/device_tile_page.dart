@@ -4,6 +4,7 @@ import 'package:cloudplayplus/global_settings/streaming_settings.dart';
 import 'package:cloudplayplus/services/shared_preferences_manager.dart';
 import 'package:cloudplayplus/services/streaming_manager.dart';
 import 'package:cloudplayplus/services/websocket_service.dart';
+import 'package:cloudplayplus/utils/system_tray_manager.dart';
 import 'package:cloudplayplus/utils/widgets/global_remote_screen_renderer.dart';
 import 'package:cloudplayplus/utils/widgets/message_box.dart';
 import 'package:floating_menu_panel/floating_menu_panel.dart';
@@ -263,28 +264,29 @@ class _DeviceDetailPageState extends State<DeviceDetailPage> {
                     : widget.device.websocketSessionid !=
                             ApplicationInfo.thisDevice.websocketSessionid
                         ? const SizedBox()
-                        : ApplicationInfo.connectable || (AppPlatform.isWindows && (ApplicationInfo.isSystem || SharedPreferencesManager.getBool('allowConnect')==true))
+                        : ApplicationInfo
+                                .connectable /* || (AppPlatform.isWindows && (ApplicationInfo.isSystem || SharedPreferencesManager.getBool('allowConnect')==true))*/
                             ? ElevatedButton(
                                 onPressed: () => _unhostDevice(context),
-                                child: const Text('不允许本设备被连接',
-                                    style: TextStyle(fontSize: 18)),
                                 style: ElevatedButton.styleFrom(
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(10),
                                   ),
                                 ),
+                                child: const Text('不允许本设备被连接',
+                                    style: TextStyle(fontSize: 18)),
                               )
                             : ElevatedButton(
                                 onPressed: () => _hostDevice(context),
-                                child: const Text('允许本设备被连接',
-                                    style: TextStyle(fontSize: 18)),
                                 style: ElevatedButton.styleFrom(
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(10),
                                   ),
                                 ),
+                                child: const Text('允许本设备被连接',
+                                    style: TextStyle(fontSize: 18)),
                               ),
-                SizedBox(height: 24), // 增加垂直间距
+                const SizedBox(height: 24), // 增加垂直间距
                 // 如果设备是用户的，显示分享组件
 /*                if (widget.device.uid == ApplicationInfo.user.uid) ...[
                   TextField(
@@ -363,18 +365,45 @@ class _DeviceDetailPageState extends State<DeviceDetailPage> {
     SharedPreferencesManager.setBool('allowConnect', false);
     setState(() {});
     WebSocketService.updateDeviceInfo();
-    if (AppPlatform.isWindows){
+    if (AppPlatform.isWindows) {
       //这样写会有个问题就是用户打开系统权限的app取消注册会退出app 暂时先这样吧
-      HardwareSimulator.unregisterService();
+      //HardwareSimulator.unregisterService();
     }
   }
 
   void _hostDevice(BuildContext context) async {
+    if (AppPlatform.isWindows && ApplicationInfo.isSystem == false) {
+      String? result1 = await showDialog<String>(
+        context: context,
+        barrierDismissible: false, // 不允许点击外部关闭
+        builder: (context) {
+          return AlertDialog(
+            title: const Text("以系统权限运行"),
+            content: const Text(
+                "抓取UAC窗口需要系统权限。点击确定以系统权限重新启动APP(可在系统托盘退出)。取消则以当前权限抓取,可能导致无法抓取或者操作部分内容。"),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, null), // 取消返回 null
+                child: const Text('取消'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(context, "OK"), // 返回密码
+                child: const Text('确认'),
+              ),
+            ],
+          );
+        },
+      );
+      if (result1 != null) {
+        await HardwareSimulator.registerService();
+        Future.delayed(const Duration(seconds: 2), () {
+          SystemTrayManager().exitApp();
+        });
+      }
+    }
+
     //主持设备
     var txt = '请设置密码，不填则无密码';
-    if (!ApplicationInfo.isSystem){
-      txt = '请设置密码，不填则无密码(可能需要在弹出窗口重新登陆)';
-    }
     String? result = await showDialog<String>(
       context: context,
       barrierDismissible: false, // 不允许点击外部关闭
@@ -409,13 +438,6 @@ class _DeviceDetailPageState extends State<DeviceDetailPage> {
       SharedPreferencesManager.setString("connectPasswordHash", hash);
       ApplicationInfo.connectable = true;
       StreamingSettings.connectPasswordHash = hash;
-    }
-    if (AppPlatform.isWindows){
-      HardwareSimulator.registerService();
-      // Don't host the non_system app on windows.
-      if (!ApplicationInfo.isSystem) {
-        ApplicationInfo.connectable = false;
-      }
     }
     setState(() {});
     WebSocketService.updateDeviceInfo();

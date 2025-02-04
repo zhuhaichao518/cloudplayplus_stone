@@ -11,7 +11,7 @@ class ApplicationInfo {
   static int? screencount;
   static bool connectable = false;
   static String? deviceNameOverride;
-  
+
   //For windows, it is needed to be run as system to capture UAC window.
   static bool isSystem = true;
 

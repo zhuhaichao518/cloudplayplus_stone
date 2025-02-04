@@ -4,6 +4,7 @@ import 'package:cloudplayplus/services/app_info_service.dart';
 import 'package:hardware_simulator/hardware_simulator.dart';
 import 'package:system_tray/system_tray.dart';
 import 'package:bitsdojo_window/bitsdojo_window.dart';
+import 'package:flutter_window_close/flutter_window_close.dart';
 
 class SystemTrayManager {
   static final SystemTrayManager _instance = SystemTrayManager._internal();
@@ -24,7 +25,7 @@ class SystemTrayManager {
     if (_isInitialized) return;
 
     // 处理 macOS Dock 图标
-    if ((Platform.isMacOS && hideDockIconOnStart) || Platform.isWindows) {
+    if ((Platform.isMacOS && hideDockIconOnStart)) {
       appWindow.hide();
     }
 
@@ -38,6 +39,13 @@ class SystemTrayManager {
 
     // 注册托盘事件
     _systemTray.registerSystemTrayEventHandler(_handleTrayEvent);
+
+    if (AppPlatform.isWindows && ApplicationInfo.isSystem) {
+      FlutterWindowClose.setWindowShouldCloseHandler(() async {
+        appWindow.hide();
+        return false; // 阻止默认关闭行为
+      });
+    }
 
     _isInitialized = true;
   }

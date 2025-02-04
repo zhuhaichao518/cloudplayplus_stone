@@ -2,6 +2,7 @@ import 'package:cloudplayplus/dev_settings.dart/develop_settings.dart';
 import 'package:cloudplayplus/global_settings/streaming_settings.dart';
 import 'package:cloudplayplus/pages/login_screen.dart';
 import 'package:cloudplayplus/services/secure_storage_manager.dart';
+import 'package:cloudplayplus/services/websocket_service.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -149,6 +150,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         actions: [
                           TextButton(
                             onPressed: () {
+                              WebSocketService.disconnect();
                               SharedPreferencesManager.clear();
                               SharedPreferencesManager.setBool(
                                   'appintroFinished', true);

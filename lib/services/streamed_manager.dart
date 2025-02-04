@@ -1,5 +1,6 @@
 import 'package:cloudplayplus/global_settings/streaming_settings.dart';
 import 'package:cloudplayplus/utils/hash_util.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'package:mutex/mutex.dart';
 
@@ -28,8 +29,16 @@ class StreamedManager {
   //auto increment. used for cursor hooks.
   static int cursorImageHookID = 0;
 
+  static ValueNotifier<int> currentlyStreamedCount = ValueNotifier(0);
+  static void setCurrentStreamedState(int value) {
+    //if (isCurrentlyStreamed.value != value) {
+    currentlyStreamedCount.value = value;
+    //}
+  }
+
   static void startStreaming(Device target, StreamedSettings settings) async {
-    bool allowConnect = ApplicationInfo.connectable;
+    bool allowConnect = ApplicationInfo
+        .connectable; // || (AppPlatform.isWindows && ApplicationInfo.isSystem);
     if (!allowConnect) return;
     // 旧版本可能不传这个值，或者bug导致没有传connectPassword
     if (settings.connectPassword == null) return;
@@ -90,6 +99,7 @@ class StreamedManager {
     session.cursorImageHookID = cursorImageHookID;
     session.acceptRequest(settings);
     sessions[target.websocketSessionid] = session;
+    setCurrentStreamedState(sessions.length);
     releaseLock();
   }
 
@@ -125,6 +135,7 @@ class StreamedManager {
     } else {
       VLOG0("No session found with sessionId: $target.websocketSessionid");
     }
+    setCurrentStreamedState(sessions.length);
     releaseLock();
   }
 

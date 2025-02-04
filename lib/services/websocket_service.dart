@@ -94,6 +94,11 @@ class WebSocketService {
     init();
   }
 
+  static Future<void> disconnect() async {
+    _socket?.close();
+    _socket = null;
+  }
+
   static Future<void> onMessage(message) async {
     VLOG0("--got message from server------------------------");
     VLOG0(message);
