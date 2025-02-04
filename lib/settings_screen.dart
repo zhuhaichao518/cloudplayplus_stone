@@ -151,6 +151,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           TextButton(
                             onPressed: () {
                               WebSocketService.disconnect();
+                              if (DevelopSettings.useSecureStorage) {
+                                SecureStorageManager.clear();
+                              }
                               SharedPreferencesManager.clear();
                               SharedPreferencesManager.setBool(
                                   'appintroFinished', true);
@@ -164,6 +167,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           ),
                           TextButton(
                             onPressed: () {
+                              //TODO:断开所有webrtc连接
+                              WebSocketService.disconnect();
                               if (DevelopSettings.useSecureStorage) {
                                 SecureStorageManager.setString(
                                     'access_token', "");

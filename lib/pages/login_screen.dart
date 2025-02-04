@@ -83,16 +83,16 @@ class _LoginScreenState extends State<LoginScreen> {
           _isLoading = false;
         });
       });
-      SecureStorageManager.getString('password').then((value) {
+      /*SecureStorageManager.getString('password').then((value) {
         setState(() {
           _savedPassword = value;
           _isLoading = false;
         });
-      });
+      });*/
     } else {
       setState(() {
         _savedEmail = SharedPreferencesManager.getString('username');
-        _savedPassword = SharedPreferencesManager.getString('password');
+        //_savedPassword = SharedPreferencesManager.getString('password');
         _isLoading = false;
       });
     }
@@ -104,8 +104,8 @@ class _LoginScreenState extends State<LoginScreen> {
       return const Center(child: CircularProgressIndicator());
     } else {
       return FlutterLogin(
-        savedEmail: _savedEmail ?? "pangdahai90",
-        savedPassword: _savedPassword ?? "zhuhaichao",
+        savedEmail: _savedEmail ?? "",
+        savedPassword: _savedPassword ?? "",
         title: 'CloudPlay Plus',
         logo: const AssetImage('assets/images/cpp_logo.png'),
         userType: LoginUserType.name,

@@ -47,4 +47,8 @@ class SecureStorageManager {
   static Future<String?> getString(String key) async {
     return await _storage?.read(key: key);
   }
+
+  static Future<void> clear() async {
+    return await _storage?.deleteAll();
+  }
 }

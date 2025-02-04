@@ -398,11 +398,16 @@ class LoginService {
             'access_token', responseBody['access']);
         await SecureStorageManager.setString(
             'refresh_token', responseBody['refresh']);
+        await SecureStorageManager.setString(
+            'username', username);
+        await SecureStorageManager.setString(
+            'password', password);    
       } else {
         await SharedPreferencesManager.setString(
             'access_token', responseBody['access']);
-        await SharedPreferencesManager.setString(
-            'refresh_token', responseBody['refresh']);
+        await SecureStorageManager.setString(
+            'username', username);
+        //不安全 就不保存密码了
       }
       /*TODO(haichao):update app state
       ApplicationInfoServiceImpl().user = cppUser.User(
