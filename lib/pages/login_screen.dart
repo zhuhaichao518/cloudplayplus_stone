@@ -47,6 +47,8 @@ class _LoginScreenState extends State<LoginScreen> {
       var result =
           await LoginService.register(username, password, email, nickname);
       if (result['status'] == 'success') {
+        await LoginService.login(username, password);
+        _loginstate = 1;
         return null;
       } else {
         return result['message'];
@@ -114,9 +116,14 @@ class _LoginScreenState extends State<LoginScreen> {
         userValidator: _userValidator,
         onSubmitAnimationCompleted: () {
           if (_loginstate == 1) {
-            Navigator.of(context).pushReplacement(MaterialPageRoute(
-              builder: (context) => const MainScreen(),
-            ));
+            // For unknown reason, when register succeed, there is a "goback" on the topleft.
+            // So pushAndRemoveUntil.
+            Navigator.pushAndRemoveUntil(
+              context,
+              MaterialPageRoute(
+                  builder: (context) => const MainScreen()),
+              (Route<dynamic> route) => false,
+            ).then((_) => false);
           }
         },
         onRecoverPassword: _recoverPassword,
