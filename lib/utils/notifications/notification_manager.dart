@@ -30,7 +30,7 @@ class NotificationManager {
 
     const WindowsInitializationSettings initSettings =
         WindowsInitializationSettings(
-      appName: 'CloudPlay Plus',
+      appName: 'CloudPlayPlus',
       appUserModelId: 'Com.CloudPlayPlus.V1',
       guid: 'bdf5d7f9-dc7c-43b8-9948-493ea54e2d67',
     );
