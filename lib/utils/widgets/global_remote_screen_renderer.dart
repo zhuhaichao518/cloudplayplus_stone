@@ -284,7 +284,7 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
                       final double yPercent =
                           (localPosition.dy / widgetSize.height)
                               .clamp(0.0, 1.0);
-                      print("dx:{$xPercent},dy{$yPercent},");
+                      VLOG0("dx:{$xPercent},dy{$yPercent},");
                       WebrtcService.currentRenderingSession!.inputController
                           ?.requestMoveMouseAbsl(xPercent, yPercent,
                               WebrtcService.currentRenderingSession!.screenId);

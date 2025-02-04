@@ -1,7 +1,9 @@
+import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:cloudplayplus/controller/screen_controller.dart';
 import 'package:cloudplayplus/services/app_info_service.dart';
 import 'package:cloudplayplus/services/streamed_manager.dart';
 import 'package:cloudplayplus/services/websocket_service.dart';
+import 'package:cloudplayplus/theme/fixed_colors.dart';
 import 'package:cloudplayplus/utils/system_tray_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:window_manager/window_manager.dart';
@@ -61,6 +63,20 @@ class _MainScreenState extends State<MainScreen> {
                 backgroundColor: Colors.white,
                 body: Column(
                   children: [
+                    AnimatedTextKit(
+                      animatedTexts: [
+                        ColorizeAnimatedText(
+                          'Cloud Play Plus',
+                          textStyle: colorizeTextStyle,
+                          colors: colorizeColors,
+                        ),
+                      ],
+                      isRepeatingAnimation: false,
+                      onTap: () {
+                        //print("Tap Event");
+                      },
+                    ),
+                    const SizedBox(width: 20.0, height: 30.0),
                     const Text('正在被以下客户端远程连接，无法操作。',
                         style: TextStyle(fontSize: 16)),
                     const SizedBox(height: 12),

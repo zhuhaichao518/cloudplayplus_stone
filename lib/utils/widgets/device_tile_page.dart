@@ -152,6 +152,7 @@ class _DeviceDetailPageState extends State<DeviceDetailPage> {
           }
           WidgetsBinding.instance.addPostFrameCallback((_) {
             ScreenController.showDetailUseScrollView.value = true;
+            ScreenController.setOnlyShowRemoteScreen(false);
           });
           return SingleChildScrollView(
             padding:
