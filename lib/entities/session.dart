@@ -397,8 +397,9 @@ class StreamingSession {
 
     pc!.onConnectionState = (state) {
       if (state == RTCPeerConnectionState.RTCPeerConnectionStateConnected) {
+        //TODO: 以system身份启动时 这里会崩 因此暂时不报连接
         if (AppPlatform.isDeskTop &&
-            /*ApplicationInfo.isSystem &&*/
+            !ApplicationInfo.isSystem &&
             selfSessionType == SelfSessionType.controlled) {
           NotificationManager().initialize();
           NotificationManager().showSimpleNotification(
