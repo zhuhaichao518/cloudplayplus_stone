@@ -24,6 +24,8 @@ class SystemTrayManager {
   }) async {
     if (_isInitialized) return;
 
+    // TODO:不明bug导致hide的时候闪退。
+    if (Platform.isMacOS) return;
     // 处理 macOS Dock 图标
     if ((Platform.isMacOS && hideDockIconOnStart)) {
       appWindow.hide();
@@ -40,7 +42,7 @@ class SystemTrayManager {
     // 注册托盘事件
     _systemTray.registerSystemTrayEventHandler(_handleTrayEvent);
 
-    if (AppPlatform.isWindows && ApplicationInfo.isSystem) {
+    if (AppPlatform.isDeskTop && ApplicationInfo.isSystem) {
       FlutterWindowClose.setWindowShouldCloseHandler(() async {
         appWindow.hide();
         return false; // 阻止默认关闭行为
@@ -84,13 +86,8 @@ class SystemTrayManager {
     return Platform.isWindows ? '$basePath.ico' : '$basePath.png';
   }
 
-  // 公共操作方法
   void showWindow() {
     appWindow.show();
-    if (Platform.isMacOS) {
-      appWindow.minimize();
-      appWindow.restore();
-    }
   }
 
   void hideWindow() => appWindow.hide();
