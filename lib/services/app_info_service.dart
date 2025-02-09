@@ -87,4 +87,6 @@ class AppPlatform {
   static final bool isLinux = !kIsWeb && Platform.isLinux;
   static final bool isDeskTop =
       !kIsWeb && (Platform.isLinux || Platform.isWindows || Platform.isMacOS);
+  static final bool isMobile =
+      !kIsWeb && (Platform.isAndroid || Platform.isIOS);
 }

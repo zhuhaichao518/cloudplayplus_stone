@@ -262,8 +262,8 @@ class _DeviceDetailPageState extends State<DeviceDetailPage> {
                           ),
                         ),
                       )
-                    : widget.device.websocketSessionid !=
-                            ApplicationInfo.thisDevice.websocketSessionid
+                    : (widget.device.websocketSessionid !=
+                            ApplicationInfo.thisDevice.websocketSessionid || AppPlatform.isMobile)
                         ? const SizedBox()
                         : ApplicationInfo
                                 .connectable /* || (AppPlatform.isWindows && (ApplicationInfo.isSystem || SharedPreferencesManager.getBool('allowConnect')==true))*/
