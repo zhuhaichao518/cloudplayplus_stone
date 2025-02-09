@@ -41,6 +41,7 @@ void main() async {
       appWindow.alignment = Alignment.center;
       //如果用户选择了系统身份启动 直接关闭自己重新以系统身份启动
       if (AppPlatform.isWindows && !ApplicationInfo.isSystem) {
+        appWindow.hide();
         AppInitService.appInitState.then((state) async {
           bool runAsSystemOnStart =
               SharedPreferencesManager.getBool('runAsSystemOnStart') ?? false;
