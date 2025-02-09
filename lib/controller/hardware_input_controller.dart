@@ -4,6 +4,7 @@ import 'dart:typed_data';
 
 import 'package:cloudplayplus/base/logging.dart';
 import 'package:cloudplayplus/controller/gamepad_controller.dart';
+import 'package:cloudplayplus/global_settings/streaming_settings.dart';
 import 'package:cloudplayplus/services/app_info_service.dart';
 import 'package:cloudplayplus/services/webrtc_service.dart';
 import 'package:cloudplayplus/utils/widgets/cursor_change_widget.dart';
@@ -524,7 +525,8 @@ class InputController {
             remotecursor = SystemMouseCursors.basic;
         }
         _cursorContext?.read<MouseStyleBloc>().setCursor(remotecursor);
-      } else if (message == HardwareSimulator.CURSOR_INVISIBLE) {
+      } else if (message == HardwareSimulator.CURSOR_INVISIBLE &&
+          StreamingSettings.autoHideLocalCursor) {
         //lock cursor will start tracing mouse.
         isCursorLocked = true;
         HardwareSimulator.lockCursor();
@@ -533,7 +535,8 @@ class InputController {
           HardwareSimulator.addCursorPressed(cursorPressedCallback);
           HardwareSimulator.addCursorWheel(cursorWheelCallback);
         }
-      } else if (message == HardwareSimulator.CURSOR_VISIBLE) {
+      } else if (message == HardwareSimulator.CURSOR_VISIBLE &&
+          StreamingSettings.autoHideLocalCursor) {
         isCursorLocked = false;
         HardwareSimulator.unlockCursor();
         HardwareSimulator.removeCursorMoved(cursorMovedCallback);

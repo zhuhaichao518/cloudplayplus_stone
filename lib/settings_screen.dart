@@ -1,6 +1,7 @@
 import 'package:cloudplayplus/dev_settings.dart/develop_settings.dart';
 import 'package:cloudplayplus/global_settings/streaming_settings.dart';
 import 'package:cloudplayplus/pages/login_screen.dart';
+import 'package:cloudplayplus/services/app_info_service.dart';
 import 'package:cloudplayplus/services/secure_storage_manager.dart';
 import 'package:cloudplayplus/services/websocket_service.dart';
 import 'package:flutter/cupertino.dart';
@@ -44,27 +45,39 @@ class _SettingsScreenState extends State<SettingsScreen> {
             title: const Text('串流设置'),
             tiles: <SettingsTile>[
               SettingsTile.navigation(
-                leading: Icon(Icons.computer),
-                title: Text('音视频设置'),
+                leading: const Icon(Icons.computer),
+                title: const Text('音视频设置'),
                 onPressed: (context) {
                   Navigation.navigateTo(
                     context: context,
-                    screen: StreamingSettingsScreen(),
+                    screen: const StreamingSettingsScreen(),
                     style: NavigationRouteStyle.cupertino,
                   );
                 },
               ),
               SettingsTile.navigation(
-                leading: Icon(Icons.computer),
-                title: Text('网络设置'),
+                leading: const Icon(Icons.computer),
+                title: const Text('网络设置'),
                 onPressed: (context) {
                   Navigation.navigateTo(
                     context: context,
-                    screen: NetworkSettingsScreen(),
+                    screen: const NetworkSettingsScreen(),
                     style: NavigationRouteStyle.cupertino,
                   );
                 },
               ),
+              if (!AppPlatform.isMobile)
+                SettingsTile.navigation(
+                  leading: const Icon(Icons.computer),
+                  title: const Text('鼠标设置'),
+                  onPressed: (context) {
+                    Navigation.navigateTo(
+                      context: context,
+                      screen: const CursorSettingsScreen(),
+                      style: NavigationRouteStyle.cupertino,
+                    );
+                  },
+                ),
             ],
           ),
           SettingsSection(
@@ -545,6 +558,61 @@ class _NetworkSettingsScreenState extends State<NetworkSettingsScreen> {
                       ),
                     ),
                   ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class CursorSettingsScreen extends StatefulWidget {
+  const CursorSettingsScreen({super.key});
+
+  @override
+  _CursorSettingsScreenState createState() => _CursorSettingsScreenState();
+}
+
+class _CursorSettingsScreenState extends State<CursorSettingsScreen> {
+  bool autoHideLocalCursor = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadSettings();
+  }
+
+  Future<void> _loadSettings() async {
+    autoHideLocalCursor = StreamingSettings.autoHideLocalCursor;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return CupertinoPageScaffold(
+      navigationBar: CupertinoNavigationBar(middle: const Text('鼠标设置')),
+      child: SafeArea(
+        bottom: false,
+        child: SettingsList(
+          applicationType: ApplicationType.cupertino,
+          //platform: DevicePlatform.iOS,
+          sections: [
+            SettingsSection(
+              title: const Text('自动隐藏本地鼠标'),
+              tiles: [
+                SettingsTile.switchTile(
+                  title: const Text('远程鼠标隐藏时，自动锁定本地鼠标(第一人称游戏建议开启)'),
+                  leading: const Icon(Icons.mouse),
+                  initialValue: autoHideLocalCursor,
+                  onToggle: (bool value) {
+                    setState(() {
+                      autoHideLocalCursor = value;
+                      StreamingSettings.autoHideLocalCursor = value;
+                      SharedPreferencesManager.setBool(
+                          "autoHideLocalCursor", value);
+                    });
+                  },
                 ),
               ],
             ),

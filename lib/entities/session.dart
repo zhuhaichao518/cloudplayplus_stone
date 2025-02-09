@@ -403,7 +403,8 @@ class StreamingSession {
             selfSessionType == SelfSessionType.controlled) {
           NotificationManager().initialize();
           NotificationManager().showSimpleNotification(
-              title: "${controller.nickname} (${controller.devicetype})的连接", body: "${controller.devicename}连接到了本设备");
+              title: "${controller.nickname} (${controller.devicetype})的连接",
+              body: "${controller.devicename}连接到了本设备");
         }
       }
     };

@@ -37,6 +37,8 @@ class StreamingSettings {
   static int? targetScreenId;
   static String? connectPassword;
 
+  static bool autoHideLocalCursor = true;
+
   static void init() {
     framerate =
         SharedPreferencesManager.getInt('framerate') ?? 60; // Default to 60
@@ -79,6 +81,9 @@ class StreamingSettings {
 
     connectPasswordHash =
         SharedPreferencesManager.getString('connectPasswordHash') ?? "";
+
+    autoHideLocalCursor = SharedPreferencesManager.getBool('autoHideCursor') ??
+        (AppPlatform.isDeskTop || AppPlatform.isWeb);
   }
 
   //Screen id setting is not global, so we need to call before start streaming.
