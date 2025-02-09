@@ -370,6 +370,9 @@ class _DeviceDetailPageState extends State<DeviceDetailPage> {
     if (AppPlatform.isWindows) {
       //这样写会有个问题就是用户打开系统权限的app取消注册会退出app 暂时先这样吧
       //HardwareSimulator.unregisterService();
+      if (ApplicationInfo.isSystem) {
+        SharedPreferencesManager.setBool('runAsSystemOnStart', false);
+      }
     }
   }
 
@@ -398,7 +401,10 @@ class _DeviceDetailPageState extends State<DeviceDetailPage> {
       );
       if (result1 != null) {
         await HardwareSimulator.registerService();
-        Future.delayed(const Duration(seconds: 2), () {
+        SystemTrayManager().hideWindow();
+        SharedPreferencesManager.setBool('runAsSystemOnStart', true);
+        //5秒内不点确定 视为取消
+        Future.delayed(const Duration(seconds: 5), () {
           SystemTrayManager().exitApp();
         });
       }
@@ -440,6 +446,10 @@ class _DeviceDetailPageState extends State<DeviceDetailPage> {
       SharedPreferencesManager.setString("connectPasswordHash", hash);
       ApplicationInfo.connectable = true;
       StreamingSettings.connectPasswordHash = hash;
+
+      if (ApplicationInfo.isSystem) {
+        SharedPreferencesManager.setBool('runAsSystemOnStart', true);
+      }
     }
     setState(() {});
     WebSocketService.updateDeviceInfo();
