@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:cloudplayplus/global_settings/streaming_settings.dart';
@@ -37,7 +38,10 @@ class WebSocketService {
 
   static Function(dynamic list)? onDeviceListchanged;
 
+  static bool should_be_connected = false;
+
   static void init() async {
+    should_be_connected = true;
     if (connectionState == WebSocketConnectionState.connecting) {
       return;
     }
@@ -95,6 +99,17 @@ class WebSocketService {
 
     _socket?.onClose = (code, message) async {
       connectionState = WebSocketConnectionState.disconnected;
+      if (should_be_connected) {
+        Timer.periodic(const Duration(seconds: 60), (Timer timer) async {
+          _socket?.close();
+          _socket = null;
+          init();
+          // 检查是否已经连接成功，如果是，则取消定时器
+          if (connectionState == WebSocketConnectionState.connected) {
+            timer.cancel();
+          }
+        });
+      }
       VLOG0(code);
       VLOG0(message);
     };
@@ -111,12 +126,14 @@ class WebSocketService {
   }
 
   static Future<void> reconnect() async {
+    should_be_connected = true;
     _socket?.close();
     _socket = null;
     init();
   }
 
   static Future<void> disconnect() async {
+    should_be_connected = false;
     _socket?.close();
     _socket = null;
   }
