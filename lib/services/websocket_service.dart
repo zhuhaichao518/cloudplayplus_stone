@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:cloudplayplus/global_settings/streaming_settings.dart';
+import 'package:cloudplayplus/services/login_service.dart';
 import 'package:cloudplayplus/services/shared_preferences_manager.dart';
 import 'package:cloudplayplus/services/streamed_manager.dart';
 import 'package:cloudplayplus/services/streaming_manager.dart';
@@ -52,14 +53,35 @@ class WebSocketService {
       _baseUrl = 'ws://101.132.58.198:8001/ws/';
     }
     String? accessToken;
+    String? refreshToken;
     if (DevelopSettings.useSecureStorage) {
-      accessToken = await SecureStorageManager.getString("access_token");
+      accessToken = await SecureStorageManager.getString('access_token');
+      refreshToken = await SecureStorageManager.getString('refresh_token');
     } else {
-      accessToken = SharedPreferencesManager.getString("access_token");
+      accessToken = SharedPreferencesManager.getString('access_token');
+      refreshToken = SharedPreferencesManager.getString('refresh_token');
     }
-    if (accessToken == null) {
+    if (accessToken == null || refreshToken == null) {
       //TODO(haichao): show error dialog.
+      VLOG0("error: no access token");
+      return;
     }
+
+    if (!LoginService.isTokenValid(accessToken)){
+      final newAccessToken = await LoginService.doRefreshToken(refreshToken);
+      if (newAccessToken != null && LoginService.isTokenValid(newAccessToken)) {
+        if (DevelopSettings.useSecureStorage) {
+          await SecureStorageManager.setString('access_token', newAccessToken);
+        } else {
+          await SharedPreferencesManager.setString(
+              'access_token', newAccessToken);
+        }
+        accessToken = newAccessToken;
+      } else {
+        return;
+      }
+    }
+
     var url = '$_baseUrl?token=$accessToken';
     _socket = SimpleWebSocket(url);
     connectionState = WebSocketConnectionState.connecting;

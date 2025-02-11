@@ -73,7 +73,7 @@ class LoginService {
     return http.Response(responseBody, response.statusCode, headers: headerMap);
   }
 
-  static Future<String?> _refreshToken(String refreshToken) async {
+  static Future<String?> doRefreshToken(String refreshToken) async {
     Uri refreshTokenEndpoint = Uri.parse('$_baseUrl/api/token/refresh/');
     final response = await http.post(
       refreshTokenEndpoint,
@@ -258,7 +258,7 @@ class LoginService {
     } else if (isTokenValid(accessToken)) {
       return await loginWithToken(accessToken);
     } else {
-      final newAccessToken = await _refreshToken(refreshToken!);
+      final newAccessToken = await doRefreshToken(refreshToken);
       if (newAccessToken != null && isTokenValid(newAccessToken)) {
         if (DevelopSettings.useSecureStorage) {
           await SecureStorageManager.setString('access_token', newAccessToken);
