@@ -486,10 +486,29 @@ class InputController {
             remotecursor = SystemMouseCursors.basic;
             break;
           case 32642: // IDC_SIZENWSE
-            remotecursor = SystemMouseCursors.resizeUpLeftDownRight;
+            if(AppPlatform.isMacos) {
+              //macos的对角缩放指针没有写文档 所以flutter未支持。加载本地该资源。
+              if (cachedCursors.containsKey(32642)){
+                remotecursor = cachedCursors[32642]!;
+              } else {
+                cachedCursors[32642]  = await CustomMouseCursor.asset('assets/cursors/resizenorthwestsoutheast.png',  hotX:16, hotY:16 );
+                remotecursor = cachedCursors[32642]!;
+              }
+            } else {
+              remotecursor = SystemMouseCursors.resizeUpLeftDownRight;
+            }
             break;
           case 32643: // IDC_SIZENESW
-            remotecursor = SystemMouseCursors.resizeUpRightDownLeft;
+            if(AppPlatform.isMacos) {
+              if (cachedCursors.containsKey(32643)){
+                remotecursor = cachedCursors[32643]!;
+              } else {
+                cachedCursors[32642]  = await CustomMouseCursor.asset('assets/cursors/resizenortheastsouthwest.png',  hotX:16, hotY:16 );
+                remotecursor = cachedCursors[32643]!;
+              }
+            } else {
+              remotecursor = SystemMouseCursors.resizeUpRightDownLeft;
+            }
             break;
           case 32644: // IDC_SIZEWE
             remotecursor = SystemMouseCursors.resizeLeftRight;

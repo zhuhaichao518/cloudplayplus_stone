@@ -141,6 +141,8 @@ flutter:
   assets:
     - assets/images/cpp_logo.png
     - assets/images/cpp_logo.ico
+    - assets/cursors/resizenorthwestsoutheast.png
+    - assets/cursors/resizenortheastsouthwest.png
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware
