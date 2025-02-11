@@ -503,7 +503,7 @@ class InputController {
               if (cachedCursors.containsKey(32643)){
                 remotecursor = cachedCursors[32643]!;
               } else {
-                cachedCursors[32642]  = await CustomMouseCursor.asset('assets/cursors/resizenortheastsouthwest.png',  hotX:16, hotY:16 );
+                cachedCursors[32643]  = await CustomMouseCursor.asset('assets/cursors/resizenortheastsouthwest.png',  hotX:16, hotY:16 );
                 remotecursor = cachedCursors[32643]!;
               }
             } else {
