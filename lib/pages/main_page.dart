@@ -77,8 +77,7 @@ class _MainScreenState extends State<MainScreen> {
                       },
                     ),
                     const SizedBox(width: 20.0, height: 30.0),
-                    const Text('正在被以下客户端远程连接。',
-                        style: TextStyle(fontSize: 16)),
+                    const Text('正在被以下客户端远程连接。', style: TextStyle(fontSize: 16)),
                     const SizedBox(height: 12),
                     Table(
                       border: TableBorder.all(),

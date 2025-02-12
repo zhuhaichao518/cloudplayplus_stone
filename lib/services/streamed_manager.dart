@@ -2,7 +2,7 @@ import 'package:cloudplayplus/global_settings/streaming_settings.dart';
 import 'package:cloudplayplus/utils/hash_util.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
-import 'package:mutex/mutex.dart';
+import 'package:synchronized/synchronized.dart';
 
 import '../base/logging.dart';
 import '../entities/device.dart';
@@ -44,99 +44,91 @@ class StreamedManager {
     if (settings.connectPassword == null) return;
     if (StreamingSettings.connectPasswordHash !=
         HashUtil.hash(settings.connectPassword!)) return;
-    acquireLock();
-    if (sessions.containsKey(target.websocketSessionid)) {
-      VLOG0(
-          "Starting session which is already started: $target.websocketSessionid");
-      releaseLock();
-      return;
-    }
-    if (!localVideoStreams.containsKey(settings.screenId)) {
-      final Map<String, dynamic> mediaConstraints;
-      if (AppPlatform.isWeb) {
-        mediaConstraints = {
-          'audio': false,
-          'video': {
-            'frameRate': {
-              'ideal': settings.framerate,
-              'max': settings.framerate
-            }
-          }
-        };
-      } else {
-        var sources =
-            await desktopCapturer.getSources(types: [SourceType.Screen]);
-        //Todo(haichao): currently this should have no effect. we should change it to be right.
-        final source = sources[settings.screenId!];
-        mediaConstraints = <String, dynamic>{
-          'video': {
-            'deviceId': {'exact': source.id},
-            'mandatory': {
-              'frameRate': settings.framerate,
-              'hasCursor': settings.showRemoteCursor
-            }
-          },
-          'audio': false
-        };
-      }
-      try {
-        localVideoStreams[settings.screenId!] =
-            await navigator.mediaDevices.getDisplayMedia(mediaConstraints);
-        localVideoStreamsCount[settings.screenId!] = 1;
-      } catch (e) {
-        //This happens on Web when user choose not to share the content.
-        VLOG0("getDisplayMedia failed.$e");
-        releaseLock();
+
+    await _lock.synchronized(() async {
+      if (sessions.containsKey(target.websocketSessionid)) {
+        VLOG0(
+            "Starting session which is already started: $target.websocketSessionid");
         return;
       }
-    } else {
-      localVideoStreamsCount[settings.screenId!] =
-          localVideoStreamsCount[settings.screenId!]! + 1;
-    }
-    StreamingSession session =
-        StreamingSession(target, ApplicationInfo.thisDevice);
-    cursorImageHookID++;
-    session.cursorImageHookID = cursorImageHookID;
-    session.acceptRequest(settings);
-    sessions[target.websocketSessionid] = session;
-    setCurrentStreamedState(sessions.length);
-    releaseLock();
+      if (!localVideoStreams.containsKey(settings.screenId)) {
+        final Map<String, dynamic> mediaConstraints;
+        if (AppPlatform.isWeb) {
+          mediaConstraints = {
+            'audio': false,
+            'video': {
+              'frameRate': {
+                'ideal': settings.framerate,
+                'max': settings.framerate
+              }
+            }
+          };
+        } else {
+          var sources =
+              await desktopCapturer.getSources(types: [SourceType.Screen]);
+          //Todo(haichao): currently this should have no effect. we should change it to be right.
+          final source = sources[settings.screenId!];
+          mediaConstraints = <String, dynamic>{
+            'video': {
+              'deviceId': {'exact': source.id},
+              'mandatory': {
+                'frameRate': settings.framerate,
+                'hasCursor': settings.showRemoteCursor
+              }
+            },
+            'audio': false
+          };
+        }
+        try {
+          localVideoStreams[settings.screenId!] =
+              await navigator.mediaDevices.getDisplayMedia(mediaConstraints);
+          localVideoStreamsCount[settings.screenId!] = 1;
+        } catch (e) {
+          //This happens on Web when user choose not to share the content.
+          VLOG0("getDisplayMedia failed.$e");
+          return;
+        }
+      } else {
+        localVideoStreamsCount[settings.screenId!] =
+            localVideoStreamsCount[settings.screenId!]! + 1;
+      }
+      StreamingSession session =
+          StreamingSession(target, ApplicationInfo.thisDevice);
+      cursorImageHookID++;
+      session.cursorImageHookID = cursorImageHookID;
+      session.acceptRequest(settings);
+      sessions[target.websocketSessionid] = session;
+      setCurrentStreamedState(sessions.length);
+    });
   }
 
-  static final locker = Mutex();
-
-  static void acquireLock() {
-    locker.acquire();
-  }
-
-  static void releaseLock() {
-    locker.release();
-  }
+  static final _lock = Lock();
 
   static void stopStreaming(Device target) {
-    acquireLock();
-    if (sessions.containsKey(target.websocketSessionid)) {
-      StreamingSession? session = sessions[target.websocketSessionid];
-      session?.stop();
-      int screenId = session!.streamSettings!.screenId!;
-      sessions.remove(target.websocketSessionid);
-      localVideoStreamsCount[screenId] = localVideoStreamsCount[screenId]! - 1;
-      if (localVideoStreamsCount[screenId] == 0) {
-        if (localVideoStreams[screenId] != null) {
-          localVideoStreams[screenId]?.getTracks().forEach((track) {
-            track.stop();
-          });
-          localVideoStreams.remove(screenId);
+    _lock.synchronized(() {
+      if (sessions.containsKey(target.websocketSessionid)) {
+        StreamingSession? session = sessions[target.websocketSessionid];
+        session?.stop();
+        int screenId = session!.streamSettings!.screenId!;
+        sessions.remove(target.websocketSessionid);
+        localVideoStreamsCount[screenId] =
+            localVideoStreamsCount[screenId]! - 1;
+        if (localVideoStreamsCount[screenId] == 0) {
+          if (localVideoStreams[screenId] != null) {
+            localVideoStreams[screenId]?.getTracks().forEach((track) {
+              track.stop();
+            });
+            localVideoStreams.remove(screenId);
+          }
         }
+        if (sessions.isEmpty) {
+          //TODO(Haichao): maybe restart app to save memory? 给用户一个按钮来重启app.
+        }
+      } else {
+        VLOG0("No session found with sessionId: $target.websocketSessionid");
       }
-      if (sessions.isEmpty) {
-        //TODO(Haichao): maybe restart app to save memory? 给用户一个按钮来重启app.
-      }
-    } else {
-      VLOG0("No session found with sessionId: $target.websocketSessionid");
-    }
-    setCurrentStreamedState(sessions.length);
-    releaseLock();
+      setCurrentStreamedState(sessions.length);
+    });
   }
 
   static void onAnswerReceived(

@@ -11,7 +11,7 @@ import 'package:cloudplayplus/services/webrtc_service.dart';
 import 'package:cloudplayplus/webrtctest/rtc_service_impl.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
-import 'package:mutex/mutex.dart';
+import 'package:synchronized/synchronized.dart';
 
 class AudioSession {
   RTCDataChannel channel;
@@ -102,15 +102,7 @@ class AudioSession {
     };
   }
 
-  final locker = Mutex();
-
-  void acquireLock() {
-    locker.acquire();
-  }
-
-  void releaseLock() {
-    locker.release();
-  }
+  final _lock = Lock();
 
   Map<String, dynamic> _getMediaConstraints({audio = true, video = true}) {
     return {
@@ -132,23 +124,23 @@ class AudioSession {
   //host
   //调用这里时进行lock 防止candidate先到
   Future<void> audioRequested() async {
-    acquireLock();
-    // currently only support windows.
-    //if (!AppPlatform.isWindows) return;
-    if (!StreamedManager.localAudioStreams.containsKey(AUDIO_SYSTEM)) {
-      if (AppPlatform.isWindows) {
-        Helper.selectAudioInput("system");
-      }
+    await _lock.synchronized(() async {
+      // currently only support windows.
+      //if (!AppPlatform.isWindows) return;
+      if (!StreamedManager.localAudioStreams.containsKey(AUDIO_SYSTEM)) {
+        if (AppPlatform.isWindows) {
+          Helper.selectAudioInput("system");
+        }
 
-      //StreamedManager.localAudioStreams[AUDIO_SYSTEM] = await navigator.mediaDevices.getUserMedia(mediaConstraints);
-      StreamedManager.localAudioStreams[AUDIO_SYSTEM] = await navigator
-          .mediaDevices
-          .getUserMedia(_getMediaConstraints(audio: true, video: false));
-      //var devices = await navigator.mediaDevices.enumerateDevices();
-      //Helper.selectAudioInput(devices[0].deviceId);
-    }
-    pc = await createRTCPeerConnection();
-    releaseLock();
+        //StreamedManager.localAudioStreams[AUDIO_SYSTEM] = await navigator.mediaDevices.getUserMedia(mediaConstraints);
+        StreamedManager.localAudioStreams[AUDIO_SYSTEM] = await navigator
+            .mediaDevices
+            .getUserMedia(_getMediaConstraints(audio: true, video: false));
+        //var devices = await navigator.mediaDevices.enumerateDevices();
+        //Helper.selectAudioInput(devices[0].deviceId);
+      }
+      pc = await createRTCPeerConnection();
+    });
 
     if (StreamedManager.localAudioStreams[AUDIO_SYSTEM] != null) {
       StreamedManager.localAudioStreams[AUDIO_SYSTEM]!
@@ -260,16 +252,16 @@ class AudioSession {
   }
 */
   Future<void> addCandidate(RTCIceCandidate candidate) async {
-    acquireLock();
-    if (pc == null) {
-      // This can not be triggered if we await properly. Keep this and We may resue this list in the future.
-      VLOG0("-----warning:this should not be triggered.");
-      candidates.add(candidate);
-    } else {
-      VLOG0("adding candidate");
-      await pc!.addCandidate(candidate);
-    }
-    releaseLock();
+    await _lock.synchronized(() async {
+      if (pc == null) {
+        // This can not be triggered if we await properly. Keep this and We may resue this list in the future.
+        VLOG0("-----warning:this should not be triggered.");
+        candidates.add(candidate);
+      } else {
+        VLOG0("adding candidate");
+        await pc!.addCandidate(candidate);
+      }
+    });
   }
 
   //TODO(haichao): answer,dispose, offer&answer in sessions.dart.

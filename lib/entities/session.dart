@@ -12,10 +12,9 @@ import 'package:cloudplayplus/services/websocket_service.dart';
 import 'package:cloudplayplus/utils/notifications/notification_manager.dart';
 import 'package:cloudplayplus/utils/widgets/message_box.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'package:hardware_simulator/hardware_simulator.dart';
-import 'package:mutex/mutex.dart';
+import 'package:synchronized/synchronized.dart';
 
 import '../base/logging.dart';
 import '../global_settings/streaming_settings.dart';
@@ -98,6 +97,8 @@ class StreamingSession {
 
   AudioSession? audioSession;
 
+  final _lock = Lock();
+
   StreamingSession(this.controller, this.controlled) {
     connectionState = StreamingSessionConnectionState.free;
     //controlled.connectionState.value = StreamingSessionConnectionState.free;
@@ -119,38 +120,40 @@ class StreamingSession {
     }
     selfSessionType = SelfSessionType.controller;
 
-    acquireLock();
-    restartPingTimeoutTimer();
-    controlled.connectionState.value =
-        StreamingSessionConnectionState.connceting;
+    await _lock.synchronized(() async {
+      restartPingTimeoutTimer();
+      controlled.connectionState.value =
+          StreamingSessionConnectionState.connceting;
 
-    streamSettings = StreamedSettings.fromJson(StreamingSettings.toJson());
-    connectionState = StreamingSessionConnectionState.requestSent;
-    pc = await createRTCPeerConnection();
+      streamSettings = StreamedSettings.fromJson(StreamingSettings.toJson());
+      connectionState = StreamingSessionConnectionState.requestSent;
+      pc = await createRTCPeerConnection();
 
-    pc!.onConnectionState = (state) {
-      if (state == RTCPeerConnectionState.RTCPeerConnectionStateConnecting) {
-        controlled.connectionState.value =
-            StreamingSessionConnectionState.connceting;
-      }
-      if (state == RTCPeerConnectionState.RTCPeerConnectionStateConnected) {
-        //有些时候即使未能建立连接也报connected，因此依然需要pingpong message.
-        controlled.connectionState.value =
-            StreamingSessionConnectionState.connected;
-      } else if (state == RTCPeerConnectionState.RTCPeerConnectionStateFailed) {
-        controlled.connectionState.value =
-            StreamingSessionConnectionState.disconnected;
-        MessageBoxManager()
-            .showMessage("未能建立连接。请切换网络重试或在设置中启动turn服务器。", "连接失败");
-        close();
-      } else if (state == RTCPeerConnectionState.RTCPeerConnectionStateClosed) {
-        controlled.connectionState.value =
-            StreamingSessionConnectionState.disconnected;
-      }
-    };
+      pc!.onConnectionState = (state) {
+        if (state == RTCPeerConnectionState.RTCPeerConnectionStateConnecting) {
+          controlled.connectionState.value =
+              StreamingSessionConnectionState.connceting;
+        }
+        if (state == RTCPeerConnectionState.RTCPeerConnectionStateConnected) {
+          //有些时候即使未能建立连接也报connected，因此依然需要pingpong message.
+          controlled.connectionState.value =
+              StreamingSessionConnectionState.connected;
+        } else if (state ==
+            RTCPeerConnectionState.RTCPeerConnectionStateFailed) {
+          controlled.connectionState.value =
+              StreamingSessionConnectionState.disconnected;
+          MessageBoxManager()
+              .showMessage("未能建立连接。请切换网络重试或在设置中启动turn服务器。", "连接失败");
+          close();
+        } else if (state ==
+            RTCPeerConnectionState.RTCPeerConnectionStateClosed) {
+          controlled.connectionState.value =
+              StreamingSessionConnectionState.disconnected;
+        }
+      };
 
-    pc!.onIceCandidate = (candidate) async {
-      /*if (streamSettings!.turnServerSettings == 2) {
+      pc!.onIceCandidate = (candidate) async {
+        /*if (streamSettings!.turnServerSettings == 2) {
         if (!candidate.candidate!.contains("srflx")) {
           return;
         }
@@ -161,71 +164,71 @@ class StreamingSession {
         }
       }*/
 
-      /*if (candidate.candidate!.contains("srflx")) {
+        /*if (candidate.candidate!.contains("srflx")) {
           return;
         }
       if (!candidate.candidate!.contains("192.168")) {
         return;
       }*/
-      // We are controller so source is ourself
-      await Future.delayed(
-          const Duration(seconds: 1),
-          //controller's candidate
-          () => WebSocketService.send('candidate2', {
-                'source_connectionid': controller.websocketSessionid,
-                'target_uid': controlled.uid,
-                'target_connectionid': controlled.websocketSessionid,
-                'candidate': {
-                  'sdpMLineIndex': candidate.sdpMLineIndex,
-                  'sdpMid': candidate.sdpMid,
-                  'candidate': candidate.candidate,
-                },
-              }));
-    };
+        // We are controller so source is ourself
+        await Future.delayed(
+            const Duration(seconds: 1),
+            //controller's candidate
+            () => WebSocketService.send('candidate2', {
+                  'source_connectionid': controller.websocketSessionid,
+                  'target_uid': controlled.uid,
+                  'target_connectionid': controlled.websocketSessionid,
+                  'candidate': {
+                    'sdpMLineIndex': candidate.sdpMLineIndex,
+                    'sdpMid': candidate.sdpMid,
+                    'candidate': candidate.candidate,
+                  },
+                }));
+      };
 
-    pc!.onTrack = (event) {
-      connectionState = StreamingSessionConnectionState.connected;
-      /*controlled.connectionState.value =
+      pc!.onTrack = (event) {
+        connectionState = StreamingSessionConnectionState.connected;
+        /*controlled.connectionState.value =
           StreamingSessionConnectionState.connected;*/
-      //tell the device tile page to render the rtc video.
-      //StreamingManager.runUserViewCallback();
-      WebrtcService.addStream(controlled.websocketSessionid, event);
-      //rtcvideoKey.currentState?.updateVideoRenderer(event.track.kind!, event.streams[0]);
-      //We used to this function to render the control. Currently we use overlay for convenience.
-      //onAddRemoteStream?.call(event.track.kind!, event.streams[0]);
-    };
-    pc!.onDataChannel = (newchannel) async {
-      if (newchannel.label == "userInputUnsafe") {
-        UDPChannel = newchannel;
-        inputController = InputController(UDPChannel!, false);
-        //This channel is only used to send unsafe user input
-        /*
+        //tell the device tile page to render the rtc video.
+        //StreamingManager.runUserViewCallback();
+        WebrtcService.addStream(controlled.websocketSessionid, event);
+        //rtcvideoKey.currentState?.updateVideoRenderer(event.track.kind!, event.streams[0]);
+        //We used to this function to render the control. Currently we use overlay for convenience.
+        //onAddRemoteStream?.call(event.track.kind!, event.streams[0]);
+      };
+      pc!.onDataChannel = (newchannel) async {
+        if (newchannel.label == "userInputUnsafe") {
+          UDPChannel = newchannel;
+          inputController = InputController(UDPChannel!, false);
+          //This channel is only used to send unsafe user input
+          /*
         channel?.onMessage = (msg) {
         };*/
-      } else {
-        channel = newchannel;
-        if (!useUnsafeDatachannel) {
-          inputController = InputController(channel!, true);
+        } else {
+          channel = newchannel;
+          if (!useUnsafeDatachannel) {
+            inputController = InputController(channel!, true);
+          }
+          channel?.onMessage = (msg) {
+            processDataChannelMessageFromHost(msg);
+          };
+          if (StreamingSettings.streamAudio!) {
+            audioSession = AudioSession(channel!, controller, controlled);
+            await audioSession!.requestAudio();
+          }
+          await channel?.send(RTCDataChannelMessage.fromBinary(
+              Uint8List.fromList([LP_PING, RP_PING])));
         }
-        channel?.onMessage = (msg) {
-          processDataChannelMessageFromHost(msg);
-        };
-        if (StreamingSettings.streamAudio!) {
-          audioSession = AudioSession(channel!, controller, controlled);
-          await audioSession!.requestAudio();
-        }
-        await channel?.send(RTCDataChannelMessage.fromBinary(
-            Uint8List.fromList([LP_PING, RP_PING])));
-      }
-    };
-    screenId = StreamingSettings.targetScreenId!;
-    // read the latest settings from user settings.
-    WebSocketService.send('requestRemoteControl', {
-      'target_uid': ApplicationInfo.user.uid,
-      'target_connectionid': controlled.websocketSessionid,
-      'settings': StreamingSettings.toJson(),
+      };
+      screenId = StreamingSettings.targetScreenId!;
+      // read the latest settings from user settings.
+      WebSocketService.send('requestRemoteControl', {
+        'target_uid': ApplicationInfo.user.uid,
+        'target_connectionid': controlled.websocketSessionid,
+        'settings': StreamingSettings.toJson(),
+      });
     });
-    releaseLock();
   }
 
   Future<RTCPeerConnection> createRTCPeerConnection() async {
@@ -296,189 +299,171 @@ class StreamingSession {
   //accept request and send offer to the peer. you should verify this is authorized before calling this funciton.
   //We are the 'controlled'.
   void acceptRequest(StreamedSettings settings) async {
-    acquireLock();
-    if (settings.hookCursorImage == true && AppPlatform.isDeskTop) {
-      HardwareSimulator.addCursorImageUpdated(
-          onLocalCursorImageMessage, cursorImageHookID);
-    }
-    if (connectionState != StreamingSessionConnectionState.free &&
-        connectionState != StreamingSessionConnectionState.disconnected) {
-      VLOG0("starting connection on which is already started. Please debug.");
-      releaseLock();
-      return;
-    }
-    if (controlled.websocketSessionid != AppStateService.websocketSessionid) {
-      VLOG0("requiring connection on wrong device. Please debug.");
-      releaseLock();
-      return;
-    }
-    selfSessionType = SelfSessionType.controlled;
-    restartPingTimeoutTimer();
-    streamSettings = settings;
-
-    pc = await createRTCPeerConnection();
-
-    if (StreamedManager.localVideoStreams[settings.screenId] != null) {
-      // one track expected.
-      screenId = settings.screenId!;
-      StreamedManager.localVideoStreams[settings.screenId]!
-          .getTracks()
-          .forEach((track) async {
-        videoSender = (await pc!.addTrack(
-            track, StreamedManager.localVideoStreams[settings.screenId]!));
-      });
-    }
-
-    /* deprecated. using RTCutils instead.
-  // Retrieve all transceivers from the PeerConnection
-  var transceivers = await pc!.getTransceivers();
-
-  // Get the RTP sender capabilities for video
-  var vcaps = await getRtpSenderCapabilities('video');
-
-  // Filter to get only the H.264 codecs from the available capabilities
-  // webrtc有白名单限制，默认高通cpu三星猎户座，其他cpu一般是不支持的
-  // 这些设备需要修改webrtc源码来支持 否则不能使用H264
-  // https://github.com/flutter-webrtc/flutter-webrtc/issues/182
-  // 我的macbook max上 h264性能很差 web端setCodecPreferences格式也不对 会fallback到别的编码器
-  for (var transceiver in transceivers) {
-    var codecs = vcaps.codecs
-            ?.where((element) => element.mimeType.toLowerCase().contains('h264'))
-            .toList() ??
-        [];
-
-    // Check if codecs list is not empty
-    if (codecs.isNotEmpty) {
-      try {
-        // Set codec preferences for the transceiver
-        await transceiver.setCodecPreferences(codecs);
-      } catch (e) {
-        // Log error if setting codec preferences fails
-        VLOG0('Error setting codec preferences: $e');
+    await _lock.synchronized(() async {
+      if (settings.hookCursorImage == true && AppPlatform.isDeskTop) {
+        HardwareSimulator.addCursorImageUpdated(
+            onLocalCursorImageMessage, cursorImageHookID);
       }
-    } else {
-      VLOG0('No compatible H.264 codecs found for transceiver.');
-    }
-  }
-  */
-
-    pc!.onIceCandidate = (candidate) async {
-      /*if (settings.turnServerSettings == 2) {
-        if (!candidate.candidate!.contains("srflx")) {
-          return;
-        }
-      }
-      if (settings.turnServerSettings == 1) {
-        if (candidate.candidate!.contains("srflx")) {
-          return;
-        }
-      }*/
-
-      /*if (candidate.candidate!.contains("srflx")) {
-          return;
-        }
-      if (!candidate.candidate!.contains("192.168")) {
+      if (connectionState != StreamingSessionConnectionState.free &&
+          connectionState != StreamingSessionConnectionState.disconnected) {
+        VLOG0("starting connection on which is already started. Please debug.");
         return;
-      }*/
-      // We are controlled so source is ourself
-      await Future.delayed(
-          const Duration(seconds: 1),
-          () => WebSocketService.send('candidate', {
-                'source_connectionid': controlled.websocketSessionid,
-                'target_uid': controller.uid,
-                'target_connectionid': controller.websocketSessionid,
-                'candidate': {
-                  'sdpMLineIndex': candidate.sdpMLineIndex,
-                  'sdpMid': candidate.sdpMid,
-                  'candidate': candidate.candidate,
-                },
-              }));
-    };
+      }
+      if (controlled.websocketSessionid != AppStateService.websocketSessionid) {
+        VLOG0("requiring connection on wrong device. Please debug.");
+        return;
+      }
+      selfSessionType = SelfSessionType.controlled;
+      restartPingTimeoutTimer();
+      streamSettings = settings;
 
-    pc!.onConnectionState = (state) {
-      if (state == RTCPeerConnectionState.RTCPeerConnectionStateConnected) {
-        //TODO: 以system身份启动时 这里会崩 因此暂时不报连接
-        if (AppPlatform.isDeskTop &&
-            !ApplicationInfo.isSystem &&
-            selfSessionType == SelfSessionType.controlled) {
-          NotificationManager().initialize();
-          NotificationManager().showSimpleNotification(
-              title: "${controller.nickname} (${controller.devicetype})的连接",
-              body: "${controller.devicename}连接到了本设备");
+      pc = await createRTCPeerConnection();
+
+      if (StreamedManager.localVideoStreams[settings.screenId] != null) {
+        // one track expected.
+        screenId = settings.screenId!;
+        StreamedManager.localVideoStreams[settings.screenId]!
+            .getTracks()
+            .forEach((track) async {
+          videoSender = (await pc!.addTrack(
+              track, StreamedManager.localVideoStreams[settings.screenId]!));
+        });
+      }
+
+      /* deprecated. using RTCutils instead.
+      // Retrieve all transceivers from the PeerConnection
+      var transceivers = await pc!.getTransceivers();
+
+      // Get the RTP sender capabilities for video
+      var vcaps = await getRtpSenderCapabilities('video');
+
+      // Filter to get only the H.264 codecs from the available capabilities
+      // webrtc有白名单限制，默认高通cpu三星猎户座，其他cpu一般是不支持的
+      // 这些设备需要修改webrtc源码来支持 否则不能使用H264
+      // https://github.com/flutter-webrtc/flutter-webrtc/issues/182
+      // 我的macbook max上 h264性能很差 web端setCodecPreferences格式也不对 会fallback到别的编码器
+      for (var transceiver in transceivers) {
+        var codecs = vcaps.codecs
+                ?.where((element) => element.mimeType.toLowerCase().contains('h264'))
+                .toList() ??
+            [];
+
+        // Check if codecs list is not empty
+        if (codecs.isNotEmpty) {
+          try {
+            // Set codec preferences for the transceiver
+            await transceiver.setCodecPreferences(codecs);
+          } catch (e) {
+            // Log error if setting codec preferences fails
+            VLOG0('Error setting codec preferences: $e');
+          }
+        } else {
+          VLOG0('No compatible H.264 codecs found for transceiver.');
         }
       }
-    };
+      */
 
-    //create data channel
-    RTCDataChannelInit reliableDataChannelDict = RTCDataChannelInit()
-      ..maxRetransmits = 30
-      ..ordered = true;
-    channel = await pc!.createDataChannel('userInput', reliableDataChannelDict);
+      pc!.onIceCandidate = (candidate) async {
+        // We are controlled so source is ourself
+        await Future.delayed(
+            const Duration(seconds: 1),
+            () => WebSocketService.send('candidate', {
+                  'source_connectionid': controlled.websocketSessionid,
+                  'target_uid': controller.uid,
+                  'target_connectionid': controller.websocketSessionid,
+                  'candidate': {
+                    'sdpMLineIndex': candidate.sdpMLineIndex,
+                    'sdpMid': candidate.sdpMid,
+                    'candidate': candidate.candidate,
+                  },
+                }));
+      };
 
-    channel?.onMessage = (RTCDataChannelMessage msg) {
-      processDataChannelMessageFromClient(msg);
-    };
+      pc!.onConnectionState = (state) {
+        if (state == RTCPeerConnectionState.RTCPeerConnectionStateConnected) {
+          //TODO: 以system身份启动时 这里会崩 因此暂时不报连接
+          if (AppPlatform.isDeskTop &&
+              !ApplicationInfo.isSystem &&
+              selfSessionType == SelfSessionType.controlled) {
+            NotificationManager().initialize();
+            NotificationManager().showSimpleNotification(
+                title: "${controller.nickname} (${controller.devicetype})的连接",
+                body: "${controller.devicename}连接到了本设备");
+          }
+        }
+      };
 
-    if (useUnsafeDatachannel) {
-      RTCDataChannelInit dataChannelDict = RTCDataChannelInit()
-        ..maxRetransmits = 0
-        ..ordered = false;
-      UDPChannel =
-          await pc!.createDataChannel('userInputUnsafe', dataChannelDict);
+      //create data channel
+      RTCDataChannelInit reliableDataChannelDict = RTCDataChannelInit()
+        ..maxRetransmits = 30
+        ..ordered = true;
+      channel =
+          await pc!.createDataChannel('userInput', reliableDataChannelDict);
 
-      UDPChannel?.onMessage = (RTCDataChannelMessage msg) {
+      channel?.onMessage = (RTCDataChannelMessage msg) {
         processDataChannelMessageFromClient(msg);
       };
-      inputController = InputController(UDPChannel!, false);
-    } else {
-      inputController = InputController(channel!, true);
-    }
 
-    //For web, RTCDataChannel.readyState is not 'open', and this should only for windows
-    /*if (!kIsWeb && Platform.isWindows){
+      if (useUnsafeDatachannel) {
+        RTCDataChannelInit dataChannelDict = RTCDataChannelInit()
+          ..maxRetransmits = 0
+          ..ordered = false;
+        UDPChannel =
+            await pc!.createDataChannel('userInputUnsafe', dataChannelDict);
+
+        UDPChannel?.onMessage = (RTCDataChannelMessage msg) {
+          processDataChannelMessageFromClient(msg);
+        };
+        inputController = InputController(UDPChannel!, false);
+      } else {
+        inputController = InputController(channel!, true);
+      }
+
+      //For web, RTCDataChannel.readyState is not 'open', and this should only for windows
+      /*if (!kIsWeb && Platform.isWindows){
       channel.send(RTCDataChannelMessage("csrhook"));
       channel.send(RTCDataChannelMessage("xboxinit"));
     }*/
 
-    RTCSessionDescription sdp = await pc!.createOffer({
-      'mandatory': {
-        'OfferToReceiveAudio': false,
-        'OfferToReceiveVideo': true,
-      },
-      'optional': [],
-    });
+      RTCSessionDescription sdp = await pc!.createOffer({
+        'mandatory': {
+          'OfferToReceiveAudio': false,
+          'OfferToReceiveVideo': true,
+        },
+        'optional': [],
+      });
 
-    if (selfSessionType == SelfSessionType.controlled) {
-      if (settings.codec == null || settings.codec == "default") {
-        if (AppPlatform.isMacos) {
-          //TODO(haichao):h264 encoder is slow for my m3 mac max. check other platforms.
-          //setPreferredCodec(sdp, audio: 'opus', video: 'vp8');
-          setPreferredCodec(sdp, audio: 'opus', video: 'vp8');
+      if (selfSessionType == SelfSessionType.controlled) {
+        if (settings.codec == null || settings.codec == "default") {
+          if (AppPlatform.isMacos) {
+            //TODO(haichao):h264 encoder is slow for my m3 mac max. check other platforms.
+            //setPreferredCodec(sdp, audio: 'opus', video: 'vp8');
+            setPreferredCodec(sdp, audio: 'opus', video: 'vp8');
+          } else {
+            setPreferredCodec(sdp, audio: 'opus', video: 'h264');
+          }
         } else {
-          setPreferredCodec(sdp, audio: 'opus', video: 'h264');
+          setPreferredCodec(sdp, audio: 'opus', video: settings.codec!);
         }
-      } else {
-        setPreferredCodec(sdp, audio: 'opus', video: settings.codec!);
       }
-    }
 
-    await pc!.setLocalDescription(_fixSdp(sdp, settings.bitrate!));
+      await pc!.setLocalDescription(_fixSdp(sdp, settings.bitrate!));
 
-    while (candidates.isNotEmpty) {
-      await pc!.addCandidate(candidates[0]);
-      candidates.removeAt(0);
-    }
+      while (candidates.isNotEmpty) {
+        await pc!.addCandidate(candidates[0]);
+        candidates.removeAt(0);
+      }
 
-    WebSocketService.send('offer', {
-      'source_connectionid': controlled.websocketSessionid,
-      'target_uid': controller.uid,
-      'target_connectionid': controller.websocketSessionid,
-      'description': {'sdp': sdp.sdp, 'type': sdp.type},
-      'bitrate': settings.bitrate,
+      WebSocketService.send('offer', {
+        'source_connectionid': controlled.websocketSessionid,
+        'target_uid': controller.uid,
+        'target_connectionid': controller.websocketSessionid,
+        'description': {'sdp': sdp.sdp, 'type': sdp.type},
+        'bitrate': settings.bitrate,
+      });
+
+      connectionState = StreamingSessionConnectionState.offerSent;
     });
-
-    connectionState = StreamingSessionConnectionState.offerSent;
-    releaseLock();
   }
 
   RTCSessionDescription _fixSdp(RTCSessionDescription s, int bitrate) {
@@ -510,29 +495,29 @@ class StreamingSession {
       VLOG0("received offer on disconnection. Dropping");
       return;
     }
-    acquireLock();
-    await pc!.setRemoteDescription(
-        RTCSessionDescription(offer['sdp'], offer['type']));
+    await _lock.synchronized(() async {
+      await pc!.setRemoteDescription(
+          RTCSessionDescription(offer['sdp'], offer['type']));
 
-    RTCSessionDescription sdp = await pc!.createAnswer({
-      'mandatory': {
-        'OfferToReceiveAudio': false,
-        'OfferToReceiveVideo': false,
-      },
-      'optional': [],
+      RTCSessionDescription sdp = await pc!.createAnswer({
+        'mandatory': {
+          'OfferToReceiveAudio': false,
+          'OfferToReceiveVideo': false,
+        },
+        'optional': [],
+      });
+      await pc!.setLocalDescription(_fixSdp(sdp, streamSettings!.bitrate!));
+      while (candidates.isNotEmpty) {
+        await pc!.addCandidate(candidates[0]);
+        candidates.removeAt(0);
+      }
+      WebSocketService.send('answer', {
+        'source_connectionid': controller.websocketSessionid,
+        'target_uid': controlled.uid,
+        'target_connectionid': controlled.websocketSessionid,
+        'description': {'sdp': sdp.sdp, 'type': sdp.type},
+      });
     });
-    await pc!.setLocalDescription(_fixSdp(sdp, streamSettings!.bitrate!));
-    while (candidates.isNotEmpty) {
-      await pc!.addCandidate(candidates[0]);
-      candidates.removeAt(0);
-    }
-    WebSocketService.send('answer', {
-      'source_connectionid': controller.websocketSessionid,
-      'target_uid': controlled.uid,
-      'target_connectionid': controlled.websocketSessionid,
-      'description': {'sdp': sdp.sdp, 'type': sdp.type},
-    });
-    releaseLock();
   }
 
   void onAnswerReceived(Map<String, dynamic> anwser) async {
@@ -541,10 +526,10 @@ class StreamingSession {
       VLOG0("received answer on disconnection. Dropping");
       return;
     }
-    acquireLock();
-    await pc!.setRemoteDescription(
-        RTCSessionDescription(anwser['sdp'], anwser['type']));
-    releaseLock();
+    await _lock.synchronized(() async {
+      await pc!.setRemoteDescription(
+          RTCSessionDescription(anwser['sdp'], anwser['type']));
+    });
   }
 
   void onCandidateReceived(Map<String, dynamic> candidateMap) async {
@@ -553,19 +538,20 @@ class StreamingSession {
       VLOG0("received candidate on disconnection. Dropping");
       return;
     }
-    acquireLock();
-    // It is possible that the peerconnection has not been inited. add to list and add later for this case.
-    RTCIceCandidate candidate = RTCIceCandidate(candidateMap['candidate'],
-        candidateMap['sdpMid'], candidateMap['sdpMLineIndex']);
-    if (pc == null) {
-      // This can not be triggered after adding lock. Keep this and We may resue this list in the future.
-      VLOG0("-----warning:this should not be triggered.");
-      candidates.add(candidate);
-    } else {
-      VLOG0("adding candidate");
-      await pc!.addCandidate(candidate);
-    }
-    releaseLock();
+
+    await _lock.synchronized(() async {
+      // It is possible that the peerconnection has not been inited. add to list and add later for this case.
+      RTCIceCandidate candidate = RTCIceCandidate(candidateMap['candidate'],
+          candidateMap['sdpMid'], candidateMap['sdpMLineIndex']);
+      if (pc == null) {
+        // This can not be triggered after adding lock. Keep this and We may resue this list in the future.
+        VLOG0("-----warning:this should not be triggered.");
+        candidates.add(candidate);
+      } else {
+        VLOG0("adding candidate");
+        await pc!.addCandidate(candidate);
+      }
+    });
   }
 
   void updateRendererCallback(
@@ -593,59 +579,60 @@ class StreamingSession {
     }
     _pingTimeoutTimer?.cancel(); // 取消之前的Timer
     connectionState = StreamingSessionConnectionState.disconnecting;
-    // We don't want to see more new connections when it is stopped. So we may want to use a lock.
-    acquireLock();
 
-    //clean audio session.
-    audioSession?.dispose();
-    audioSession = null;
+    await _lock.synchronized(() async {
+      // We don't want to see more new connections when it is being stopped. So we may want to use a lock.
+      //clean audio session.
+      audioSession?.dispose();
+      audioSession = null;
 
-    candidates.clear();
-    inputController = null;
-    if (channel != null) {
-      await channel?.send(RTCDataChannelMessage.fromBinary(
-          Uint8List.fromList([LP_DISCONNECT, RP_PING])));
-      //TODO(haichao): sometimes pc is null so fail?
-      try {
-        await channel?.close();
-        channel = null;
-      } catch (e) {
-        //figure out why pc is null;
-      }
-    }
-    if (UDPChannel != null) {
-      await UDPChannel?.close();
-      UDPChannel = null;
-    }
-    //TODO:理论上不需要removetrack pc会自动close 但是需要验证
-    pc?.close();
-    pc = null;
-    controlled.connectionState.value =
-        StreamingSessionConnectionState.disconnected;
-    connectionState = StreamingSessionConnectionState.disconnected;
-    //controlled.connectionState.value = StreamingSessionConnectionState.free;
-    if (streamSettings?.hookCursorImage == true &&
-        selfSessionType == SelfSessionType.controlled) {
-      if (AppPlatform.isDeskTop) {
-        HardwareSimulator.removeCursorImageUpdated(cursorImageHookID);
-      }
-    }
-    if (WebrtcService.currentRenderingSession == this) {
-      if (HardwareSimulator.cursorlocked) {
-        if (AppPlatform.isDeskTop || AppPlatform.isWeb) {
-          HardwareSimulator.cursorlocked = false;
-          HardwareSimulator.unlockCursor();
-          HardwareSimulator.removeCursorMoved(
-              InputController.cursorMovedCallback);
-        }
-        if (AppPlatform.isWeb) {
-          HardwareSimulator.removeCursorPressed(
-              InputController.cursorPressedCallback);
-          HardwareSimulator.removeCursorWheel(InputController.cursorWheelCallback);
+      candidates.clear();
+      inputController = null;
+      if (channel != null) {
+        await channel?.send(RTCDataChannelMessage.fromBinary(
+            Uint8List.fromList([LP_DISCONNECT, RP_PING])));
+        //TODO(haichao): sometimes pc is null so fail?
+        try {
+          await channel?.close();
+          channel = null;
+        } catch (e) {
+          //figure out why pc is null;
         }
       }
-    }
-    releaseLock();
+      if (UDPChannel != null) {
+        await UDPChannel?.close();
+        UDPChannel = null;
+      }
+      //TODO:理论上不需要removetrack pc会自动close 但是需要验证
+      pc?.close();
+      pc = null;
+      controlled.connectionState.value =
+          StreamingSessionConnectionState.disconnected;
+      connectionState = StreamingSessionConnectionState.disconnected;
+      //controlled.connectionState.value = StreamingSessionConnectionState.free;
+      if (streamSettings?.hookCursorImage == true &&
+          selfSessionType == SelfSessionType.controlled) {
+        if (AppPlatform.isDeskTop) {
+          HardwareSimulator.removeCursorImageUpdated(cursorImageHookID);
+        }
+      }
+      if (WebrtcService.currentRenderingSession == this) {
+        if (HardwareSimulator.cursorlocked) {
+          if (AppPlatform.isDeskTop || AppPlatform.isWeb) {
+            HardwareSimulator.cursorlocked = false;
+            HardwareSimulator.unlockCursor();
+            HardwareSimulator.removeCursorMoved(
+                InputController.cursorMovedCallback);
+          }
+          if (AppPlatform.isWeb) {
+            HardwareSimulator.removeCursorPressed(
+                InputController.cursorPressedCallback);
+            HardwareSimulator.removeCursorWheel(
+                InputController.cursorWheelCallback);
+          }
+        }
+      }
+    });
   }
 
   Timer? _pingTimeoutTimer;
@@ -662,16 +649,6 @@ class StreamingSession {
             .showMessage("未能建立连接。请检查密码, 切换网络重试或在设置中启动turn服务器。", "建立连接失败");
       }
     });
-  }
-
-  final locker = Mutex();
-
-  void acquireLock() {
-    locker.acquire();
-  }
-
-  void releaseLock() {
-    locker.release();
   }
 
   void onLocalCursorImageMessage(

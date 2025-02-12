@@ -77,7 +77,6 @@ dependencies:
   bitsdojo_window: ^0.1.6
   qr_flutter: ^4.1.0
   web: ^1.0.0
-  mutex: ^3.1.0
   sdp_transform: ^0.3.2
   flutter_bloc: ^8.1.6
   custom_mouse_cursor: ^1.1.2
@@ -86,6 +85,7 @@ dependencies:
   system_tray: ^2.0.3
   flutter_local_notifications: ^19.0.0-dev.5
   flutter_window_close: ^1.2.0
+  synchronized: ^3.3.0+3
 
 dev_dependencies:
   flutter_test:

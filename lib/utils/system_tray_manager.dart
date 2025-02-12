@@ -63,10 +63,11 @@ class SystemTrayManager {
         onClicked: (_) => hideWindow(),
       ),
       MenuSeparator(),
-      if (AppPlatform.isWindows && ApplicationInfo.isSystem) MenuItemLabel(
-        label: '重启服务',
-        onClicked: (_) => restart(),
-      ),
+      if (AppPlatform.isWindows && ApplicationInfo.isSystem)
+        MenuItemLabel(
+          label: '重启服务',
+          onClicked: (_) => restart(),
+        ),
       MenuItemLabel(
         label: '退出云玩加',
         onClicked: (_) => exitApp(),

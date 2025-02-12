@@ -71,7 +71,7 @@ class WebSocketService {
       return;
     }
 
-    if (!LoginService.isTokenValid(accessToken)){
+    if (!LoginService.isTokenValid(accessToken)) {
       final newAccessToken = await LoginService.doRefreshToken(refreshToken);
       if (newAccessToken != null && LoginService.isTokenValid(newAccessToken)) {
         if (DevelopSettings.useSecureStorage) {
