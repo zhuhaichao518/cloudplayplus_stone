@@ -641,7 +641,7 @@ class StreamingSession {
         if (AppPlatform.isWeb) {
           HardwareSimulator.removeCursorPressed(
               InputController.cursorPressedCallback);
-          HardwareSimulator.addCursorWheel(InputController.cursorWheelCallback);
+          HardwareSimulator.removeCursorWheel(InputController.cursorWheelCallback);
         }
       }
     }

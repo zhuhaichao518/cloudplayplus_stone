@@ -561,7 +561,7 @@ class InputController {
         HardwareSimulator.removeCursorMoved(cursorMovedCallback);
         if (AppPlatform.isWeb) {
           HardwareSimulator.removeCursorPressed(cursorPressedCallback);
-          HardwareSimulator.addCursorWheel(cursorWheelCallback);
+          HardwareSimulator.removeCursorWheel(cursorWheelCallback);
         }
       }
     }
