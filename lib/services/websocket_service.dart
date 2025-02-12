@@ -100,14 +100,15 @@ class WebSocketService {
     _socket?.onClose = (code, message) async {
       connectionState = WebSocketConnectionState.disconnected;
       if (should_be_connected) {
-        Timer.periodic(const Duration(seconds: 60), (Timer timer) async {
-          _socket?.close();
-          _socket = null;
-          init();
+        Timer.periodic(const Duration(seconds: 30), (Timer timer) async {
           // 检查是否已经连接成功，如果是，则取消定时器
           if (connectionState == WebSocketConnectionState.connected) {
             timer.cancel();
+            return;
           }
+          _socket?.close();
+          _socket = null;
+          init();
         });
       }
       VLOG0(code);
