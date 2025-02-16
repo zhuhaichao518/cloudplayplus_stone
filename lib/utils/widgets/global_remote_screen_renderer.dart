@@ -1,5 +1,7 @@
 //render the global remote screen in an infinite vertical scroll view.
 import 'package:cloudplayplus/base/logging.dart';
+import 'package:cloudplayplus/controller/smooth_scroll_controller.dart';
+import 'package:cloudplayplus/services/app_info_service.dart';
 import 'package:cloudplayplus/services/webrtc_service.dart';
 import 'package:cloudplayplus/utils/widgets/on_screen_keyboard.dart';
 import 'package:cloudplayplus/utils/widgets/on_screen_mouse.dart';
@@ -29,6 +31,8 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
 
   final FocusNode focusNode = FocusNode();
   final _fsnode = FocusScopeNode();
+
+  final SmoothScrollController _scrollController = SmoothScrollController();
 
   late Size widgetSize;
   RenderBox? renderBox;
@@ -87,7 +91,18 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
     }
   }
 
-  //String _pressedKey = '';
+  @override
+  void initState() {
+    super.initState();
+    _scrollController.onScroll = (dx, dy) {
+      // 发送事件到远程桌面
+      if (dx.abs()>0 || dy.abs()>0){
+        WebrtcService.currentRenderingSession?.inputController
+            ?.requestMouseScroll(dx * 10, dy * 10);
+      }
+    };
+  }
+
   @override
   Widget build(BuildContext context) {
     // set the default focus to remote desktop.
@@ -105,9 +120,26 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
                   onPointerSignal: (PointerSignalEvent event) {
                     if (event is PointerScrollEvent) {
                       //this does not work on macos for touch bar, works for web.
-                      WebrtcService.currentRenderingSession?.inputController
-                          ?.requestMouseScroll(
-                              event.scrollDelta.dx, event.scrollDelta.dy);
+                      if (event.scrollDelta.dx.abs() > 0 || event.scrollDelta.dy.abs() > 0) {
+                        WebrtcService.currentRenderingSession?.inputController
+                            ?.requestMouseScroll(
+                                event.scrollDelta.dx, event.scrollDelta.dy);
+                      }
+                    }
+                  },
+                  onPointerPanZoomStart: (PointerPanZoomStartEvent event) {
+                    if (AppPlatform.isDeskTop) {
+                      _scrollController.startScroll();
+                    }
+                  },
+                  onPointerPanZoomUpdate: (PointerPanZoomUpdateEvent event) {
+                    if (AppPlatform.isDeskTop) {
+                      _scrollController.doScroll(event.panDelta.dx, event.panDelta.dy);
+                    }
+                  },
+                  onPointerPanZoomEnd: (PointerPanZoomEndEvent event) {
+                    if (AppPlatform.isDeskTop) {
+                      _scrollController.startFling();
                     }
                   },
                   onPointerDown: (PointerDownEvent event) {
