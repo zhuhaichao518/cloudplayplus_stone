@@ -100,6 +100,10 @@ class _DeviceDetailPageState extends State<DeviceDetailPage> {
                     '正在连接远程桌面...',
                     style: TextStyle(fontSize: 16, color: Colors.grey),
                   ),
+                  Text(
+                    '若显示白屏 请发送按键/移动鼠标触发远程桌面动画',
+                    style: TextStyle(fontSize: 16, color: Colors.grey),
+                  ),
                 ],
               ),
             );
