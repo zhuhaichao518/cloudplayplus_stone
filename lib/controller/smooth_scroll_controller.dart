@@ -8,7 +8,7 @@ class SmoothScrollController {
   FrictionSimulation? _simulationX;
   FrictionSimulation? _simulationY;
   double _lastTime = 0;
-  
+
   late DateTime _scrollStartTime;
   int accumulatedx = 0;
   int accumulatedy = 0;
@@ -47,12 +47,12 @@ class SmoothScrollController {
 
   void _onTick(Duration elapsed) {
     final double t = elapsed.inMilliseconds / 1000.0;
-    
+
     if (_lastTime == 0) {
       _lastTime = t;
       return;
     }
-    
+
     if (_simulationX == null || _simulationY == null) return;
 
     final double deltaX = _simulationX!.x(t) - _simulationX!.x(_lastTime);
@@ -64,7 +64,7 @@ class SmoothScrollController {
       _stopFling();
       return;
     }
-    if (deltaX.abs() > 1 || deltaY.abs() > 1){
+    if (deltaX.abs() > 1 || deltaY.abs() > 1) {
       if (deltaX.abs() > deltaY.abs()) {
         onScroll?.call(deltaX, 0);
       } else {

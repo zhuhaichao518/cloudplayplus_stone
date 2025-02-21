@@ -96,7 +96,7 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
     super.initState();
     _scrollController.onScroll = (dx, dy) {
       // 发送事件到远程桌面
-      if (dx.abs()>0 || dy.abs()>0){
+      if (dx.abs() > 0 || dy.abs() > 0) {
         WebrtcService.currentRenderingSession?.inputController
             ?.requestMouseScroll(dx * 10, dy * 10);
       }
@@ -120,7 +120,8 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
                   onPointerSignal: (PointerSignalEvent event) {
                     if (event is PointerScrollEvent) {
                       //this does not work on macos for touch bar, works for web.
-                      if (event.scrollDelta.dx.abs() > 0 || event.scrollDelta.dy.abs() > 0) {
+                      if (event.scrollDelta.dx.abs() > 0 ||
+                          event.scrollDelta.dy.abs() > 0) {
                         WebrtcService.currentRenderingSession?.inputController
                             ?.requestMouseScroll(
                                 event.scrollDelta.dx, event.scrollDelta.dy);
@@ -134,7 +135,8 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
                   },
                   onPointerPanZoomUpdate: (PointerPanZoomUpdateEvent event) {
                     if (AppPlatform.isDeskTop) {
-                      _scrollController.doScroll(event.panDelta.dx, event.panDelta.dy);
+                      _scrollController.doScroll(
+                          event.panDelta.dx, event.panDelta.dy);
                     }
                   },
                   onPointerPanZoomEnd: (PointerPanZoomEndEvent event) {

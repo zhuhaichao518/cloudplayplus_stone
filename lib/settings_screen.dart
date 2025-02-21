@@ -295,7 +295,8 @@ class _StreamingSettingsScreen extends State<StreamingSettingsScreen> {
                 ),
                 SettingsTile(
                   title: const Text('码率 (bps)'),
-                  trailing: Text('当前: ${bitrates[_bitrate]} bps'),
+                  trailing:
+                      Material(child: Text('当前: ${bitrates[_bitrate]} bps')),
                   leading: const Icon(Icons.network_cell),
                   onPressed: (BuildContext context) async {
                     final bitrate = await Navigation.navigateTo(
@@ -333,7 +334,7 @@ class _StreamingSettingsScreen extends State<StreamingSettingsScreen> {
                 ),
                 SettingsTile(
                   title: const Text('帧率 (fps)'),
-                  trailing: Text('当前: $_frameRate fps'),
+                  trailing: Material(child: Text('当前: $_frameRate fps')),
                   leading: const Icon(Icons.videocam),
                   onPressed: (BuildContext context) async {
                     final framerate = await Navigation.navigateTo(
