@@ -127,9 +127,11 @@ class CGamepadState {
   };
 
   final Map<String, int> analogMapping = {
-    //web
+    //this is button for web (special case), but analog for desktop.
+    //because it is conflict with XINPUT_GAMEPAD_DPAD_UP, we use the raw 'button 6|7'.
     'button 6': bLeftTrigger,
     'button 7': bRightTrigger,
+    //web
     'analog 0': sThumbLX,
     'analog 1': sThumbLY,
     'analog 2': sThumbRX,
@@ -170,6 +172,15 @@ class CGamepadState {
         }
         break;
       case KeyType.button:
+        //special case for web.
+        if (AppPlatform.isWeb && (event.key == 'button 6' || event.key == 'button 7')) {
+          final mapped = analogMapping[event.key];
+          int oldValue = analogs[mapped!];
+          analogs[mapped] = (event.value * 255).toInt();
+          // 防止触发太频繁，设置3% gap
+          if ((analogs[mapped] - oldValue).abs() < 8) return false;
+          return true;
+        }
         final mapped = buttonMapping[event.key];
         if (mapped != null) {
           if (AppPlatform.isMacos || AppPlatform.isIOS) {

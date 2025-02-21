@@ -22,12 +22,12 @@ class SystemTrayManager {
     //String tooltip = '',
     bool hideDockIconOnStart = false,
   }) async {
-    if (_isInitialized) return;
+    if (_isInitialized || AppPlatform.isWeb) return;
 
-    // TODO:不明bug导致hide的时候闪退。
-    if (Platform.isMacOS) return;
+    // TODO: Windows在系统身份运行时 不明bug导致hide的时候闪退。
+    if (AppPlatform.isMacos) return;
     // 处理 macOS Dock 图标
-    if ((Platform.isMacOS && hideDockIconOnStart)) {
+    if ((AppPlatform.isMacos && hideDockIconOnStart)) {
       appWindow.hide();
     }
 
