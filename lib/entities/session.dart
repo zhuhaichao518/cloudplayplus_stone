@@ -9,7 +9,7 @@ import 'package:cloudplayplus/entities/device.dart';
 import 'package:cloudplayplus/services/streamed_manager.dart';
 import 'package:cloudplayplus/services/streaming_manager.dart';
 import 'package:cloudplayplus/services/websocket_service.dart';
-import 'package:cloudplayplus/utils/notifications/notification_manager.dart';
+//import 'package:cloudplayplus/utils/notifications/notification_manager.dart';
 import 'package:cloudplayplus/utils/widgets/message_box.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
@@ -121,7 +121,7 @@ class StreamingSession {
     selfSessionType = SelfSessionType.controller;
 
     await _lock.synchronized(() async {
-      restartPingTimeoutTimer();
+      restartPingTimeoutTimer(10);
       controlled.connectionState.value =
           StreamingSessionConnectionState.connceting;
 
@@ -314,7 +314,7 @@ class StreamingSession {
         return;
       }
       selfSessionType = SelfSessionType.controlled;
-      restartPingTimeoutTimer();
+      restartPingTimeoutTimer(10);
       streamSettings = settings;
 
       pc = await createRTCPeerConnection();
@@ -637,11 +637,10 @@ class StreamingSession {
 
   Timer? _pingTimeoutTimer;
 
-  // We take 10s as timeout from remote peer.
-  void restartPingTimeoutTimer() {
+  void restartPingTimeoutTimer(int second) {
     _pingTimeoutTimer?.cancel(); // 取消之前的Timer
-    _pingTimeoutTimer = Timer(const Duration(seconds: 10), () {
-      // 超过15秒没收到pingpong，断开连接
+    _pingTimeoutTimer = Timer(Duration(seconds: second), () {
+      // 超过指定时间秒没收到pingpong，断开连接
       VLOG0("No ping message received within 10 seconds, disconnecting...");
       close();
       if (selfSessionType == SelfSessionType.controller) {
@@ -672,7 +671,7 @@ class StreamingSession {
         case LP_PING:
           if (message.binary.length == 2 && message.binary[1] == RP_PING) {
             //VLOG0("ping received from client");
-            restartPingTimeoutTimer();
+            restartPingTimeoutTimer(30);
             Timer(const Duration(seconds: 1), () {
               if (connectionState ==
                   StreamingSessionConnectionState.disconnecting) return;
@@ -737,7 +736,7 @@ class StreamingSession {
         case LP_PING:
           if (message.binary.length == 2 && message.binary[1] == RP_PONG) {
             //VLOG0("pong received from host");
-            restartPingTimeoutTimer();
+            restartPingTimeoutTimer(30);
             Timer(const Duration(seconds: 1), () {
               if (connectionState ==
                   StreamingSessionConnectionState.disconnecting) return;
