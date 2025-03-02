@@ -58,6 +58,8 @@ class SimpleWebSocket {
       //}else{
       _socket = await WebSocket.connect(_url);
       //}
+
+      _socket.pingInterval = const Duration(seconds: 5);
       onOpen?.call();
       _socket.listen((data) {
         onMessage?.call(data);
