@@ -98,7 +98,7 @@ class WebSocketService {
     };
 
     _socket?.onClose = (code, message) async {
-      connectionState = WebSocketConnectionState.disconnected;
+      onDisConnected();
       if (should_be_connected) {
         Timer.periodic(const Duration(seconds: 30), (Timer timer) async {
           // 检查是否已经连接成功，如果是，则取消定时器
@@ -106,9 +106,7 @@ class WebSocketService {
             timer.cancel();
             return;
           }
-          _socket?.close();
-          _socket = null;
-          init();
+          reconnect();
         });
       }
       VLOG0(code);
@@ -230,7 +228,7 @@ class WebSocketService {
     _socket?.send(_encoder.convert(request));
   }
 
-  void onDisConnected() {
+  static void onDisConnected() {
     connectionState = WebSocketConnectionState.disconnected;
   }
 }
