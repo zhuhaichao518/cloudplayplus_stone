@@ -143,7 +143,7 @@ class StreamingSession {
           controlled.connectionState.value =
               StreamingSessionConnectionState.disconnected;
           MessageBoxManager()
-              .showMessage("未能建立连接。请切换网络重试或在设置中启动turn服务器。", "连接失败");
+              .showMessage("已断开或未能建立连接。请切换网络重试或在设置中启动turn服务器。", "连接失败");
           close();
         } else if (state ==
             RTCPeerConnectionState.RTCPeerConnectionStateClosed) {
@@ -645,7 +645,7 @@ class StreamingSession {
       close();
       if (selfSessionType == SelfSessionType.controller) {
         MessageBoxManager()
-            .showMessage("未能建立连接。请检查密码, 切换网络重试或在设置中启动turn服务器。", "建立连接失败");
+            .showMessage("已断开或未能建立连接。请检查密码, 切换网络重试或在设置中启动turn服务器。", "建立连接失败");
       }
     });
   }
