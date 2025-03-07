@@ -83,7 +83,7 @@ dependencies:
   chinese_font_library: ^1.2.0
   crypto: ^3.0.6
   system_tray: ^2.0.3
-  flutter_local_notifications: ^19.0.0-dev.5
+  #flutter_local_notifications: ^19.0.0-dev.5
   flutter_window_close: ^1.2.0
   synchronized: ^3.3.0+3
 
