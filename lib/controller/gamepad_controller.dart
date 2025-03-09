@@ -124,6 +124,8 @@ class CGamepadState {
     'r.joystick.press.down': XINPUT_GAMEPAD_RIGHT_THUMB,
     'dpad - xAxis': XINPUT_GAMEPAD_DPAD_LEFT,
     'dpad - yAxis': XINPUT_GAMEPAD_DPAD_UP,
+    //ipad
+    'r.joystick.down': XINPUT_GAMEPAD_RIGHT_THUMB,
   };
 
   final Map<String, int> analogMapping = {
