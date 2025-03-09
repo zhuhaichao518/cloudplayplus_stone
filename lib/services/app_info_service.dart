@@ -30,7 +30,7 @@ class ApplicationInfo {
       return deviceNameOverride!;
     }
     if (AppPlatform.isIOS) {
-      return 'Iphone设备';
+      return 'IOS设备';
     }
     return Platform.localHostname;
   }

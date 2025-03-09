@@ -202,7 +202,7 @@ class _MainScreenState extends State<MainScreen> {
                       items: const [
                         BottomNavigationBarItem(
                           icon: Icon(Icons.computer),
-                          label: 'Devices',
+                          label: '设备',
                         ),
                         /*BottomNavigationBarItem(
                     icon: Icon(Icons.games_rounded),
@@ -210,11 +210,11 @@ class _MainScreenState extends State<MainScreen> {
                   ),*/
                         BottomNavigationBarItem(
                           icon: Icon(Icons.group),
-                          label: 'Friends',
+                          label: '好友',
                         ),
                         BottomNavigationBarItem(
                           icon: Icon(Icons.settings),
-                          label: 'Settings',
+                          label: '设置',
                         ),
                       ],
                     );
