@@ -177,7 +177,9 @@ class _MainScreenState extends State<MainScreen> {
                   ],
                 ));
           }
-          windowManager.setTitleBarStyle(TitleBarStyle.normal);
+          if (AppPlatform.isWindows) {
+            windowManager.setTitleBarStyle(TitleBarStyle.normal);
+          }
           return Stack(
             children: [
               Scaffold(
