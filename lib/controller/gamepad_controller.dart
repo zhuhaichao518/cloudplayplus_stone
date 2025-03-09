@@ -155,17 +155,17 @@ class CGamepadState {
         final mapped = analogMapping[event.key];
         if (mapped != null) {
           if (mapped == bLeftTrigger || mapped == bRightTrigger) {
-            int oldValue = analogs[mapped];
+            //int oldValue = analogs[mapped];
             analogs[mapped] = (event.value * 255).toInt();
             // 防止触发太频繁，设置3% gap
-            if ((analogs[mapped] - oldValue).abs() < 8) return false;
+            //if ((analogs[mapped] - oldValue).abs() < 8) return false;
           } else {
             //5% deadzone.
             if (analogs[mapped] < 0.05) analogs[mapped] = 0;
-            int oldValue = analogs[mapped];
+            //int oldValue = analogs[mapped];
             analogs[mapped] = (event.value * 32767).toInt();
             // 防止触发太频繁，设置3% gap
-            if ((analogs[mapped] - oldValue).abs() < 100) return false;
+            // if ((analogs[mapped] - oldValue).abs() < 100) return false;
             if (AppPlatform.isWeb &&
                 (mapped == sThumbLY || mapped == sThumbRY)) {
               analogs[mapped] = -analogs[mapped];
