@@ -126,6 +126,10 @@ class CGamepadState {
     'dpad - yAxis': XINPUT_GAMEPAD_DPAD_UP,
     //ipad
     'r.joystick.down': XINPUT_GAMEPAD_RIGHT_THUMB,
+
+    //Gamesir-X2
+    'l1.rectangle.roundedbottom': XINPUT_GAMEPAD_LEFT_SHOULDER,
+    'r1.rectangle.roundedbottom': XINPUT_GAMEPAD_RIGHT_SHOULDER,
   };
 
   final Map<String, int> analogMapping = {
@@ -146,6 +150,10 @@ class CGamepadState {
     'l.joystick - yAxis': sThumbLY,
     'r.joystick - xAxis': sThumbRX,
     'r.joystick - yAxis': sThumbRY,
+     
+    //Gamesir-X2
+    'l2.rectangle.roundedtop': bLeftTrigger,
+    'r2.rectangle.roundedtop': bRightTrigger,
   };
 
   /// Updates the state based on the given event.
@@ -171,6 +179,36 @@ class CGamepadState {
               analogs[mapped] = -analogs[mapped];
             }
           }
+        } else {
+          // For Gamesir-X2 controller, buttons are reported as analogs.
+          final mapped = buttonMapping[event.key];
+          if (mapped != null) {
+          if (AppPlatform.isMacos || AppPlatform.isIOS) {
+            if (mapped == XINPUT_GAMEPAD_DPAD_LEFT) {
+              if (event.value == -1) {
+                buttonDown[XINPUT_GAMEPAD_DPAD_LEFT] = true;
+              } else if (event.value == 0) {
+                buttonDown[XINPUT_GAMEPAD_DPAD_LEFT] = false;
+                buttonDown[XINPUT_GAMEPAD_DPAD_RIGHT] = false;
+              } else if (event.value == 1) {
+                buttonDown[XINPUT_GAMEPAD_DPAD_RIGHT] = true;
+              }
+            } else if (mapped == XINPUT_GAMEPAD_DPAD_UP) {
+              if (event.value == 1) {
+                buttonDown[XINPUT_GAMEPAD_DPAD_UP] = true;
+              } else if (event.value == 0) {
+                buttonDown[XINPUT_GAMEPAD_DPAD_UP] = false;
+                buttonDown[XINPUT_GAMEPAD_DPAD_DOWN] = false;
+              } else if (event.value == -1) {
+                buttonDown[XINPUT_GAMEPAD_DPAD_DOWN] = true;
+              }
+            } else {
+              buttonDown[mapped] = event.value != 0;
+            }
+          } else {
+            buttonDown[mapped] = event.value != 0;
+          }
+        }
         }
         break;
       case KeyType.button:
