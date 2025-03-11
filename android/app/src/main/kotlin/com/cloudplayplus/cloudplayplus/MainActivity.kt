@@ -1,4 +1,4 @@
-package com.example.cloudplayplus
+package com.cloudplayplus.cloudplayplus
 
 import io.flutter.embedding.android.FlutterActivity
 
