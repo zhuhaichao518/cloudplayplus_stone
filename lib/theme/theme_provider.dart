@@ -35,7 +35,7 @@ final lightTheme0 = FlexThemeData.light(
 
 final darkTheme0 = FlexThemeData.dark(
   colors: const FlexSchemeColor(
-    primary: Color(0xff1145a4),
+    primary: Color(0xff376bca),
     primaryContainer: Color.fromARGB(255, 76, 141, 255),
     secondary: Color(0xfff1bbbb),
     secondaryContainer: Color(0xffcb6060),
