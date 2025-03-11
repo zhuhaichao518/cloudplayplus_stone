@@ -110,7 +110,7 @@ class _LoginScreenState extends State<LoginScreen> {
         savedPassword: _savedPassword ?? "",
         title: 'CloudPlay Plus',
         logo: const AssetImage('assets/images/cpp_logo.png'),
-        userType: LoginUserType.text,
+        userType: LoginUserType.name,
         onLogin: _authUser,
         onSignup: _signupUser,
         userValidator: _userValidator,
