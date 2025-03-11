@@ -116,8 +116,8 @@ flutter_launcher_icons:
   web:
     generate: true
     image_path: "assets/images/cpp_logo2.png"
-    background_color: "#hexcode"
-    theme_color: "#hexcode"
+    #background_color: "#hexcode"
+    #theme_color: "#hexcode"
   windows:
     generate: true
     image_path: "assets/images/cpp_logo2.png"
