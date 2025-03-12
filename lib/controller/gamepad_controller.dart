@@ -130,6 +130,9 @@ class CGamepadState {
     //Gamesir-X2
     'l1.rectangle.roundedbottom': XINPUT_GAMEPAD_LEFT_SHOULDER,
     'r1.rectangle.roundedbottom': XINPUT_GAMEPAD_RIGHT_SHOULDER,
+
+    //SN30 pro
+    "ellipsis.circle": XINPUT_GAMEPAD_BACK,
   };
 
   final Map<String, int> analogMapping = {
@@ -249,7 +252,16 @@ class CGamepadState {
             buttonDown[mapped] = event.value != 0;
           }
         } else {
-          print("unimplemented gamepad event!");
+          // 8BitDo SN30 Pro
+          final mapped = analogMapping[event.key];
+          if (mapped != null) {
+            if (mapped == bLeftTrigger || mapped == bRightTrigger) {
+              //int oldValue = analogs[mapped];
+              analogs[mapped] = (event.value * 255).toInt();
+              // 防止触发太频繁，设置3% gap
+              //if ((analogs[mapped] - oldValue).abs() < 8) return false;
+            }
+          }
         }
         break;
     }
