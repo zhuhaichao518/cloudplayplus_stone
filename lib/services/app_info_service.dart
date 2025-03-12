@@ -23,14 +23,17 @@ class ApplicationInfo {
   }
 
   static String get deviceName {
-    if (AppPlatform.isWeb) {
-      return '云玩家网页端';
-    }
     if (deviceNameOverride != null && deviceNameOverride != "") {
       return deviceNameOverride!;
     }
+    if (AppPlatform.isWeb) {
+      return '云玩家网页端';
+    }
     if (AppPlatform.isIOS) {
       return 'IOS设备';
+    }
+    if (AppPlatform.isAndroid) {
+      return '安卓设备';
     }
     return Platform.localHostname;
   }
