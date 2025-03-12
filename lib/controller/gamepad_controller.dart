@@ -166,17 +166,26 @@ class CGamepadState {
         final mapped = analogMapping[event.key];
         if (mapped != null) {
           if (mapped == bLeftTrigger || mapped == bRightTrigger) {
-            //int oldValue = analogs[mapped];
-            analogs[mapped] = (event.value * 255).toInt();
+            /*if (event.value < 0.05 && analogs[mapped] != 0) {
+              analogs[mapped] = 0;
+              return true;
+            }*/
+            int oldValue = analogs[mapped];
             // 防止触发太频繁，设置3% gap
-            //if ((analogs[mapped] - oldValue).abs() < 8) return false;
+            int newValue = (event.value * 255).toInt();
+            if ((newValue - oldValue).abs() < 8) return false;
+            analogs[mapped] = newValue;
           } else {
             //5% deadzone.
-            if (analogs[mapped] < 0.05) analogs[mapped] = 0;
-            //int oldValue = analogs[mapped];
-            analogs[mapped] = (event.value * 32767).toInt();
+            /*if (event.value < 0.05 && analogs[mapped] != 0) {
+              analogs[mapped] = 0;
+              return true;
+            }*/
+            int oldValue = analogs[mapped];
             // 防止触发太频繁，设置3% gap
-            // if ((analogs[mapped] - oldValue).abs() < 100) return false;
+            int newValue = (event.value * 32767).toInt();
+            if ((newValue - oldValue).abs() < 100) return false;
+            analogs[mapped] = newValue;
             if (AppPlatform.isWeb &&
                 (mapped == sThumbLY || mapped == sThumbRY)) {
               analogs[mapped] = -analogs[mapped];
@@ -218,10 +227,11 @@ class CGamepadState {
         //special case for web.
         if (AppPlatform.isWeb && (event.key == 'button 6' || event.key == 'button 7')) {
           final mapped = analogMapping[event.key];
+          int newValue = (event.value * 255).toInt();
           int oldValue = analogs[mapped!];
-          analogs[mapped] = (event.value * 255).toInt();
           // 防止触发太频繁，设置3% gap
-          if ((analogs[mapped] - oldValue).abs() < 8) return false;
+          if ((newValue - oldValue).abs() < 8) return false;
+          analogs[mapped] = newValue;
           return true;
         }
         final mapped = buttonMapping[event.key];
@@ -256,10 +266,11 @@ class CGamepadState {
           final mapped = analogMapping[event.key];
           if (mapped != null) {
             if (mapped == bLeftTrigger || mapped == bRightTrigger) {
-              //int oldValue = analogs[mapped];
-              analogs[mapped] = (event.value * 255).toInt();
+              int oldValue = analogs[mapped];
               // 防止触发太频繁，设置3% gap
-              //if ((analogs[mapped] - oldValue).abs() < 8) return false;
+              int newValue = (event.value * 255).toInt();
+              if ((newValue - oldValue).abs() < 8) return false;
+              analogs[mapped] = newValue;
             }
           }
         }

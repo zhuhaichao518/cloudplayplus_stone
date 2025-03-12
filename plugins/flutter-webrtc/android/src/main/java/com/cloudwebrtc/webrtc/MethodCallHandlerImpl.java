@@ -168,6 +168,7 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
 
     PeerConnectionFactory.initialize(
             InitializationOptions.builder(context)
+                    //.setEnableVideoHwAcceleration(true)
                     .setEnableInternalTracer(true)
                     .createInitializationOptions());
 
