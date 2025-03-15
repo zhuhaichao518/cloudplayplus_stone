@@ -153,7 +153,7 @@ class CGamepadState {
     'l.joystick - yAxis': sThumbLY,
     'r.joystick - xAxis': sThumbRX,
     'r.joystick - yAxis': sThumbRY,
-     
+
     //Gamesir-X2
     'l2.rectangle.roundedtop': bLeftTrigger,
     'r2.rectangle.roundedtop': bRightTrigger,
@@ -195,37 +195,38 @@ class CGamepadState {
           // For Gamesir-X2 controller, buttons are reported as analogs.
           final mapped = buttonMapping[event.key];
           if (mapped != null) {
-          if (AppPlatform.isMacos || AppPlatform.isIOS) {
-            if (mapped == XINPUT_GAMEPAD_DPAD_LEFT) {
-              if (event.value == -1) {
-                buttonDown[XINPUT_GAMEPAD_DPAD_LEFT] = true;
-              } else if (event.value == 0) {
-                buttonDown[XINPUT_GAMEPAD_DPAD_LEFT] = false;
-                buttonDown[XINPUT_GAMEPAD_DPAD_RIGHT] = false;
-              } else if (event.value == 1) {
-                buttonDown[XINPUT_GAMEPAD_DPAD_RIGHT] = true;
-              }
-            } else if (mapped == XINPUT_GAMEPAD_DPAD_UP) {
-              if (event.value == 1) {
-                buttonDown[XINPUT_GAMEPAD_DPAD_UP] = true;
-              } else if (event.value == 0) {
-                buttonDown[XINPUT_GAMEPAD_DPAD_UP] = false;
-                buttonDown[XINPUT_GAMEPAD_DPAD_DOWN] = false;
-              } else if (event.value == -1) {
-                buttonDown[XINPUT_GAMEPAD_DPAD_DOWN] = true;
+            if (AppPlatform.isMacos || AppPlatform.isIOS) {
+              if (mapped == XINPUT_GAMEPAD_DPAD_LEFT) {
+                if (event.value == -1) {
+                  buttonDown[XINPUT_GAMEPAD_DPAD_LEFT] = true;
+                } else if (event.value == 0) {
+                  buttonDown[XINPUT_GAMEPAD_DPAD_LEFT] = false;
+                  buttonDown[XINPUT_GAMEPAD_DPAD_RIGHT] = false;
+                } else if (event.value == 1) {
+                  buttonDown[XINPUT_GAMEPAD_DPAD_RIGHT] = true;
+                }
+              } else if (mapped == XINPUT_GAMEPAD_DPAD_UP) {
+                if (event.value == 1) {
+                  buttonDown[XINPUT_GAMEPAD_DPAD_UP] = true;
+                } else if (event.value == 0) {
+                  buttonDown[XINPUT_GAMEPAD_DPAD_UP] = false;
+                  buttonDown[XINPUT_GAMEPAD_DPAD_DOWN] = false;
+                } else if (event.value == -1) {
+                  buttonDown[XINPUT_GAMEPAD_DPAD_DOWN] = true;
+                }
+              } else {
+                buttonDown[mapped] = event.value != 0;
               }
             } else {
               buttonDown[mapped] = event.value != 0;
             }
-          } else {
-            buttonDown[mapped] = event.value != 0;
           }
-        }
         }
         break;
       case KeyType.button:
         //special case for web.
-        if (AppPlatform.isWeb && (event.key == 'button 6' || event.key == 'button 7')) {
+        if (AppPlatform.isWeb &&
+            (event.key == 'button 6' || event.key == 'button 7')) {
           final mapped = analogMapping[event.key];
           int newValue = (event.value * 255).toInt();
           int oldValue = analogs[mapped!];

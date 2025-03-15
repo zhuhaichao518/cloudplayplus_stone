@@ -72,7 +72,7 @@ class InputController {
 
   // reliable = true的时候 处理类似tcp over udp。主要问题是datachannel在丢包时 要等很久才会触发要求重发
   // 方案1 每个控制消息发送后 发送三个空包。如果丢包就会立即触发重发请求
-  bool sendEmptyPacket = true;
+  static bool sendEmptyPacket = true;
 
   static int resendCount = 3;
   // 方案2 每个控制消息发送（3）次 不管丢包的消息 发送三次（同一个seq id） 基本上能保证顺序？
@@ -83,7 +83,7 @@ class InputController {
   // 否则加入待处理列表（如果ID重复则直接丢弃）,等待lastHandledSequenceID + 1的消息进来，最多等（20ms）。
   // 假如时间到了lastHandledSequenceID + 1还没来, 直接处理完待处理列表。
 
-  RTCDataChannelMessage emptyMessage =
+  static RTCDataChannelMessage emptyMessage =
       RTCDataChannelMessage.fromBinary(Uint8List.fromList([LP_EMPTY]));
 
   void requestMoveMouseAbsl(double x, double y, int screenId) async {
@@ -374,6 +374,14 @@ class InputController {
     if (isCursorLocked) {
       WebrtcService.currentRenderingSession?.inputController
           ?.requestMoveMouseRelative(deltax, deltay, 0);
+      // 保证鼠标按下能立即发送到
+      //相对移动消息卡顿，何解？
+      /*if (sendEmptyPacket) {
+        for (int i = 0; i < resendCount - 1; i++) {
+          WebrtcService.currentRenderingSession?.inputController
+          ?.channel.send(emptyMessage);
+        }
+      }*/
     }
   };
 

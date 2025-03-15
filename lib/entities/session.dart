@@ -390,7 +390,7 @@ class StreamingSession {
                 title: "${controller.nickname} (${controller.devicetype})的连接",
                 body: "${controller.devicename}连接到了本设备");
           }*/
-          if (AppPlatform.isWindows){
+          if (AppPlatform.isWindows) {
             HardwareSimulator.showNotification(controller.nickname);
           }
         }
