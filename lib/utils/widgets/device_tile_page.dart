@@ -404,13 +404,10 @@ class _DeviceDetailPageState extends State<DeviceDetailPage> {
         },
       );
       if (result1 != null) {
-        await HardwareSimulator.registerService();
-        SystemTrayManager().hideWindow();
-        SharedPreferencesManager.setBool('runAsSystemOnStart', true);
-        //5秒内不点确定 视为取消
-        Future.delayed(const Duration(seconds: 5), () {
+        bool allowed = await HardwareSimulator.registerService();
+        if (allowed) {
           SystemTrayManager().exitApp();
-        });
+        }
       }
     }
 

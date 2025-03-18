@@ -1,3 +1,5 @@
+import 'dart:io' if (dart.library.html) 'dart:html';
+
 import 'package:cloudplayplus/controller/hardware_input_controller.dart';
 import 'package:cloudplayplus/services/app_init_service.dart';
 import 'package:flutter/material.dart';
@@ -15,8 +17,6 @@ import 'theme/theme_provider.dart';
 import 'package:bitsdojo_window/bitsdojo_window.dart';
 import 'package:flutter_web_plugins/url_strategy.dart';
 
-import 'utils/system_tray_manager.dart';
-
 void main() async {
   LoginService.init();
   WidgetsFlutterBinding.ensureInitialized();
@@ -25,6 +25,14 @@ void main() async {
   SecureStorageManager.init();
   //AppInitService depends on SharedPreferencesManager
   await AppInitService.init();
+
+  if (AppPlatform.isWindows && !ApplicationInfo.isSystem) {
+    bool startAsSys = await HardwareSimulator.registerService();
+    if (startAsSys == true) {
+      exit(0);
+    }
+  }
+
   StreamingSettings.init();
   InputController.init();
   if (AppPlatform.isWeb) {
@@ -39,37 +47,19 @@ void main() async {
       //appWindow.titleBarButtonSize = Size(60,60);
       //appWindow.titleBarHeight = 60;
       appWindow.alignment = Alignment.center;
-      //如果用户选择了系统身份启动 直接关闭自己重新以系统身份启动
-      if (AppPlatform.isWindows && !ApplicationInfo.isSystem) {
-        appWindow.hide();
+      //假如登录成功 默认最小化
+      if (ApplicationInfo.connectable && AppPlatform.isWindows) {
         AppInitService.appInitState.then((state) async {
-          bool runAsSystemOnStart =
-              SharedPreferencesManager.getBool('runAsSystemOnStart') ?? false;
-          if (runAsSystemOnStart) {
-            //无论是否登录成功 都试图重新以系统身份启动
-            await HardwareSimulator.registerService();
-            Future.delayed(const Duration(seconds: 5), () {
-              SystemTrayManager().exitApp();
-            });
+          if (state == 2) {
+            appWindow.hide();
+          } else {
+            appWindow.show();
           }
         }).catchError((error) {
-          VLOG0('Error: failed appInitState');
+          VLOG0('Error: failed appInitState 2');
         });
       } else {
-        //以系统身份启动 并且开启了串流 假如登录成功 默认最小化
-        if (ApplicationInfo.connectable && AppPlatform.isWindows) {
-          AppInitService.appInitState.then((state) async {
-            if (state == 2) {
-              appWindow.hide();
-            } else {
-              appWindow.show();
-            }
-          }).catchError((error) {
-            VLOG0('Error: failed appInitState 2');
-          });
-        } else {
-          appWindow.show();
-        }
+        appWindow.show();
       }
     });
   }
