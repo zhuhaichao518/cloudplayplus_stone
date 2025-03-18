@@ -213,12 +213,17 @@ class StreamingSession {
           channel?.onMessage = (msg) {
             processDataChannelMessageFromHost(msg);
           };
-          if (StreamingSettings.streamAudio!) {
-            audioSession = AudioSession(channel!, controller, controlled);
-            await audioSession!.requestAudio();
-          }
-          await channel?.send(RTCDataChannelMessage.fromBinary(
-              Uint8List.fromList([LP_PING, RP_PING])));
+
+          channel?.onDataChannelState = (state) async {
+            if (state == RTCDataChannelState.RTCDataChannelOpen) {
+              await channel?.send(RTCDataChannelMessage.fromBinary(
+                  Uint8List.fromList([LP_PING, RP_PING])));
+              if (StreamingSettings.streamAudio!) {
+                audioSession = AudioSession(channel!, controller, controlled);
+                await audioSession!.requestAudio();
+              }
+            }
+          };
         }
       };
       screenId = StreamingSettings.targetScreenId!;

@@ -322,7 +322,7 @@ class LoginService {
     } else {
       String errdesc = response.statusCode.toString();
       if (response.statusCode == 401) errdesc = "用户名或密码不正确";
-      if (response.statusCode == 400) errdesc = "用户名或邮箱已被注册过";
+      if (response.statusCode == 400) errdesc = "网络异常，或用户名或邮箱已被注册过";
       Map<String, dynamic> result = {'status': 'fail', 'message': errdesc};
       return result;
       //throw Exception(/*response.statusCode.toString() + */ errdesc);

@@ -23,7 +23,7 @@ class SmoothScrollController {
   void doScroll(double dx, double dy) {
     accumulatedx += dx.toInt();
     accumulatedy += dy.toInt();
-    onScroll?.call(dx, dy);
+    onScroll?.call(dx / 2, dy);
   }
 
   void startFling() {
