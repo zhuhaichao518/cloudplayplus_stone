@@ -35,11 +35,11 @@ final lightTheme0 = FlexThemeData.light(
 
 final darkTheme0 = FlexThemeData.dark(
   colors: const FlexSchemeColor(
-    primary: Color(0xffc4d7f8),
-    primaryContainer: Color(0xff577cbf),
+    primary: Color(0xff376bca),
+    primaryContainer: Color.fromARGB(255, 76, 141, 255),
     secondary: Color(0xfff1bbbb),
     secondaryContainer: Color(0xffcb6060),
-    tertiary: Color(0xffdde5f5),
+    tertiary: Color(0xff376bca),
     tertiaryContainer: Color(0xff7297d9),
     appBarColor: Color(0xffdde5f5),
     error: null,

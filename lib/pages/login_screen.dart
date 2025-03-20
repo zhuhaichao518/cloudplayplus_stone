@@ -130,11 +130,13 @@ class _LoginScreenState extends State<LoginScreen> {
           const UserFormField(
             keyName: 'username',
             displayName: '用户名',
+            userType: LoginUserType.name,
           ),
           const UserFormField(
             keyName: 'nickname',
             displayName: '昵称',
             icon: Icon(FontAwesomeIcons.userLarge),
+            userType: LoginUserType.name,
           ),
           UserFormField(
             keyName: 'email',
@@ -149,6 +151,7 @@ class _LoginScreenState extends State<LoginScreen> {
               }
               return null;
             },
+            userType: LoginUserType.email,
           ),
           const UserFormField(
               keyName: 'password',

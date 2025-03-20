@@ -24,16 +24,16 @@ public class AudioUtils {
                 audioMode = AudioManager.MODE_NORMAL;
                 break;
             case "callScreening":
-                audioMode = AudioManager.MODE_CALL_SCREENING;
+                audioMode = AudioManager.MODE_NORMAL;
                 break;
             case "inCall":
-                audioMode = AudioManager.MODE_IN_CALL;
+                audioMode = AudioManager.MODE_NORMAL;
                 break;
             case "inCommunication":
-                audioMode = AudioManager.MODE_IN_COMMUNICATION;
+                audioMode = AudioManager.MODE_NORMAL;
                 break;
             case "ringtone":
-                audioMode = AudioManager.MODE_RINGTONE;
+                audioMode = AudioManager.MODE_NORMAL;
                 break;
             default:
                 Log.w(TAG, "Unknown audio mode: " + audioModeString);

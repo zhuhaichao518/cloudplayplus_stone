@@ -36,7 +36,7 @@ class UserFormField {
     this.linkUrl,
     this.icon,
     this.fieldValidator,
-    this.userType = LoginUserType.name,
+    this.userType = LoginUserType.text,
     this.tooltip,
     this.obscureText = false,
   }) : displayName = displayName ?? keyName;

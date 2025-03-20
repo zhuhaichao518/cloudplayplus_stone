@@ -44,9 +44,9 @@ class LoginMessages with ChangeNotifier {
   static const defaultLoginButton = '登录';
   static const defaultSignupButton = '注册';
   static const defaultRecoverPasswordButton = '发送验证消息';
-  static const defaultRecoverPasswordIntro = 'Reset your password here';
+  static const defaultRecoverPasswordIntro = '重置密码';
   static const defaultRecoverPasswordDescription =
-      'We will send your plain-text password to this email account.';
+      '测试版暂未支持重置密码.';
   static const defaultRecoverCodePasswordDescription =
       'We will send a password recovery code to your email.';
   static const defaultGoBackButton = '返回';

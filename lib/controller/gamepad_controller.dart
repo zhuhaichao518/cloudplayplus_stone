@@ -124,6 +124,15 @@ class CGamepadState {
     'r.joystick.press.down': XINPUT_GAMEPAD_RIGHT_THUMB,
     'dpad - xAxis': XINPUT_GAMEPAD_DPAD_LEFT,
     'dpad - yAxis': XINPUT_GAMEPAD_DPAD_UP,
+    //ipad
+    'r.joystick.down': XINPUT_GAMEPAD_RIGHT_THUMB,
+
+    //Gamesir-X2
+    'l1.rectangle.roundedbottom': XINPUT_GAMEPAD_LEFT_SHOULDER,
+    'r1.rectangle.roundedbottom': XINPUT_GAMEPAD_RIGHT_SHOULDER,
+
+    //SN30 pro
+    "ellipsis.circle": XINPUT_GAMEPAD_BACK,
   };
 
   final Map<String, int> analogMapping = {
@@ -144,6 +153,10 @@ class CGamepadState {
     'l.joystick - yAxis': sThumbLY,
     'r.joystick - xAxis': sThumbRX,
     'r.joystick - yAxis': sThumbRY,
+     
+    //Gamesir-X2
+    'l2.rectangle.roundedtop': bLeftTrigger,
+    'r2.rectangle.roundedtop': bRightTrigger,
   };
 
   /// Updates the state based on the given event.
@@ -153,32 +166,72 @@ class CGamepadState {
         final mapped = analogMapping[event.key];
         if (mapped != null) {
           if (mapped == bLeftTrigger || mapped == bRightTrigger) {
+            /*if (event.value < 0.05 && analogs[mapped] != 0) {
+              analogs[mapped] = 0;
+              return true;
+            }*/
             int oldValue = analogs[mapped];
-            analogs[mapped] = (event.value * 255).toInt();
             // 防止触发太频繁，设置3% gap
-            if ((analogs[mapped] - oldValue).abs() < 8) return false;
+            int newValue = (event.value * 255).toInt();
+            if ((newValue - oldValue).abs() < 8) return false;
+            analogs[mapped] = newValue;
           } else {
             //5% deadzone.
-            if (analogs[mapped] < 0.05) analogs[mapped] = 0;
+            /*if (event.value < 0.05 && analogs[mapped] != 0) {
+              analogs[mapped] = 0;
+              return true;
+            }*/
             int oldValue = analogs[mapped];
-            analogs[mapped] = (event.value * 32767).toInt();
             // 防止触发太频繁，设置3% gap
-            if ((analogs[mapped] - oldValue).abs() < 100) return false;
+            int newValue = (event.value * 32767).toInt();
+            if ((newValue - oldValue).abs() < 100) return false;
+            analogs[mapped] = newValue;
             if (AppPlatform.isWeb &&
                 (mapped == sThumbLY || mapped == sThumbRY)) {
               analogs[mapped] = -analogs[mapped];
             }
           }
+        } else {
+          // For Gamesir-X2 controller, buttons are reported as analogs.
+          final mapped = buttonMapping[event.key];
+          if (mapped != null) {
+          if (AppPlatform.isMacos || AppPlatform.isIOS) {
+            if (mapped == XINPUT_GAMEPAD_DPAD_LEFT) {
+              if (event.value == -1) {
+                buttonDown[XINPUT_GAMEPAD_DPAD_LEFT] = true;
+              } else if (event.value == 0) {
+                buttonDown[XINPUT_GAMEPAD_DPAD_LEFT] = false;
+                buttonDown[XINPUT_GAMEPAD_DPAD_RIGHT] = false;
+              } else if (event.value == 1) {
+                buttonDown[XINPUT_GAMEPAD_DPAD_RIGHT] = true;
+              }
+            } else if (mapped == XINPUT_GAMEPAD_DPAD_UP) {
+              if (event.value == 1) {
+                buttonDown[XINPUT_GAMEPAD_DPAD_UP] = true;
+              } else if (event.value == 0) {
+                buttonDown[XINPUT_GAMEPAD_DPAD_UP] = false;
+                buttonDown[XINPUT_GAMEPAD_DPAD_DOWN] = false;
+              } else if (event.value == -1) {
+                buttonDown[XINPUT_GAMEPAD_DPAD_DOWN] = true;
+              }
+            } else {
+              buttonDown[mapped] = event.value != 0;
+            }
+          } else {
+            buttonDown[mapped] = event.value != 0;
+          }
+        }
         }
         break;
       case KeyType.button:
         //special case for web.
         if (AppPlatform.isWeb && (event.key == 'button 6' || event.key == 'button 7')) {
           final mapped = analogMapping[event.key];
+          int newValue = (event.value * 255).toInt();
           int oldValue = analogs[mapped!];
-          analogs[mapped] = (event.value * 255).toInt();
           // 防止触发太频繁，设置3% gap
-          if ((analogs[mapped] - oldValue).abs() < 8) return false;
+          if ((newValue - oldValue).abs() < 8) return false;
+          analogs[mapped] = newValue;
           return true;
         }
         final mapped = buttonMapping[event.key];
@@ -209,7 +262,17 @@ class CGamepadState {
             buttonDown[mapped] = event.value != 0;
           }
         } else {
-          print("unimplemented gamepad event!");
+          // 8BitDo SN30 Pro
+          final mapped = analogMapping[event.key];
+          if (mapped != null) {
+            if (mapped == bLeftTrigger || mapped == bRightTrigger) {
+              int oldValue = analogs[mapped];
+              // 防止触发太频繁，设置3% gap
+              int newValue = (event.value * 255).toInt();
+              if ((newValue - oldValue).abs() < 8) return false;
+              analogs[mapped] = newValue;
+            }
+          }
         }
         break;
     }

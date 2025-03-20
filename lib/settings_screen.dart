@@ -39,6 +39,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Widget build(BuildContext context) {
     final themeProvider = Provider.of<ThemeProvider>(context, listen: false);
     return Scaffold(
+      appBar: AppBar(title: const Text('设置')),
       body: SettingsList(
         sections: [
           SettingsSection(

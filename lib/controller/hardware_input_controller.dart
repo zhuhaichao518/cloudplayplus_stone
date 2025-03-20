@@ -294,6 +294,12 @@ class InputController {
       },
     };
     channel.send(RTCDataChannelMessage(jsonEncode(mapData)));
+
+    if (sendEmptyPacket) {
+      for (int i = 0; i < resendCount; i++) {
+        channel.send(emptyMessage);
+      }
+    }
   }
 
   static int controllerCount = 0;

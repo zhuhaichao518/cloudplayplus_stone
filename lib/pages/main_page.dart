@@ -24,9 +24,9 @@ class _MainScreenState extends State<MainScreen> {
   initState() {
     super.initState();
     WebSocketService.init();
-    //if (ApplicationInfo.isSystem){
-    SystemTrayManager().initialize();
-    //}
+    if (AppPlatform.isDeskTop){
+       SystemTrayManager().initialize();
+    }
     _children = [
       DevicesPage(),
       //Grouped(),
@@ -177,7 +177,9 @@ class _MainScreenState extends State<MainScreen> {
                   ],
                 ));
           }
-          windowManager.setTitleBarStyle(TitleBarStyle.normal);
+          if (AppPlatform.isWindows) {
+            windowManager.setTitleBarStyle(TitleBarStyle.normal);
+          }
           return Stack(
             children: [
               Scaffold(
@@ -202,7 +204,7 @@ class _MainScreenState extends State<MainScreen> {
                       items: const [
                         BottomNavigationBarItem(
                           icon: Icon(Icons.computer),
-                          label: 'Devices',
+                          label: '设备',
                         ),
                         /*BottomNavigationBarItem(
                     icon: Icon(Icons.games_rounded),
@@ -210,11 +212,11 @@ class _MainScreenState extends State<MainScreen> {
                   ),*/
                         BottomNavigationBarItem(
                           icon: Icon(Icons.group),
-                          label: 'Friends',
+                          label: '好友',
                         ),
                         BottomNavigationBarItem(
                           icon: Icon(Icons.settings),
-                          label: 'Settings',
+                          label: '设置',
                         ),
                       ],
                     );
