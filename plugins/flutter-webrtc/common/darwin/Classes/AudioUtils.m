@@ -6,15 +6,21 @@
 
 + (void)ensureAudioSessionWithRecording:(BOOL)recording {
   RTCAudioSession* session = [RTCAudioSession sharedInstance];
+  //CloudPlayPlus: 允许静音
+  //[[AVAudioSession sharedInstance] setMode:AVAudioSessionModeMoviePlayback error:nil];
   // we also need to set default WebRTC audio configuration, since it may be activated after
   // this method is called
   RTCAudioSessionConfiguration* config = [RTCAudioSessionConfiguration webRTCConfiguration];
   // require audio session to be either PlayAndRecord or MultiRoute
   if (recording && session.category != AVAudioSessionCategoryPlayAndRecord &&
-      session.category != AVAudioSessionCategoryMultiRoute || true) {//这里改了修好了 为啥
+      session.category != AVAudioSessionCategoryMultiRoute || true) {
+    //这里走上面能有声音 走两边都会setMode failed 为啥
     config.category = AVAudioSessionCategoryPlayAndRecord;
+    // Cloudplayplus currently only plays audio on ios. But this does not work.
+    //config.category = AVAudioSessionCategoryPlayback;
     config.categoryOptions =
         AVAudioSessionCategoryOptionDefaultToSpeaker |
+        //AVAudioSessionCategoryOptionMixWithOthers| //CloudPlayPlus: 不允许混音
         AVAudioSessionCategoryOptionAllowBluetooth |
         AVAudioSessionCategoryOptionAllowBluetoothA2DP |
         AVAudioSessionCategoryOptionAllowAirPlay;
@@ -24,7 +30,7 @@
     bool success = [session setCategory:config.category withOptions:config.categoryOptions error:&error];
     if (!success)
       NSLog(@"ensureAudioSessionWithRecording[true]: setCategory failed due to: %@", error);
-    success = [session setMode:config.mode error:&error];
+    success = [session setMode:/*AVAudioSessionModeMoviePlayback*/ config.mode error:&error];
     if (!success)
       NSLog(@"ensureAudioSessionWithRecording[true]: setMode failed due to: %@", error);
     [session unlockForConfiguration];
