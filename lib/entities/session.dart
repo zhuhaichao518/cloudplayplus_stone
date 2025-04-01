@@ -399,6 +399,10 @@ class StreamingSession {
             HardwareSimulator.showNotification(controller.nickname);
           }
         }
+        else if (state ==
+            RTCPeerConnectionState.RTCPeerConnectionStateFailed) {
+          close();
+        }
       };
 
       //create data channel
