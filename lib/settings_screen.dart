@@ -2,6 +2,7 @@ import 'package:cloudplayplus/dev_settings.dart/develop_settings.dart';
 import 'package:cloudplayplus/global_settings/streaming_settings.dart';
 import 'package:cloudplayplus/pages/login_screen.dart';
 import 'package:cloudplayplus/services/app_info_service.dart';
+import 'package:cloudplayplus/services/login_service.dart';
 import 'package:cloudplayplus/services/secure_storage_manager.dart';
 import 'package:cloudplayplus/services/websocket_service.dart';
 import 'package:flutter/cupertino.dart';
@@ -213,6 +214,57 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       );
                     },
                   );
+                },
+              ),
+              SettingsTile(
+                title: const Text('删除账户', style: TextStyle(color: Colors.red)),
+                leading: const Icon(Icons.warning),
+                onPressed: (BuildContext context) {
+                  showDialog(
+                      context: context,
+                      builder: (BuildContext context) {
+                        return AlertDialog(
+                          title: const Text('删除账户',
+                              style: TextStyle(color: Colors.red)),
+                          content: const Text('确定要删除账户吗?此操作无法恢复！',
+                              style: TextStyle(color: Colors.red)),
+                          actions: [
+                            TextButton(
+                              onPressed: () async {
+                                if (await LoginService().deleteAccount()) {
+                                  WebSocketService.disconnect();
+                                  if (DevelopSettings.useSecureStorage) {
+                                    SecureStorageManager.clear();
+                                  }
+                                  SharedPreferencesManager.clear();
+                                  Navigator.pushReplacement(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (context) =>
+                                            const LoginScreen()),
+                                  );
+                                } else {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text('删除失败,请检查网络连接'), // 提示内容
+                                      duration: Duration(seconds: 2), // 自动消失时间
+                                    ),
+                                  );
+                                  Navigator.of(context).pop();
+                                }
+                              },
+                              child: const Text('删除账户',
+                                  style: TextStyle(color: Colors.red)),
+                            ),
+                            TextButton(
+                              onPressed: () {
+                                Navigator.of(context).pop();
+                              },
+                              child: const Text('取消'),
+                            ),
+                          ],
+                        );
+                      });
                 },
               ),
             ],

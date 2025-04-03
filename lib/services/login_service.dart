@@ -460,6 +460,50 @@ class LoginService {
     return _handleResponse(response);
   }
 
+  Future<bool> deleteAccount() async {
+    Uri url = Uri.parse('$_baseUrl/api/deleteaccount/');
+    String? accessToken;
+    if (DevelopSettings.useSecureStorage) {
+      accessToken = await SecureStorageManager.getString('access_token');
+    } else {
+      accessToken = SharedPreferencesManager.getString('access_token');
+    }
+
+    http.Response response;
+    try {
+      if (!DevelopSettings.useLocalServer) {
+        response = await http.post(
+          url,
+          headers: <String, String>{
+            'Content-Type': 'application/json; charset=UTF-8',
+          },
+          body: jsonEncode(<String, String>{
+            'token': accessToken!,
+          }),
+        );
+      } else {
+        response = await http.post(
+          url,
+          headers: <String, String>{
+            "Access-Control-Allow-Origin": "*",
+            'Content-Type': 'application/json; charset=UTF-8',
+            'Accept': '*/*'
+          },
+          body: jsonEncode(<String, String>{
+            'token': accessToken!,
+          }),
+        );
+      }
+    } catch (e) {
+      return false;
+    }
+
+    if (response.statusCode == 200) {
+      return true;
+    }
+    return false;
+  }
+
   Future<List<dynamic>> fetchGames({String? searchQuery, String? genre}) async {
     String queryUrl = '$_baseUrl/api/games';
 

@@ -398,8 +398,7 @@ class StreamingSession {
           if (AppPlatform.isWindows) {
             HardwareSimulator.showNotification(controller.nickname);
           }
-        }
-        else if (state ==
+        } else if (state ==
             RTCPeerConnectionState.RTCPeerConnectionStateFailed) {
           close();
         }
