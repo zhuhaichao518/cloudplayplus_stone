@@ -1,4 +1,4 @@
-import 'dart:io' if (dart.library.html) 'dart:html';
+import 'dart:io' if (dart.library.js) 'utils/web_util.dart';
 
 import 'package:cloudplayplus/controller/hardware_input_controller.dart';
 import 'package:cloudplayplus/services/app_init_service.dart';

@@ -1,0 +1,1 @@
+void exit(int code) {}
