@@ -31,7 +31,7 @@ class _MainScreenState extends State<MainScreen> {
       DevicesPage(),
       //Grouped(),
       //const Text("test"), //Grouped(),
-      Scaffold(
+      /*Scaffold(
         appBar: AppBar(title: const Text('我的好友')),
         body: const Center(
           child: Text(
@@ -39,7 +39,7 @@ class _MainScreenState extends State<MainScreen> {
             style: TextStyle(fontSize: 20),
           ),
         ),
-      ),
+      ),*/
       const SettingsScreen(), //GamesPage(),
     ];
   }
@@ -210,10 +210,10 @@ class _MainScreenState extends State<MainScreen> {
                     icon: Icon(Icons.games_rounded),
                     label: 'Games',
                   ),*/
-                        BottomNavigationBarItem(
+                        /*BottomNavigationBarItem(
                           icon: Icon(Icons.group),
                           label: '好友',
-                        ),
+                        ),*/
                         BottomNavigationBarItem(
                           icon: Icon(Icons.settings),
                           label: '设置',
