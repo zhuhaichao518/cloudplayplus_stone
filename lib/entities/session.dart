@@ -72,12 +72,8 @@ class StreamingSession {
   RTCRtpSender? videoSender;
   //RTCRtpSender? audioSender;
 
-  //used to send/recv reliable messages from clinet to host.
+  //used to send reliable messages.
   RTCDataChannel? channel;
-  
-  //used to send/recv reliable messages from host to client.
-  //https://stackoverflow.com/questions/37057438/what-might-cause-this-1000ms-lag-in-webrtc-data-channel-messages
-  RTCDataChannel? hostchannel;
 
   int datachannelMessageIndex = 0;
 
@@ -209,27 +205,25 @@ class StreamingSession {
           /*
         channel?.onMessage = (msg) {
         };*/
-        } else if (newchannel.label == "hostEvent"){
-          hostchannel = newchannel;
-          hostchannel?.onDataChannelState = (state) async {
+        } else {
+          channel = newchannel;
+          if (!useUnsafeDatachannel) {
+            inputController = InputController(channel!, true);
+          }
+          channel?.onMessage = (msg) {
+            processDataChannelMessageFromHost(msg);
+          };
+
+          channel?.onDataChannelState = (state) async {
             if (state == RTCDataChannelState.RTCDataChannelOpen) {
               await channel?.send(RTCDataChannelMessage.fromBinary(
                   Uint8List.fromList([LP_PING, RP_PING])));
               if (StreamingSettings.streamAudio!) {
-                //we use clinet channel to send audio session request to host.
                 audioSession = AudioSession(channel!, controller, controlled);
                 await audioSession!.requestAudio();
               }
             }
           };
-          hostchannel?.onMessage = (msg) {
-            processDataChannelMessageFromHost(msg);
-          };
-        }else {
-          channel = newchannel;
-          if (!useUnsafeDatachannel) {
-            inputController = InputController(channel!, true);
-          }
         }
       };
       screenId = StreamingSettings.targetScreenId!;
@@ -412,13 +406,10 @@ class StreamingSession {
 
       //create data channel
       RTCDataChannelInit reliableDataChannelDict = RTCDataChannelInit()
-        ..maxRetransmits = 10
+        ..maxRetransmits = 30
         ..ordered = true;
       channel =
           await pc!.createDataChannel('userInput', reliableDataChannelDict);
-
-      hostchannel =
-          await pc!.createDataChannel('hostEvent', reliableDataChannelDict);
 
       channel?.onMessage = (RTCDataChannelMessage msg) {
         processDataChannelMessageFromClient(msg);
@@ -611,22 +602,18 @@ class StreamingSession {
       if (channel != null) {
         await channel?.send(RTCDataChannelMessage.fromBinary(
             Uint8List.fromList([LP_DISCONNECT, RP_PING])));
-        await hostchannel?.send(RTCDataChannelMessage.fromBinary(
-            Uint8List.fromList([LP_DISCONNECT, RP_PING])));
+        //TODO(haichao): sometimes pc is null so fail?
         try {
           await channel?.close();
           channel = null;
-          await hostchannel?.close();
-          hostchannel = null;
         } catch (e) {
-          //figure out why sometimes pc is null;
+          //figure out why pc is null;
         }
       }
       if (UDPChannel != null) {
         await UDPChannel?.close();
         UDPChannel = null;
       }
-
       //TODO:理论上不需要removetrack pc会自动close 但是需要验证
       pc?.close();
       pc = null;
@@ -677,14 +664,14 @@ class StreamingSession {
   void onLocalCursorImageMessage(
       int message, int messageInfo, Uint8List cursorImage) {
     if (message == HardwareSimulator.CURSOR_UPDATED_IMAGE) {
-      hostchannel?.send(RTCDataChannelMessage.fromBinary(cursorImage));
+      channel?.send(RTCDataChannelMessage.fromBinary(cursorImage));
     } else {
       ByteData byteData = ByteData(9);
       byteData.setUint8(0, LP_MOUSECURSOR_CHANGED);
       byteData.setInt32(1, message);
       byteData.setInt32(5, messageInfo);
       Uint8List buffer = byteData.buffer.asUint8List();
-      hostchannel?.send(RTCDataChannelMessage.fromBinary(buffer));
+      channel?.send(RTCDataChannelMessage.fromBinary(buffer));
     }
   }
 
@@ -699,7 +686,7 @@ class StreamingSession {
             Timer(const Duration(seconds: 1), () {
               if (connectionState ==
                   StreamingSessionConnectionState.disconnecting) return;
-              hostchannel?.send(RTCDataChannelMessage.fromBinary(
+              channel?.send(RTCDataChannelMessage.fromBinary(
                   Uint8List.fromList([LP_PING, RP_PONG])));
             });
           }
@@ -725,7 +712,7 @@ class StreamingSession {
         case LP_EMPTY:
           break;
         case LP_AUDIO_CONNECT:
-          audioSession = AudioSession(hostchannel!, controller, controlled);
+          audioSession = AudioSession(channel!, controller, controlled);
           audioSession?.audioRequested();
           break;
         default:
