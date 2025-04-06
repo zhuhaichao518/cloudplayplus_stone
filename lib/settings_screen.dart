@@ -1,3 +1,4 @@
+import 'package:cloudplayplus/controller/hardware_input_controller.dart';
 import 'package:cloudplayplus/dev_settings.dart/develop_settings.dart';
 import 'package:cloudplayplus/global_settings/streaming_settings.dart';
 import 'package:cloudplayplus/pages/login_screen.dart';
@@ -399,7 +400,7 @@ class _StreamingSettingsScreen extends State<StreamingSettingsScreen> {
                     final framerate = await Navigation.navigateTo(
                       context: context,
                       screen: Scaffold(
-                        appBar: AppBar(title: Text('帧数设置')),
+                        appBar: AppBar(title: const Text('帧数设置')),
                         body: SettingsList(
                           sections: [
                             SettingsSection(
@@ -468,6 +469,18 @@ class _NetworkSettingsScreenState extends State<NetworkSettingsScreen> {
   String customTurnServerUsername = "";
   String customTurnServerPassword = "";
 
+  final Map<int, String> resendTimesMap = {
+    0: '0',
+    1: '1',
+    2: '2',
+    3: '3',
+    4: '4',
+    6: '6',
+    8: '8',
+    10: '10',
+    12: '12',
+  };
+
   @override
   void initState() {
     super.initState();
@@ -497,6 +510,48 @@ class _NetworkSettingsScreenState extends State<NetworkSettingsScreen> {
           applicationType: ApplicationType.cupertino,
           //platform: DevicePlatform.iOS,
           sections: [
+            SettingsSection(
+              title: const Text('键鼠/手柄指令重发次数(如果网络环境差导致部分操作有延迟，可提高此值)'),
+              tiles: [
+                SettingsTile(
+                  title: const Text('键鼠/手柄指令重发次数 (fps)'),
+                  trailing: Material(
+                      child: Text('重发: ${InputController.resendCount} 次')),
+                  leading: const Icon(Icons.videocam),
+                  onPressed: (BuildContext context) async {
+                    final resendCount = await Navigation.navigateTo(
+                      context: context,
+                      screen: Scaffold(
+                        appBar: AppBar(title: const Text('重发次数')),
+                        body: SettingsList(
+                          sections: [
+                            SettingsSection(
+                              title: const Text('次'),
+                              tiles: resendTimesMap.keys.map((resendCountKey) {
+                                final frameratevalue =
+                                    resendTimesMap[resendCountKey];
+                                return SettingsTile(
+                                  title: Text(frameratevalue!),
+                                  onPressed: (context) {
+                                    Navigator.of(context).pop(resendCountKey);
+                                  },
+                                );
+                              }).toList(),
+                            ),
+                          ],
+                        ),
+                      ),
+                      style: NavigationRouteStyle.cupertino,
+                    );
+                    if (resendCount != null) {
+                      setState(() {
+                        InputController.resendCount = resendCount;
+                      });
+                    }
+                  },
+                ),
+              ],
+            ),
             SettingsSection(
               title: const Text('turn服务器设置'),
               tiles: [
