@@ -511,13 +511,13 @@ class _NetworkSettingsScreenState extends State<NetworkSettingsScreen> {
           //platform: DevicePlatform.iOS,
           sections: [
             SettingsSection(
-              title: const Text('键鼠/手柄指令重发次数(如果网络环境差导致部分操作有延迟，可提高此值)'),
+              title: const Text('键鼠/手柄指令重发次数(如果网络环境导致输入操作有延迟，但画面流畅，可提高此值)'),
               tiles: [
                 SettingsTile(
                   title: const Text('键鼠/手柄指令重发次数 (fps)'),
                   trailing: Material(
                       child: Text('重发: ${InputController.resendCount} 次')),
-                  leading: const Icon(Icons.videocam),
+                  leading: const Icon(Icons.repeat),
                   onPressed: (BuildContext context) async {
                     final resendCount = await Navigation.navigateTo(
                       context: context,
@@ -526,7 +526,7 @@ class _NetworkSettingsScreenState extends State<NetworkSettingsScreen> {
                         body: SettingsList(
                           sections: [
                             SettingsSection(
-                              title: const Text('次'),
+                              title: const Text('重发次数'),
                               tiles: resendTimesMap.keys.map((resendCountKey) {
                                 final frameratevalue =
                                     resendTimesMap[resendCountKey];
@@ -545,6 +545,8 @@ class _NetworkSettingsScreenState extends State<NetworkSettingsScreen> {
                     );
                     if (resendCount != null) {
                       setState(() {
+                        SharedPreferencesManager.setInt(
+                            'ControlMsgResendCount', resendCount);
                         InputController.resendCount = resendCount;
                       });
                     }

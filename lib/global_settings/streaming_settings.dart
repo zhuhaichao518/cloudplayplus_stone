@@ -1,3 +1,4 @@
+import 'package:cloudplayplus/controller/hardware_input_controller.dart';
 import 'package:cloudplayplus/services/app_info_service.dart';
 import 'package:cloudplayplus/services/shared_preferences_manager.dart';
 
@@ -40,6 +41,9 @@ class StreamingSettings {
   static bool autoHideLocalCursor = true;
 
   static void init() {
+    InputController.resendCount =
+        SharedPreferencesManager.getInt('ControlMsgResendCount') ?? 3;
+
     framerate =
         SharedPreferencesManager.getInt('framerate') ?? 60; // Default to 60
     bitrate =
