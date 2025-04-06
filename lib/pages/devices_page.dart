@@ -1,5 +1,7 @@
 import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:cloudplayplus/entities/device.dart';
+import 'package:cloudplayplus/services/streaming_manager.dart';
+import 'package:cloudplayplus/services/webrtc_service.dart';
 import 'package:cloudplayplus/services/websocket_service.dart';
 import 'package:flutter/material.dart';
 import '../../../plugins/flutter_master_detail/flutter_master_detail.dart';
@@ -28,15 +30,24 @@ class _DevicesPageState extends State<DevicesPage> {
         //}
         if (device['connective'] == false &&
             device['connection_id'] !=
-                ApplicationInfo.thisDevice.websocketSessionid) continue;
-        _deviceList.add(Device(
-            uid: device['owner_id'],
-            nickname: device['owner_nickname'],
-            devicename: device['device_name'],
-            devicetype: device['device_type'],
-            websocketSessionid: device['connection_id'],
-            connective: device['connective'],
-            screencount: device['screen_count']));
+                ApplicationInfo.thisDevice.websocketSessionid) {
+          continue;
+        }
+        Device deviceInstance;
+        if (WebrtcService.streams.containsKey(device['connection_id'])) {
+          deviceInstance =
+              StreamingManager.sessions[device['connection_id']]!.controlled;
+        } else {
+          deviceInstance = Device(
+              uid: device['owner_id'],
+              nickname: device['owner_nickname'],
+              devicename: device['device_name'],
+              devicetype: device['device_type'],
+              websocketSessionid: device['connection_id'],
+              connective: device['connective'],
+              screencount: device['screen_count']);
+        }
+        _deviceList.add(deviceInstance);
       }
     });
   }
