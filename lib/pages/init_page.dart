@@ -2,6 +2,7 @@ import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:cloudplayplus/intro_screen.dart';
 import 'package:cloudplayplus/pages/login_screen.dart';
 import 'package:cloudplayplus/pages/main_page.dart';
+import 'package:cloudplayplus/pages/reconnect_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 
@@ -13,7 +14,7 @@ class InitPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<int>(
+    return FutureBuilder<AppInitState>(
       future: AppInitService.appInitState,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
@@ -53,13 +54,16 @@ class InitPage extends StatelessWidget {
           return const LoginScreen();
           //return Center(child: Text('Error: ${snapshot.error}'));
         } else {
-          int appStatus = snapshot.data ?? 0;
-          if (appStatus == 0) {
+          AppInitState appStatus = snapshot.data ?? AppInitState.firstTime;
+          if (appStatus == AppInitState.firstTime) {
             return const IntroScreen();
-          } else if (appStatus == 1) {
+          } else if (appStatus == AppInitState.needLogin) {
             return const LoginScreen();
-          } else {
+          } else if (appStatus == AppInitState.loggedin) {
             return const MainScreen();
+          } else {
+            // AppInitState.needReconnect
+            return const ReconnectScreen();
           }
         }
       },

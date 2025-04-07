@@ -201,6 +201,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                 SharedPreferencesManager.setString(
                                     'refresh_token', "");
                               }
+                              SharedPreferencesManager.setBool('is_logged_in', false);
                               Navigator.pop(context);
                               Navigator.pushReplacement(
                                 context,

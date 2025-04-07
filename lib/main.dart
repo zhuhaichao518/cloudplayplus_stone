@@ -50,7 +50,7 @@ void main() async {
       //假如登录成功 默认最小化
       if (ApplicationInfo.connectable && AppPlatform.isWindows) {
         AppInitService.appInitState.then((state) async {
-          if (state == 2) {
+          if (state == AppInitState.loggedin) {
             appWindow.hide();
           } else {
             appWindow.show();
