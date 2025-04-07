@@ -49,7 +49,9 @@ class InitPage extends StatelessWidget {
                 ),
               ));
         } else if (snapshot.hasError) {
-          return Center(child: Text('Error: ${snapshot.error}'));
+          // When failed host lookup, exception may occur.
+          return const LoginScreen();
+          //return Center(child: Text('Error: ${snapshot.error}'));
         } else {
           int appStatus = snapshot.data ?? 0;
           if (appStatus == 0) {
