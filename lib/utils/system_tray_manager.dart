@@ -23,10 +23,10 @@ class SystemTrayManager {
     bool hideDockIconOnStart = false,
   }) async {
     if (_isInitialized || AppPlatform.isWeb) return;
-    
+
     // TODO: Why appwindow.hide closes window for MacOS?
     if (!AppPlatform.isWindows /*isMacOS */) return;
-  
+
     // 处理 macOS Dock 图标
     if ((AppPlatform.isMacos && hideDockIconOnStart)) {
       appWindow.hide();
@@ -99,14 +99,14 @@ class SystemTrayManager {
   void hideWindow() => appWindow.hide();
 
   void restart() {
-    _systemTray.destroy().then( (_){
+    _systemTray.destroy().then((_) {
       appWindow.close();
       exit(0);
     });
   }
 
   void exitApp() {
-    _systemTray.destroy().then( (_){
+    _systemTray.destroy().then((_) {
       if (AppPlatform.isWindows && ApplicationInfo.isSystem) {
         HardwareSimulator.unregisterService();
       } else {

@@ -58,7 +58,9 @@ class _ReconnectScreenState extends State<ReconnectScreen> {
 
     final success = await AppInitService.reconnect();
     if (success) {
-      if (ApplicationInfo.connectable && ApplicationInfo.isSystem && AppPlatform.isWindows) {
+      if (ApplicationInfo.connectable &&
+          ApplicationInfo.isSystem &&
+          AppPlatform.isWindows) {
         appWindow.hide();
       }
       setState(() {
@@ -119,7 +121,8 @@ class _ReconnectScreenState extends State<ReconnectScreen> {
             const SizedBox(height: 30),
             Text(
               '网络连接失败: $_secondsRemaining 秒后重连',
-              style: const TextStyle(fontSize: 16/*, color: Colors.deepOrangeAccent*/),
+              style: const TextStyle(
+                  fontSize: 16 /*, color: Colors.deepOrangeAccent*/),
             ),
             const SizedBox(height: 20),
             ElevatedButton(

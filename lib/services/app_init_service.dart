@@ -34,7 +34,8 @@ class AppInitService {
         SharedPreferencesManager.getString('deviceNameOverride');
     if (!appintroFinished) return AppInitState.firstTime;
 
-    bool wasLoggedin = SharedPreferencesManager.getBool('is_logged_in') ?? false;
+    bool wasLoggedin =
+        SharedPreferencesManager.getBool('is_logged_in') ?? false;
     if (wasLoggedin) {
       bool isLoggedin = await LoginService.tryLoginWithCachedToken();
       if (!isLoggedin) {

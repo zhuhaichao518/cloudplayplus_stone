@@ -86,6 +86,7 @@ dependencies:
   #flutter_local_notifications: ^19.0.0-dev.5
   flutter_window_close: ^1.2.0
   synchronized: ^3.3.0+3
+  url_launcher: ^6.3.1
 
 dev_dependencies:
   flutter_test:

@@ -9,6 +9,7 @@ import 'package:cloudplayplus/services/websocket_service.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'plugins/flutter_settings_ui/flutter_settings_ui.dart';
 import 'services/shared_preferences_manager.dart';
 import 'theme/theme_provider.dart';
@@ -201,7 +202,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                 SharedPreferencesManager.setString(
                                     'refresh_token', "");
                               }
-                              SharedPreferencesManager.setBool('is_logged_in', false);
+                              SharedPreferencesManager.setBool(
+                                  'is_logged_in', false);
                               Navigator.pop(context);
                               Navigator.pushReplacement(
                                 context,
@@ -272,6 +274,25 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           ],
                         );
                       });
+                },
+              ),
+            ],
+          ),
+          SettingsSection(
+            title: const Text('官方网站'),
+            tiles: <SettingsTile>[
+              SettingsTile(
+                title: const Text('https://www.cloudplayplus.com'),
+                leading: const Icon(Icons.link),
+                onPressed: (BuildContext context) async {
+                  final url = Uri.parse('https://www.cloudplayplus.com');
+                  if (await canLaunchUrl(url)) {
+                    await launchUrl(
+                      url,
+                      mode: LaunchMode.externalApplication,
+                    );
+                  }
+                  return null;
                 },
               ),
             ],
