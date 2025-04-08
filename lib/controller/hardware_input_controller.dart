@@ -127,6 +127,12 @@ class InputController {
 
       // 发送消息
       channel.send(RTCDataChannelMessage.fromBinary(buffer));
+
+      if (sendEmptyPacket) {
+        for (int i = 0; i < resendCount / 2; i++) {
+          channel.send(emptyMessage);
+        }
+      }
     } else {
       ByteData byteData = ByteData(14);
       byteData.setUint8(0, LP_MOUSEMOVE_ABSL);
@@ -143,7 +149,7 @@ class InputController {
       channel.send(RTCDataChannelMessage.fromBinary(buffer));
 
       if (sendEmptyPacket) {
-        for (int i = 0; i < resendCount / 3; i++) {
+        for (int i = 0; i < resendCount / 2; i++) {
           channel.send(emptyMessage);
         }
       }
