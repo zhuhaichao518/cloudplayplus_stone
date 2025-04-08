@@ -96,8 +96,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     SharedPreferencesManager.setInt(
                         'streamingMode', _streamingmode);
                     themeProvider.setStreamingMode(0);
-                    SharedPreferencesManager.setInt('ControlMsgResendCount', 3);
-                    InputController.resendCount = 3;
+                    SharedPreferencesManager.setInt('ControlMsgResendCount', 2);
+                    InputController.resendCount = 2;
                   });
                 },
               ),
@@ -111,8 +111,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         'streamingMode', _streamingmode);
                     themeProvider.setStreamingMode(1);
                     SharedPreferencesManager.setInt(
-                        'ControlMsgResendCount', 12);
-                    InputController.resendCount = 12;
+                        'ControlMsgResendCount', 6);
+                    InputController.resendCount = 6;
                   });
                 },
               ),
