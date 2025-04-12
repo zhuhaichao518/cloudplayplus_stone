@@ -92,10 +92,19 @@ class _FloatBoxState extends State<FloatingMenuPanel> {
           context.findAncestorRenderObjectOfType<RenderBox>();
       _pageWidth = parentRenderBox!.size.width;
       _pageHeight = parentRenderBox.size.height;
-      _isLandscape = _pageWidth > _pageHeight;
     });
 
     super.initState();
+  }
+
+  void _updateLayoutDirection() {
+    final RenderBox? parentRenderBox =
+        context.findAncestorRenderObjectOfType<RenderBox>();
+    if (parentRenderBox != null) {
+      _pageWidth = parentRenderBox.size.width;
+      _pageHeight = parentRenderBox.size.height;
+      _isLandscape = _pageWidth > _pageHeight;
+    }
   }
 
   @override
@@ -335,7 +344,7 @@ class _FloatBoxState extends State<FloatingMenuPanel> {
               onTap: () {
                 setState(
                   () {
-                    // Set the animation speed to custom duration;
+                    _updateLayoutDirection();
                     _movementSpeed = widget.panelAnimDuration ?? 200;
 
                     if (_panelState == PanelState.open) {
