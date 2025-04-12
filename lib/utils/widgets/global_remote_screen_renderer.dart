@@ -158,10 +158,10 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
           gamepadState.analogs[CGamepadState.sThumbLX] =
               (analogEvent.value * 32767).toInt();
         } else if (analogEvent.key == GamepadKey.leftStickY) {
-          WebrtcService.currentRenderingSession?.inputController
-              ?.requestGamePadEvent("0", gamepadState.getStateString());
           gamepadState.analogs[CGamepadState.sThumbLY] =
               (analogEvent.value * 32767).toInt();
+          WebrtcService.currentRenderingSession?.inputController
+              ?.requestGamePadEvent("0", gamepadState.getStateString());
         } else if (analogEvent.key == GamepadKey.rightStickX) {
           gamepadState.analogs[CGamepadState.sThumbRX] =
               (analogEvent.value * 32767).toInt();
