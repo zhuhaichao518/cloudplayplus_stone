@@ -81,6 +81,8 @@ class _FloatBoxState extends State<FloatingMenuPanel> {
   int _movementSpeed = 0;
   late double _pageWidth;
   late double _pageHeight;
+  late bool _isLandscape = false;
+
   @override
   void initState() {
     _positionTop = widget.positionTop ?? 0;
@@ -90,6 +92,7 @@ class _FloatBoxState extends State<FloatingMenuPanel> {
           context.findAncestorRenderObjectOfType<RenderBox>();
       _pageWidth = parentRenderBox!.size.width;
       _pageHeight = parentRenderBox.size.height;
+      _isLandscape = _pageWidth > _pageHeight;
     });
 
     super.initState();
@@ -157,13 +160,41 @@ class _FloatBoxState extends State<FloatingMenuPanel> {
     // Height of the panel according to the panel state;
     double _panelHeight() {
       if (_panelState == PanelState.open) {
-        // Panel height will be in multiple of total buttons, I have added "1"
-        // digit height for each button to fix the overflow issue. Don't know
-        // what's causing this, but adding "1" fixed the problem for now.
-        return (_widgetSize + (_widgetSize + 1) * _totalButtons()) +
-            (widget.borderWidth ?? 0);
+        if (_isLandscape) {
+          // 横向展开时的高度
+          return _widgetSize + (widget.borderWidth ?? 0) * 2;
+        } else {
+          // 纵向展开时的高度
+          return (_widgetSize + (_widgetSize + 1) * _totalButtons()) +
+              (widget.borderWidth ?? 0);
+        }
       } else {
         return _widgetSize + (widget.borderWidth ?? 0) * 2;
+      }
+    }
+
+    // Panel width needs to be recalculated while opening the panel, to make sure
+    // the width doesn't exceed the right of the page;
+    double _panelWidth() {
+      if (_panelState == PanelState.open) {
+        if (_isLandscape) {
+          // 横向展开时的宽度
+          return (_widgetSize + (_widgetSize + 1) * _totalButtons()) +
+              (widget.borderWidth ?? 0);
+        } else {
+          // 纵向展开时的宽度
+          return _widgetSize + (widget.borderWidth ?? 0) * 2;
+        }
+      } else {
+        return _widgetSize + (widget.borderWidth ?? 0) * 2;
+      }
+    }
+
+    // Panel width needs to be recalculated while opening the panel, to make sure
+    // the width doesn't exceed the right of the page;
+    void _calcPanelWidth() {
+      if (_positionLeft + _panelWidth() > _pageWidth + _dockBoundary()) {
+        _positionLeft = _pageWidth - _panelWidth() + _dockBoundary();
       }
     }
 
@@ -232,7 +263,7 @@ class _FloatBoxState extends State<FloatingMenuPanel> {
       // Animated Container is used for easier animation of container height;
       child: AnimatedContainer(
         duration: Duration(milliseconds: widget.panelAnimDuration ?? 600),
-        width: _widgetSize,
+        width: _panelWidth(),
         height: _panelHeight(),
         decoration: BoxDecoration(
           color: widget.backgroundColor ?? Color(0xff00b0cb),
@@ -241,7 +272,7 @@ class _FloatBoxState extends State<FloatingMenuPanel> {
         ),
         curve: widget.panelAnimCurve ?? Curves.fastLinearToSlowEaseIn,
         child: Wrap(
-          direction: Axis.horizontal,
+          direction: _isLandscape ? Axis.vertical : Axis.horizontal,
           children: [
             // Gesture detector is required to detect the tap and drag on the panel;
             GestureDetector(
@@ -348,52 +379,73 @@ class _FloatBoxState extends State<FloatingMenuPanel> {
                   ? Duration(milliseconds: 250)
                   : Duration(milliseconds: 10),
               child: Container(
-                child: Column(
-                  children: List.generate(
-                    _buttons.length,
-                    (index) {
-                      return GestureDetector(
-                        onTap: () {
-                          widget.onPressed(index);
-                          setState(() {
-                            _movementSpeed = widget.panelAnimDuration ?? 200;
-
-                            if (_panelState == PanelState.open) {
-                              // If panel state is "open", set it to "closed";
-                              _panelState = PanelState.closed;
-                              if (widget.forceDock == null ||
-                                  widget.forceDock == false) {
-                                return;
+                child: _isLandscape 
+                  ? Row(
+                      children: List.generate(
+                        _buttons.length,
+                        (index) => GestureDetector(
+                          onTap: () {
+                            widget.onPressed(index);
+                            setState(() {
+                              _movementSpeed = widget.panelAnimDuration ?? 200;
+                              if (_panelState == PanelState.open) {
+                                _panelState = PanelState.closed;
+                                if (widget.forceDock == null || widget.forceDock == false) {
+                                  return;
+                                }
+                                _forceDock();
+                              } else {
+                                _panelState = PanelState.open;
+                                if (widget.forceDock == null || widget.forceDock == false) {
+                                  return;
+                                }
+                                _positionLeft = _openDockLeft();
+                                _calcPanelTop();
                               }
-                              // Reset panel position, dock it to nearest edge;
-                              _forceDock();
-                              //widget.isOpen(false);
-                              ////print("Float panel closed.");
-                            } else {
-                              // If panel state is "closed", set it to "open";
-                              _panelState = PanelState.open;
-                              if (widget.forceDock == null ||
-                                  widget.forceDock == false) {
-                                return;
-                              }
-                              // Set the left side position;
-                              _positionLeft = _openDockLeft();
-                              // widget.isOpen(true);
-
-                              _calcPanelTop();
-                            }
-                          });
-                        },
-                        child: _FloatButton(
-                          size: widget.size ?? 70.0,
-                          icon: _buttons[index],
-                          color: widget.contentColor ?? Colors.white,
-                          iconSize: widget.iconSize ?? 24.0,
+                            });
+                          },
+                          child: _FloatButton(
+                            size: widget.size ?? 70.0,
+                            icon: _buttons[index],
+                            color: widget.contentColor ?? Colors.white,
+                            iconSize: widget.iconSize ?? 24.0,
+                          ),
                         ),
-                      );
-                    },
-                  ),
-                ),
+                      ),
+                    )
+                  : Column(
+                      children: List.generate(
+                        _buttons.length,
+                        (index) => GestureDetector(
+                          onTap: () {
+                            widget.onPressed(index);
+                            setState(() {
+                              _movementSpeed = widget.panelAnimDuration ?? 200;
+                              if (_panelState == PanelState.open) {
+                                _panelState = PanelState.closed;
+                                if (widget.forceDock == null || widget.forceDock == false) {
+                                  return;
+                                }
+                                _forceDock();
+                              } else {
+                                _panelState = PanelState.open;
+                                if (widget.forceDock == null || widget.forceDock == false) {
+                                  return;
+                                }
+                                _positionLeft = _openDockLeft();
+                                _calcPanelTop();
+                              }
+                            });
+                          },
+                          child: _FloatButton(
+                            size: widget.size ?? 70.0,
+                            icon: _buttons[index],
+                            color: widget.contentColor ?? Colors.white,
+                            iconSize: widget.iconSize ?? 24.0,
+                          ),
+                        ),
+                      ),
+                    ),
               ),
             ),
           ],
