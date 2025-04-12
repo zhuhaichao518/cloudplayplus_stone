@@ -10,10 +10,10 @@ class OnScreenVirtualGamepad extends StatefulWidget {
   const OnScreenVirtualGamepad({super.key});
 
   @override
-  State<OnScreenVirtualGamepad> createState() => _VideoScreenState();
+  State<OnScreenVirtualGamepad> createState() => _OnScreenVirtualGamepadState();
 }
 
-class _VideoScreenState extends State<OnScreenVirtualGamepad> {
+class _OnScreenVirtualGamepadState extends State<OnScreenVirtualGamepad> {
   final controlManager = ControlManager();
   @override
   Widget build(BuildContext context) {
@@ -23,13 +23,12 @@ class _VideoScreenState extends State<OnScreenVirtualGamepad> {
         return LayoutBuilder(
           builder: (context, constraints) {
             if (!showVirtualGamePad) return const SizedBox(); // 如果不显示键盘，返回空控件
-              return Stack(
+            return Stack(
                 children: controlManager.buildAllControls(
-                context,
-                screenWidth: constraints.maxWidth,
-                screenHeight: constraints.maxHeight,
-              )
-              );
+              context,
+              screenWidth: constraints.maxWidth,
+              screenHeight: constraints.maxHeight,
+            ));
           },
         );
       },

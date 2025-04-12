@@ -1,11 +1,15 @@
 //render the global remote screen in an infinite vertical scroll view.
 import 'package:cloudplayplus/base/logging.dart';
+import 'package:cloudplayplus/controller/gamepad_controller.dart';
 import 'package:cloudplayplus/controller/smooth_scroll_controller.dart';
 import 'package:cloudplayplus/services/app_info_service.dart';
 import 'package:cloudplayplus/services/webrtc_service.dart';
 import 'package:cloudplayplus/utils/widgets/on_screen_gamepad.dart';
 import 'package:cloudplayplus/utils/widgets/on_screen_keyboard.dart';
 import 'package:cloudplayplus/utils/widgets/on_screen_mouse.dart';
+import 'package:cloudplayplus/utils/widgets/virtual_gamepad/control_manager.dart';
+import 'package:cloudplayplus/utils/widgets/virtual_gamepad/gamepad_keys.dart';
+import 'package:cloudplayplus/utils/widgets/virtual_gamepad/virtual_gamepad.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
@@ -17,6 +21,7 @@ import '../../controller/hardware_input_controller.dart';
 import '../../controller/platform_key_map.dart';
 import '../../controller/screen_controller.dart';
 import 'cursor_change_widget.dart';
+import 'virtual_gamepad/control_event.dart';
 
 class GlobalRemoteScreenRenderer extends StatefulWidget {
   const GlobalRemoteScreenRenderer({super.key});
@@ -92,6 +97,98 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
     }
   }
 
+  CGamepadState gamepadState = CGamepadState();
+
+  /*
+  String getStateString() {
+    var word = 0;
+    if (buttonDown[XINPUT_GAMEPAD_DPAD_UP]) word |= 0x0001;
+    if (buttonDown[XINPUT_GAMEPAD_DPAD_DOWN]) word |= 0x0002;
+    if (buttonDown[XINPUT_GAMEPAD_DPAD_LEFT]) word |= 0x0004;
+    if (buttonDown[XINPUT_GAMEPAD_DPAD_RIGHT]) word |= 0x0008;
+    if (buttonDown[XINPUT_GAMEPAD_START]) word |= 0x0010;
+    if (buttonDown[XINPUT_GAMEPAD_BACK]) word |= 0x0020;
+    if (buttonDown[XINPUT_GAMEPAD_LEFT_THUMB]) word |= 0x0040;
+    if (buttonDown[XINPUT_GAMEPAD_RIGHT_THUMB]) word |= 0x0080;
+    if (buttonDown[XINPUT_GAMEPAD_LEFT_SHOULDER]) word |= 0x0100;
+    if (buttonDown[XINPUT_GAMEPAD_RIGHT_SHOULDER]) word |= 0x0200;
+    if (buttonDown[XINPUT_GAMEPAD_A]) word |= 0x1000;
+    if (buttonDown[XINPUT_GAMEPAD_B]) word |= 0x2000;
+    if (buttonDown[XINPUT_GAMEPAD_X]) word |= 0x4000;
+    if (buttonDown[XINPUT_GAMEPAD_Y]) word |= 0x8000;
+
+    return '$word ${analogs[bLeftTrigger]} ${analogs[bRightTrigger]} ${analogs[sThumbLX]} ${analogs[sThumbLY]} ${analogs[sThumbRX]} ${analogs[sThumbRY]}';
+  }*/
+
+  static Map<int, int> gampadToCGamepad = {
+    // 方向键
+    GamepadKeys.DPAD_UP: CGamepadState.XINPUT_GAMEPAD_DPAD_UP,
+    GamepadKeys.DPAD_DOWN: CGamepadState.XINPUT_GAMEPAD_DPAD_DOWN,
+    GamepadKeys.DPAD_LEFT: CGamepadState.XINPUT_GAMEPAD_DPAD_LEFT,
+    GamepadKeys.DPAD_RIGHT: CGamepadState.XINPUT_GAMEPAD_DPAD_RIGHT,
+
+    // 开始和返回键
+    GamepadKeys.START: CGamepadState.XINPUT_GAMEPAD_START,
+    GamepadKeys.BACK: CGamepadState.XINPUT_GAMEPAD_BACK,
+
+    // 摇杆按钮
+    GamepadKeys.LEFT_STICK_BUTTON: CGamepadState.XINPUT_GAMEPAD_LEFT_THUMB,
+    GamepadKeys.RIGHT_STICK_BUTTON: CGamepadState.XINPUT_GAMEPAD_RIGHT_THUMB,
+
+    // 肩键
+    GamepadKeys.LEFT_SHOULDER: CGamepadState.XINPUT_GAMEPAD_LEFT_SHOULDER,
+    GamepadKeys.RIGHT_SHOULDER: CGamepadState.XINPUT_GAMEPAD_RIGHT_SHOULDER,
+
+    // 功能键
+    GamepadKeys.A: CGamepadState.XINPUT_GAMEPAD_A,
+    GamepadKeys.B: CGamepadState.XINPUT_GAMEPAD_B,
+    GamepadKeys.X: CGamepadState.XINPUT_GAMEPAD_X,
+    GamepadKeys.Y: CGamepadState.XINPUT_GAMEPAD_Y,
+  };
+
+  void _handleControlEvent(ControlEvent event) {
+    if (event.eventType == ControlEventType.keyboard) {
+      final keyboardEvent = event.data as KeyboardEvent;
+      WebrtcService.currentRenderingSession?.inputController
+          ?.requestKeyEvent(keyboardEvent.keyCode, keyboardEvent.isDown);
+    } else if (event.eventType == ControlEventType.gamepad) {
+      if (event.data is GamepadAnalogEvent) {
+        final analogEvent = event.data as GamepadAnalogEvent;
+        if (analogEvent.key == GamepadKey.leftStickX) {
+          gamepadState.analogs[CGamepadState.sThumbLX] =
+              (analogEvent.value * 32767).toInt();
+        } else if (analogEvent.key == GamepadKey.leftStickY) {
+          WebrtcService.currentRenderingSession?.inputController
+              ?.requestGamePadEvent("0", gamepadState.getStateString());
+          gamepadState.analogs[CGamepadState.sThumbLY] =
+              (analogEvent.value * 32767).toInt();
+        } else if (analogEvent.key == GamepadKey.rightStickX) {
+          gamepadState.analogs[CGamepadState.sThumbRX] =
+              (analogEvent.value * 32767).toInt();
+        } else if (analogEvent.key == GamepadKey.rightStickY) {
+          gamepadState.analogs[CGamepadState.sThumbRY] =
+              (analogEvent.value * 32767).toInt();
+          WebrtcService.currentRenderingSession?.inputController
+              ?.requestGamePadEvent("0", gamepadState.getStateString());
+        }
+      } else if (event.data is GamepadButtonEvent) {
+        final buttonEvent = event.data as GamepadButtonEvent;
+        if (buttonEvent.keyCode == GamepadKeys.LEFT_TRIGGER) {
+          gamepadState.analogs[CGamepadState.bLeftTrigger] =
+              buttonEvent.isDown ? 255 : 0;
+        } else if (buttonEvent.keyCode == GamepadKeys.RIGHT_TRIGGER) {
+          gamepadState.analogs[CGamepadState.bRightTrigger] =
+              buttonEvent.isDown ? 255 : 0;
+        } else {
+          gamepadState.buttonDown[gampadToCGamepad[buttonEvent.keyCode]!] =
+              buttonEvent.isDown;
+        }
+        WebrtcService.currentRenderingSession?.inputController
+            ?.requestGamePadEvent("0", gamepadState.getStateString());
+      }
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -102,6 +199,7 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
             ?.requestMouseScroll(dx * 10, dy * 10);
       }
     };
+    ControlManager().addEventListener(_handleControlEvent);
   }
 
   @override
@@ -303,7 +401,7 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
                 /*_hasAudio
                     ? RTCVideoView(WebrtcService.globalAudioRenderer!)
                     : Container(),*/
-                const OnScreenVirtualGamepad(), 
+                const OnScreenVirtualGamepad(),
                 const OnScreenVirtualKeyboard(), // 放置在Stack中，独立于Listener和RawKeyboardListener,
                 OnScreenVirtualMouse(
                     initialPosition: _virtualMousePosition,
@@ -404,6 +502,7 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
   @override
   void dispose() {
     aspectRatioNotifier.dispose(); // 销毁时清理 ValueNotifier
+    ControlManager().removeEventListener(_handleControlEvent);
     super.dispose();
   }
 }

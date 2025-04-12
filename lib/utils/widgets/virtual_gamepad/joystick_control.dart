@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'control_base.dart';
 import 'control_event.dart';
+import 'gamepad_keys.dart';
 
 class JoystickControl extends ControlBase {
   final String joystickType; // 摇杆类型：left 或 right
@@ -89,12 +90,15 @@ class _JoystickWidgetState extends State<_JoystickWidget> {
     final joystickRadius = widget.screenWidth * widget.control.size / 2;
     final thumbRadius = joystickRadius * 0.4;
 
+    bool isclick = false;
+
     return Positioned(
       left: widget.screenWidth * widget.control.centerX - joystickRadius,
       bottom:
           widget.screenHeight * (1 - widget.control.centerY) - joystickRadius,
       child: GestureDetector(
         onPanStart: (_) {
+          isclick = true;
           setState(() => _isJoystickActive = true);
         },
         onPanUpdate: (details) {
@@ -111,6 +115,10 @@ class _JoystickWidgetState extends State<_JoystickWidget> {
             // 发送摇杆位置更新事件
             final xValue = _joystickOffset.dx / joystickRadius;
             final yValue = -_joystickOffset.dy / joystickRadius; // 反转Y轴方向
+
+            if (xValue.abs() > 0.01 || yValue.abs() > 0.01) {
+              isclick = false;
+            }
 
             // 根据摇杆类型发送不同的事件
             if (widget.control.joystickType == 'left') {
@@ -151,6 +159,28 @@ class _JoystickWidgetState extends State<_JoystickWidget> {
             _joystickOffset = Offset.zero;
             _isJoystickActive = false;
           });
+
+          //perform a click if user does not move.
+          if (isclick) {
+            widget.onEvent(ControlEvent(
+              eventType: ControlEventType.gamepad,
+              data: GamepadButtonEvent(
+                keyCode: widget.control.joystickType == 'left'
+                    ? GamepadKeys.LEFT_STICK_BUTTON
+                    : GamepadKeys.RIGHT_STICK_BUTTON,
+                isDown: true,
+              ),
+            ));
+            widget.onEvent(ControlEvent(
+              eventType: ControlEventType.gamepad,
+              data: GamepadButtonEvent(
+                keyCode: widget.control.joystickType == 'left'
+                    ? GamepadKeys.LEFT_STICK_BUTTON
+                    : GamepadKeys.RIGHT_STICK_BUTTON,
+                isDown: false,
+              ),
+            ));
+          }
 
           // 发送归零事件
           if (widget.control.joystickType == 'left') {

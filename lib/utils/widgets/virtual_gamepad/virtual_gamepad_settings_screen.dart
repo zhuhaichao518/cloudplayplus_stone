@@ -10,10 +10,12 @@ class VirtualGamepadSettingsPage extends StatefulWidget {
   const VirtualGamepadSettingsPage({super.key, required this.controlManager});
 
   @override
-  State<VirtualGamepadSettingsPage> createState() => _VirtualGamepadSettingsPageState();
+  State<VirtualGamepadSettingsPage> createState() =>
+      _VirtualGamepadSettingsPageState();
 }
 
-class _VirtualGamepadSettingsPageState extends State<VirtualGamepadSettingsPage> {
+class _VirtualGamepadSettingsPageState
+    extends State<VirtualGamepadSettingsPage> {
   final List<String> _eventLog = [];
   static const int _maxEvents = 5;
 

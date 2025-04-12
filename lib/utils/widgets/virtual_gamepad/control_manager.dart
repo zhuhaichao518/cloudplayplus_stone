@@ -13,7 +13,7 @@ class ControlManager {
   static const String _nextIdKey = 'next_control_id';
 
   static ControlManager? _instance;
-  
+
   final List<ControlBase> _controls = [];
   final List<ControlEventListener> _eventListeners = [];
   int _nextId = 1;
