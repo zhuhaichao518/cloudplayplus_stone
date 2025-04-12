@@ -83,6 +83,7 @@ class _JoystickWidget extends StatefulWidget {
 class _JoystickWidgetState extends State<_JoystickWidget> {
   Offset _joystickOffset = Offset.zero;
   bool _isJoystickActive = false;
+  bool isClick = false;
 
   @override
   Widget build(BuildContext context) {
@@ -90,15 +91,13 @@ class _JoystickWidgetState extends State<_JoystickWidget> {
     final joystickRadius = widget.screenWidth * widget.control.size / 2;
     final thumbRadius = joystickRadius * 0.4;
 
-    bool isclick = false;
-
     return Positioned(
       left: widget.screenWidth * widget.control.centerX - joystickRadius,
       bottom:
           widget.screenHeight * (1 - widget.control.centerY) - joystickRadius,
       child: GestureDetector(
         onPanStart: (_) {
-          isclick = true;
+          isClick = true;
           setState(() => _isJoystickActive = true);
         },
         onPanUpdate: (details) {
@@ -111,48 +110,48 @@ class _JoystickWidgetState extends State<_JoystickWidget> {
                 _joystickOffset.dy * joystickRadius / distance,
               );
             }
-
-            // 发送摇杆位置更新事件
-            final xValue = _joystickOffset.dx / joystickRadius;
-            final yValue = -_joystickOffset.dy / joystickRadius; // 反转Y轴方向
-
-            if (xValue.abs() > 0.01 || yValue.abs() > 0.01) {
-              isclick = false;
-            }
-
-            // 根据摇杆类型发送不同的事件
-            if (widget.control.joystickType == 'left') {
-              widget.onEvent(ControlEvent(
-                eventType: ControlEventType.gamepad,
-                data: GamepadAnalogEvent(
-                  key: GamepadKey.leftStickX,
-                  value: xValue,
-                ),
-              ));
-              widget.onEvent(ControlEvent(
-                eventType: ControlEventType.gamepad,
-                data: GamepadAnalogEvent(
-                  key: GamepadKey.leftStickY,
-                  value: yValue,
-                ),
-              ));
-            } else {
-              widget.onEvent(ControlEvent(
-                eventType: ControlEventType.gamepad,
-                data: GamepadAnalogEvent(
-                  key: GamepadKey.rightStickX,
-                  value: xValue,
-                ),
-              ));
-              widget.onEvent(ControlEvent(
-                eventType: ControlEventType.gamepad,
-                data: GamepadAnalogEvent(
-                  key: GamepadKey.rightStickY,
-                  value: yValue,
-                ),
-              ));
-            }
           });
+
+          // 发送摇杆位置更新事件
+          final xValue = _joystickOffset.dx / joystickRadius;
+          final yValue = -_joystickOffset.dy / joystickRadius; // 反转Y轴方向
+
+          if (xValue.abs() > 0.01 || yValue.abs() > 0.01) {
+            isClick = false;
+          }
+
+          // 根据摇杆类型发送不同的事件
+          if (widget.control.joystickType == 'left') {
+            widget.onEvent(ControlEvent(
+              eventType: ControlEventType.gamepad,
+              data: GamepadAnalogEvent(
+                key: GamepadKey.leftStickX,
+                value: xValue,
+              ),
+            ));
+            widget.onEvent(ControlEvent(
+              eventType: ControlEventType.gamepad,
+              data: GamepadAnalogEvent(
+                key: GamepadKey.leftStickY,
+                value: yValue,
+              ),
+            ));
+          } else {
+            widget.onEvent(ControlEvent(
+              eventType: ControlEventType.gamepad,
+              data: GamepadAnalogEvent(
+                key: GamepadKey.rightStickX,
+                value: xValue,
+              ),
+            ));
+            widget.onEvent(ControlEvent(
+              eventType: ControlEventType.gamepad,
+              data: GamepadAnalogEvent(
+                key: GamepadKey.rightStickY,
+                value: yValue,
+              ),
+            ));
+          }
         },
         onPanEnd: (_) {
           setState(() {
@@ -161,7 +160,7 @@ class _JoystickWidgetState extends State<_JoystickWidget> {
           });
 
           //perform a click if user does not move.
-          if (isclick) {
+          if (isClick) {
             widget.onEvent(ControlEvent(
               eventType: ControlEventType.gamepad,
               data: GamepadButtonEvent(
@@ -171,15 +170,17 @@ class _JoystickWidgetState extends State<_JoystickWidget> {
                 isDown: true,
               ),
             ));
-            widget.onEvent(ControlEvent(
-              eventType: ControlEventType.gamepad,
-              data: GamepadButtonEvent(
-                keyCode: widget.control.joystickType == 'left'
-                    ? GamepadKeys.LEFT_STICK_BUTTON
-                    : GamepadKeys.RIGHT_STICK_BUTTON,
-                isDown: false,
-              ),
-            ));
+            Future.delayed(const Duration(milliseconds: 32), () {
+              widget.onEvent(ControlEvent(
+                eventType: ControlEventType.gamepad,
+                data: GamepadButtonEvent(
+                  keyCode: widget.control.joystickType == 'left'
+                      ? GamepadKeys.LEFT_STICK_BUTTON
+                      : GamepadKeys.RIGHT_STICK_BUTTON,
+                  isDown: false,
+                ),
+              ));
+            });
           }
 
           // 发送归零事件
