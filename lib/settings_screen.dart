@@ -14,6 +14,8 @@ import 'plugins/flutter_settings_ui/flutter_settings_ui.dart';
 import 'services/shared_preferences_manager.dart';
 import 'theme/theme_provider.dart';
 import 'utils/navigation.dart';
+import 'utils/widgets/virtual_gamepad/virtual_gamepad_settings_screen.dart';
+import 'utils/widgets/virtual_gamepad/control_manager.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -82,6 +84,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     );
                   },
                 ),
+              SettingsTile.navigation(
+                leading: const Icon(Icons.gamepad),
+                title: const Text('屏幕手柄设置'),
+                onPressed: (context) {
+                  Navigation.navigateTo(
+                    context: context,
+                    screen: VirtualGamepadSettingsPage(
+                      controlManager: ControlManager(),
+                    ),
+                    style: NavigationRouteStyle.cupertino,
+                  );
+                },
+              ),
             ],
           ),
           SettingsSection(
@@ -110,8 +125,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     SharedPreferencesManager.setInt(
                         'streamingMode', _streamingmode);
                     themeProvider.setStreamingMode(1);
-                    SharedPreferencesManager.setInt(
-                        'ControlMsgResendCount', 6);
+                    SharedPreferencesManager.setInt('ControlMsgResendCount', 6);
                     InputController.resendCount = 6;
                   });
                 },

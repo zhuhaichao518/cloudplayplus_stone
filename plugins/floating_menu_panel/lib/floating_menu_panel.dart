@@ -388,73 +388,79 @@ class _FloatBoxState extends State<FloatingMenuPanel> {
                   ? Duration(milliseconds: 250)
                   : Duration(milliseconds: 10),
               child: Container(
-                child: _isLandscape 
-                  ? Row(
-                      children: List.generate(
-                        _buttons.length,
-                        (index) => GestureDetector(
-                          onTap: () {
-                            widget.onPressed(index);
-                            setState(() {
-                              _movementSpeed = widget.panelAnimDuration ?? 200;
-                              if (_panelState == PanelState.open) {
-                                _panelState = PanelState.closed;
-                                if (widget.forceDock == null || widget.forceDock == false) {
-                                  return;
+                child: _isLandscape
+                    ? Row(
+                        children: List.generate(
+                          _buttons.length,
+                          (index) => GestureDetector(
+                            onTap: () {
+                              widget.onPressed(index);
+                              setState(() {
+                                _movementSpeed =
+                                    widget.panelAnimDuration ?? 200;
+                                if (_panelState == PanelState.open) {
+                                  _panelState = PanelState.closed;
+                                  if (widget.forceDock == null ||
+                                      widget.forceDock == false) {
+                                    return;
+                                  }
+                                  _forceDock();
+                                } else {
+                                  _panelState = PanelState.open;
+                                  if (widget.forceDock == null ||
+                                      widget.forceDock == false) {
+                                    return;
+                                  }
+                                  _positionLeft = _openDockLeft();
+                                  _calcPanelTop();
                                 }
-                                _forceDock();
-                              } else {
-                                _panelState = PanelState.open;
-                                if (widget.forceDock == null || widget.forceDock == false) {
-                                  return;
+                              });
+                            },
+                            child: _FloatButton(
+                              size: widget.size ?? 70.0,
+                              icon: _buttons[index],
+                              color: widget.contentColor ?? Colors.white,
+                              iconSize: widget.iconSize ?? 24.0,
+                            ),
+                          ),
+                        ),
+                      )
+                    : Column(
+                        children: List.generate(
+                          _buttons.length,
+                          (index) => GestureDetector(
+                            onTap: () {
+                              widget.onPressed(index);
+                              setState(() {
+                                _movementSpeed =
+                                    widget.panelAnimDuration ?? 200;
+                                if (_panelState == PanelState.open) {
+                                  _panelState = PanelState.closed;
+                                  if (widget.forceDock == null ||
+                                      widget.forceDock == false) {
+                                    return;
+                                  }
+                                  _forceDock();
+                                } else {
+                                  _panelState = PanelState.open;
+                                  if (widget.forceDock == null ||
+                                      widget.forceDock == false) {
+                                    return;
+                                  }
+                                  _positionLeft = _openDockLeft();
+                                  _calcPanelTop();
                                 }
-                                _positionLeft = _openDockLeft();
-                                _calcPanelTop();
-                              }
-                            });
-                          },
-                          child: _FloatButton(
-                            size: widget.size ?? 70.0,
-                            icon: _buttons[index],
-                            color: widget.contentColor ?? Colors.white,
-                            iconSize: widget.iconSize ?? 24.0,
+                              });
+                            },
+                            child: _FloatButton(
+                              size: widget.size ?? 70.0,
+                              icon: _buttons[index],
+                              color: widget.contentColor ?? Colors.white,
+                              iconSize: widget.iconSize ?? 24.0,
+                            ),
                           ),
                         ),
                       ),
-                    )
-                  : Column(
-                      children: List.generate(
-                        _buttons.length,
-                        (index) => GestureDetector(
-                          onTap: () {
-                            widget.onPressed(index);
-                            setState(() {
-                              _movementSpeed = widget.panelAnimDuration ?? 200;
-                              if (_panelState == PanelState.open) {
-                                _panelState = PanelState.closed;
-                                if (widget.forceDock == null || widget.forceDock == false) {
-                                  return;
-                                }
-                                _forceDock();
-                              } else {
-                                _panelState = PanelState.open;
-                                if (widget.forceDock == null || widget.forceDock == false) {
-                                  return;
-                                }
-                                _positionLeft = _openDockLeft();
-                                _calcPanelTop();
-                              }
-                            });
-                          },
-                          child: _FloatButton(
-                            size: widget.size ?? 70.0,
-                            icon: _buttons[index],
-                            color: widget.contentColor ?? Colors.white,
-                            iconSize: widget.iconSize ?? 24.0,
-                          ),
-                        ),
-                      ),
-                    ),
               ),
             ),
           ],

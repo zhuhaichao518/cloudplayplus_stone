@@ -51,6 +51,13 @@ class ScreenController {
     }
   }
 
+  static ValueNotifier<bool> showVirtualGamePad = ValueNotifier(false);
+  static void setshowVirtualGamePad(bool value) {
+    if (showVirtualGamePad.value != value) {
+      showVirtualGamePad.value = value;
+    }
+  }
+
   static ValueNotifier<bool> showVirtualMouse = ValueNotifier(false);
   static void setShowVirtualMouse(bool value) {
     if (showVirtualMouse.value != value) {

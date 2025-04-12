@@ -138,6 +138,9 @@ class _DeviceDetailPageState extends State<DeviceDetailPage> {
                           !ScreenController.showVirtualMouse.value);
                     }
                     if (index == 4) {
+                      ScreenController.setshowVirtualGamePad(!ScreenController.showVirtualGamePad.value);
+                    }
+                    if (index == 5) {
                       ScreenController.setshowDetailUseScrollView(true);
                       ScreenController.setOnlyShowRemoteScreen(false);
                       StreamingManager.stopStreaming(widget.device);
@@ -148,6 +151,7 @@ class _DeviceDetailPageState extends State<DeviceDetailPage> {
                     Icons.open_in_full,
                     Icons.keyboard,
                     Icons.mouse,
+                    Icons.gamepad,
                     Icons.close,
                   ],
                 ),

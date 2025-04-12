@@ -17,6 +17,8 @@ import 'theme/theme_provider.dart';
 import 'package:bitsdojo_window/bitsdojo_window.dart';
 import 'package:flutter_web_plugins/url_strategy.dart';
 
+import 'utils/widgets/virtual_gamepad/control_manager.dart';
+
 void main() async {
   LoginService.init();
   WidgetsFlutterBinding.ensureInitialized();
@@ -35,6 +37,7 @@ void main() async {
 
   StreamingSettings.init();
   InputController.init();
+  await ControlManager().loadControls();
   if (AppPlatform.isWeb) {
     setUrlStrategy(null);
   }

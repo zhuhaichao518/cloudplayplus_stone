@@ -3,6 +3,7 @@ import 'package:cloudplayplus/base/logging.dart';
 import 'package:cloudplayplus/controller/smooth_scroll_controller.dart';
 import 'package:cloudplayplus/services/app_info_service.dart';
 import 'package:cloudplayplus/services/webrtc_service.dart';
+import 'package:cloudplayplus/utils/widgets/on_screen_gamepad.dart';
 import 'package:cloudplayplus/utils/widgets/on_screen_keyboard.dart';
 import 'package:cloudplayplus/utils/widgets/on_screen_mouse.dart';
 import 'package:flutter/foundation.dart';
@@ -302,6 +303,7 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
                 /*_hasAudio
                     ? RTCVideoView(WebrtcService.globalAudioRenderer!)
                     : Container(),*/
+                const OnScreenVirtualGamepad(), 
                 const OnScreenVirtualKeyboard(), // 放置在Stack中，独立于Listener和RawKeyboardListener,
                 OnScreenVirtualMouse(
                     initialPosition: _virtualMousePosition,
