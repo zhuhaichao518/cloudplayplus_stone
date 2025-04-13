@@ -68,6 +68,41 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
         ?.requestMoveMouseRelative(
             dx, dy, WebrtcService.currentRenderingSession!.screenId);
   }
+  
+  //Special case for ios mouse cursor.
+  //IOS only specify the button id without other button infos.
+  void _syncMouseButtonStateUP(PointerEvent event) {
+    if (event.buttons & kPrimaryMouseButton != 0) {
+      _leftButtonDown = false;
+      WebrtcService.currentRenderingSession?.inputController
+          ?.requestMouseClick(1, _leftButtonDown);
+    }
+    if (event.buttons & kSecondaryMouseButton != 0) {
+      _rightButtonDown = false;
+      WebrtcService.currentRenderingSession?.inputController
+          ?.requestMouseClick(3, _rightButtonDown);
+    }
+    if (event.buttons == 0) {
+      _middleButtonDown = false;
+      WebrtcService.currentRenderingSession?.inputController
+          ?.requestMouseClick(2, _middleButtonDown);
+    }
+    if (event.buttons & kMiddleMouseButton != 0) {
+      _middleButtonDown = false;
+      WebrtcService.currentRenderingSession?.inputController
+          ?.requestMouseClick(2, _middleButtonDown);
+    }
+    if (event.buttons & kBackMouseButton != 0) {
+      _backButtonDown = false;
+      WebrtcService.currentRenderingSession?.inputController
+          ?.requestMouseClick(4, _backButtonDown);
+    }
+    if (event.buttons & kForwardMouseButton != 0)  {
+      _forwardButtonDown = false;
+      WebrtcService.currentRenderingSession?.inputController
+          ?.requestMouseClick(5, _forwardButtonDown);
+    }
+  }
 
   void _syncMouseButtonState(PointerEvent event) {
     if ((event.buttons & kPrimaryMouseButton != 0) != _leftButtonDown) {
@@ -80,6 +115,15 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
       WebrtcService.currentRenderingSession?.inputController
           ?.requestMouseClick(3, _rightButtonDown);
     }
+    //special case for ios
+    if (AppPlatform.isIOS) {
+      if ((event.buttons == 0) != _middleButtonDown) {
+        _middleButtonDown = !_middleButtonDown;
+        WebrtcService.currentRenderingSession?.inputController
+            ?.requestMouseClick(2, _middleButtonDown);
+      }
+    }
+
     if ((event.buttons & kMiddleMouseButton != 0) != _middleButtonDown) {
       _middleButtonDown = !_middleButtonDown;
       WebrtcService.currentRenderingSession?.inputController
@@ -273,7 +317,11 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
                       WebrtcService.currentRenderingSession?.inputController
                           ?.requestMouseClick(1, _leftButtonDown);
                     } else if (event.kind == PointerDeviceKind.mouse) {
-                      _syncMouseButtonState(event);
+                      if (AppPlatform.isIOS) {
+                        _syncMouseButtonStateUP(event);
+                      } else {
+                        _syncMouseButtonState(event);
+                      }
                     }
                   },
                   onPointerMove: (PointerMoveEvent event) {

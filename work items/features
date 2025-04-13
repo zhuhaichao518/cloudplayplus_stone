@@ -1,0 +1,2 @@
+Support virtual pointer lock for ios:
+https://github.com/moonlight-stream/moonlight-ios/blob/da470355257ddc843d6f3354bd621d0577630fe6/Limelight/Input/StreamView.m#L98
