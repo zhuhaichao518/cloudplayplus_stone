@@ -396,7 +396,7 @@ class StreamingSession {
                 body: "${controller.devicename}连接到了本设备");
           }*/
           if (AppPlatform.isWindows) {
-            HardwareSimulator.showNotification(controller.nickname);
+            //HardwareSimulator.showNotification(controller.nickname);
           }
         } else if (state ==
             RTCPeerConnectionState.RTCPeerConnectionStateFailed) {
