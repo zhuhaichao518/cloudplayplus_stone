@@ -43,18 +43,18 @@ class _ControlManagementScreenState extends State<ControlManagementScreen> {
         ],
       ),
       body: widget.controlManager.controls.isEmpty
-          ? Center(child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Text('单击右上角+添加按键或者点击同步按键导入/导出虚拟按键列表'),
-              const SizedBox(height: 20), // 添加间距
-              ElevatedButton(
-                onPressed: _importDefaultControls,
-                child: const Text('导入手机默认虚拟手柄'),
-              ),
-            ],
-          )
-          )
+          ? Center(
+              child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Text('单击右上角+添加按键或者点击同步按键导入/导出虚拟按键列表'),
+                const SizedBox(height: 20), // 添加间距
+                ElevatedButton(
+                  onPressed: _importDefaultControls,
+                  child: const Text('导入手机默认虚拟手柄'),
+                ),
+              ],
+            ))
           : ListView.builder(
               itemCount: widget.controlManager.controls.length,
               itemBuilder: (context, index) {
@@ -813,10 +813,11 @@ class _ControlManagementScreenState extends State<ControlManagementScreen> {
     );
   }
 
-  void _importDefaultControls() async{
-    String defaultController = '[{"id":"1","type":"joystick","centerX":0.22,"centerY":0.7,"size":0.12,"joystickType":"left"},{"id":"2","type":"joystick","centerX":0.7,"centerY":0.2,"size":0.1,"joystickType":"right"},{"id":"3","type":"button","centerX":0.1,"centerY":0.1,"size":0.07,"label":"↑","keyCode":1,"color":4280391411,"isGamepadButton":true},{"id":"4","type":"button","centerX":0.1,"centerY":0.3,"size":0.07,"label":"↓","keyCode":2,"color":4280391411,"isGamepadButton":true},{"id":"5","type":"button","centerX":0.15,"centerY":0.2,"size":0.07,"label":"→","keyCode":8,"color":4280391411,"isGamepadButton":true},{"id":"6","type":"button","centerX":0.05,"centerY":0.2,"size":0.07,"label":"←","keyCode":4,"color":4280391411,"isGamepadButton":true},{"id":"7","type":"button","centerX":0.08,"centerY":0.55,"size":0.07,"label":"BK","keyCode":32,"color":4280391411,"isGamepadButton":true},{"id":"8","type":"button","centerX":0.08,"centerY":0.75,"size":0.07,"label":"ST","keyCode":16,"color":4280391411,"isGamepadButton":true},{"id":"9","type":"button","centerX":0.8,"centerY":0.85,"size":0.1,"label":"A","keyCode":4100,"color":4280391411,"isGamepadButton":true},{"id":"10","type":"button","centerX":0.8,"centerY":0.5,"size":0.1,"label":"Y","keyCode":4103,"color":4280391411,"isGamepadButton":true},{"id":"11","type":"button","centerX":0.88,"centerY":0.68,"size":0.1,"label":"B","keyCode":4101,"color":4280391411,"isGamepadButton":true},{"id":"12","type":"button","centerX":0.72,"centerY":0.68,"size":0.1,"label":"X","keyCode":4102,"color":4280391411,"isGamepadButton":true},{"id":"13","type":"button","centerX":0.66,"centerY":0.5,"size":0.1,"label":"LT","keyCode":257,"color":4280391411,"isGamepadButton":true},{"id":"14","type":"button","centerX":0.6,"centerY":0.68,"size":0.1,"label":"LB","keyCode":256,"color":4280391411,"isGamepadButton":true},{"id":"15","type":"button","centerX":0.8,"centerY":0.25,"size":0.1,"label":"RB","keyCode":512,"color":4280391411,"isGamepadButton":true},{"id":"16","type":"button","centerX":0.9,"centerY":0.25,"size":0.1,"label":"RT","keyCode":513,"color":4280391411,"isGamepadButton":true}]';
-    final success = await widget.controlManager
-        .importControls(defaultController);
+  void _importDefaultControls() async {
+    String defaultController =
+        '[{"id":"1","type":"joystick","centerX":0.22,"centerY":0.7,"size":0.12,"joystickType":"left"},{"id":"2","type":"joystick","centerX":0.7,"centerY":0.2,"size":0.1,"joystickType":"right"},{"id":"3","type":"button","centerX":0.1,"centerY":0.1,"size":0.07,"label":"↑","keyCode":1,"color":4280391411,"isGamepadButton":true},{"id":"4","type":"button","centerX":0.1,"centerY":0.3,"size":0.07,"label":"↓","keyCode":2,"color":4280391411,"isGamepadButton":true},{"id":"5","type":"button","centerX":0.15,"centerY":0.2,"size":0.07,"label":"→","keyCode":8,"color":4280391411,"isGamepadButton":true},{"id":"6","type":"button","centerX":0.05,"centerY":0.2,"size":0.07,"label":"←","keyCode":4,"color":4280391411,"isGamepadButton":true},{"id":"7","type":"button","centerX":0.08,"centerY":0.55,"size":0.07,"label":"BK","keyCode":32,"color":4280391411,"isGamepadButton":true},{"id":"8","type":"button","centerX":0.08,"centerY":0.75,"size":0.07,"label":"ST","keyCode":16,"color":4280391411,"isGamepadButton":true},{"id":"9","type":"button","centerX":0.8,"centerY":0.85,"size":0.1,"label":"A","keyCode":4100,"color":4280391411,"isGamepadButton":true},{"id":"10","type":"button","centerX":0.8,"centerY":0.5,"size":0.1,"label":"Y","keyCode":4103,"color":4280391411,"isGamepadButton":true},{"id":"11","type":"button","centerX":0.88,"centerY":0.68,"size":0.1,"label":"B","keyCode":4101,"color":4280391411,"isGamepadButton":true},{"id":"12","type":"button","centerX":0.72,"centerY":0.68,"size":0.1,"label":"X","keyCode":4102,"color":4280391411,"isGamepadButton":true},{"id":"13","type":"button","centerX":0.66,"centerY":0.5,"size":0.1,"label":"LT","keyCode":257,"color":4280391411,"isGamepadButton":true},{"id":"14","type":"button","centerX":0.6,"centerY":0.68,"size":0.1,"label":"LB","keyCode":256,"color":4280391411,"isGamepadButton":true},{"id":"15","type":"button","centerX":0.8,"centerY":0.25,"size":0.1,"label":"RB","keyCode":512,"color":4280391411,"isGamepadButton":true},{"id":"16","type":"button","centerX":0.9,"centerY":0.25,"size":0.1,"label":"RT","keyCode":513,"color":4280391411,"isGamepadButton":true}]';
+    final success =
+        await widget.controlManager.importControls(defaultController);
     if (success) {
       widget.onControlsUpdated();
       setState(() {}); // 确保界面更新

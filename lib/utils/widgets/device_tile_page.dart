@@ -9,8 +9,10 @@ import 'package:cloudplayplus/utils/widgets/global_remote_screen_renderer.dart';
 import 'package:cloudplayplus/utils/widgets/message_box.dart';
 import 'package:floating_menu_panel/floating_menu_panel.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:hardware_simulator/hardware_simulator.dart';
 import '../../base/logging.dart';
+import '../../controller/platform_key_map.dart';
 import '../../entities/device.dart';
 import '../../entities/session.dart';
 import '../../services/app_info_service.dart';
@@ -77,6 +79,8 @@ class _DeviceDetailPageState extends State<DeviceDetailPage> {
     //setState(() {});
   }
 
+  bool _showAllWindowButton = true;
+
   @override
   Widget build(BuildContext context) {
     inbuilding = true;
@@ -110,11 +114,67 @@ class _DeviceDetailPageState extends State<DeviceDetailPage> {
           }
           if (value == StreamingSessionConnectionState.connected) {
             WidgetsBinding.instance.addPostFrameCallback((_) {
-              ScreenController.showDetailUseScrollView.value = false;
+              if (ScreenController.showDetailUseScrollView.value == true) {
+                ScreenController.showDetailUseScrollView.value = false;
+              }
+              if (WebrtcService
+                          .currentRenderingSession?.controlled.devicetype ==
+                      'Windows' &&
+                  _showAllWindowButton) {
+                Future.delayed(const Duration(seconds: 5), () {
+                  if (mounted) {
+                    setState(() {
+                      _showAllWindowButton = false;
+                    });
+                  }
+                });
+              } else {
+                setState(() {
+                  _showAllWindowButton = false;
+                });
+              }
             });
             return Stack(
               children: [
                 const GlobalRemoteScreenRenderer(),
+                Center(
+                  child: Visibility(
+                    visible: _showAllWindowButton,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        WebrtcService.currentRenderingSession?.inputController
+                            ?.requestKeyEvent(
+                                physicalToWindowsKeyMap[
+                                    PhysicalKeyboardKey.metaLeft],
+                                true);
+                        WebrtcService.currentRenderingSession?.inputController
+                            ?.requestKeyEvent(
+                                physicalToWindowsKeyMap[
+                                    PhysicalKeyboardKey.tab],
+                                true);
+                        WebrtcService.currentRenderingSession?.inputController
+                            ?.requestKeyEvent(
+                                physicalToWindowsKeyMap[
+                                    PhysicalKeyboardKey.tab],
+                                false);
+                        WebrtcService.currentRenderingSession?.inputController
+                            ?.requestKeyEvent(
+                                physicalToWindowsKeyMap[
+                                    PhysicalKeyboardKey.metaLeft],
+                                false);
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.blue,
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 20, vertical: 12),
+                      ),
+                      child: const Text(
+                        '展开所有窗口',
+                        style: TextStyle(fontSize: 16),
+                      ),
+                    ),
+                  ),
+                ),
                 FloatingMenuPanel(
                   onPressed: (index) async {
                     if (index == 0) {

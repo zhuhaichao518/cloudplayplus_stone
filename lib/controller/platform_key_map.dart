@@ -254,6 +254,7 @@ Map<int, int> macToWindowsKeyMap = {
   0x33: 0x08, // Delete
   0x34: 0x0D, // Enter
   0x35: 0x1B, // Escape
+  // TODO: left or right?
   0x36: 0x5B, // Right Windows
   0x37: 0x5B, // Left Windows
   0x38: 0x10, // Shift

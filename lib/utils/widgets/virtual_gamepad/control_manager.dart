@@ -52,7 +52,7 @@ class ControlManager {
     final prefs = await SharedPreferences.getInstance();
     final configsJson = prefs.getString(_configsKey);
     Map<String, dynamic> configs = {};
-    
+
     if (configsJson != null) {
       try {
         configs = jsonDecode(configsJson);

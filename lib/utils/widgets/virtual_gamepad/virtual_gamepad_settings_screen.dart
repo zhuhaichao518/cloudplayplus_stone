@@ -129,7 +129,8 @@ class _VirtualGamepadSettingsPageState
           TextButton(
             onPressed: () async {
               if (_configNameController.text.isNotEmpty) {
-                await widget.controlManager.saveConfig(_configNameController.text);
+                await widget.controlManager
+                    .saveConfig(_configNameController.text);
                 if (mounted) {
                   Navigator.pop(context);
                   ScaffoldMessenger.of(context).showSnackBar(
@@ -161,7 +162,8 @@ class _VirtualGamepadSettingsPageState
               return ListTile(
                 title: Text(configName),
                 onTap: () async {
-                  final success = await widget.controlManager.loadConfig(configName);
+                  final success =
+                      await widget.controlManager.loadConfig(configName);
                   if (mounted) {
                     Navigator.pop(context);
                     if (success) {
@@ -208,7 +210,8 @@ class _VirtualGamepadSettingsPageState
                 trailing: IconButton(
                   icon: const Icon(Icons.delete),
                   onPressed: () async {
-                    final success = await widget.controlManager.deleteConfig(configName);
+                    final success =
+                        await widget.controlManager.deleteConfig(configName);
                     if (mounted) {
                       Navigator.pop(context);
                       if (success) {

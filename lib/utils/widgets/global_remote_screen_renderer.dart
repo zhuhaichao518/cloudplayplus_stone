@@ -68,7 +68,7 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
         ?.requestMoveMouseRelative(
             dx, dy, WebrtcService.currentRenderingSession!.screenId);
   }
-  
+
   //Special case for ios mouse cursor.
   //IOS only specify the button id without other button infos.
   void _syncMouseButtonStateUP(PointerEvent event) {
@@ -97,7 +97,7 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
       WebrtcService.currentRenderingSession?.inputController
           ?.requestMouseClick(4, _backButtonDown);
     }
-    if (event.buttons & kForwardMouseButton != 0)  {
+    if (event.buttons & kForwardMouseButton != 0) {
       _forwardButtonDown = false;
       WebrtcService.currentRenderingSession?.inputController
           ?.requestMouseClick(5, _forwardButtonDown);
