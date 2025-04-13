@@ -18,6 +18,7 @@ class _VirtualGamepadSettingsPageState
     extends State<VirtualGamepadSettingsPage> {
   final List<String> _eventLog = [];
   static const int _maxEvents = 5;
+  final TextEditingController _configNameController = TextEditingController();
 
   @override
   void initState() {
@@ -28,6 +29,7 @@ class _VirtualGamepadSettingsPageState
   @override
   void dispose() {
     widget.controlManager.removeEventListener(_handleControlEvent);
+    _configNameController.dispose();
     super.dispose();
   }
 
@@ -71,6 +73,171 @@ class _VirtualGamepadSettingsPageState
     }
   }
 
+  void _showConfigManagementDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('配置管理'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.save),
+              title: const Text('保存当前配置'),
+              onTap: () => _showSaveConfigDialog(),
+            ),
+            ListTile(
+              leading: const Icon(Icons.folder_open),
+              title: const Text('加载配置'),
+              onTap: () => _showLoadConfigDialog(),
+            ),
+            ListTile(
+              leading: const Icon(Icons.delete),
+              title: const Text('删除配置'),
+              onTap: () => _showDeleteConfigDialog(),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('关闭'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showSaveConfigDialog() {
+    _configNameController.text = widget.controlManager.currentConfigName;
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('保存配置'),
+        content: TextField(
+          controller: _configNameController,
+          decoration: const InputDecoration(
+            labelText: '配置名称',
+            border: OutlineInputBorder(),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('取消'),
+          ),
+          TextButton(
+            onPressed: () async {
+              if (_configNameController.text.isNotEmpty) {
+                await widget.controlManager.saveConfig(_configNameController.text);
+                if (mounted) {
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('配置已保存')),
+                  );
+                }
+              }
+            },
+            child: const Text('保存'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showLoadConfigDialog() async {
+    final configNames = await widget.controlManager.getConfigNames();
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('加载配置'),
+        content: SizedBox(
+          width: double.maxFinite,
+          child: ListView.builder(
+            shrinkWrap: true,
+            itemCount: configNames.length,
+            itemBuilder: (context, index) {
+              final configName = configNames[index];
+              return ListTile(
+                title: Text(configName),
+                onTap: () async {
+                  final success = await widget.controlManager.loadConfig(configName);
+                  if (mounted) {
+                    Navigator.pop(context);
+                    if (success) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('配置已加载')),
+                      );
+                      setState(() {}); // 刷新界面
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('加载配置失败')),
+                      );
+                    }
+                  }
+                },
+              );
+            },
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('取消'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showDeleteConfigDialog() async {
+    final configNames = await widget.controlManager.getConfigNames();
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('删除配置'),
+        content: SizedBox(
+          width: double.maxFinite,
+          child: ListView.builder(
+            shrinkWrap: true,
+            itemCount: configNames.length,
+            itemBuilder: (context, index) {
+              final configName = configNames[index];
+              return ListTile(
+                title: Text(configName),
+                trailing: IconButton(
+                  icon: const Icon(Icons.delete),
+                  onPressed: () async {
+                    final success = await widget.controlManager.deleteConfig(configName);
+                    if (mounted) {
+                      Navigator.pop(context);
+                      if (success) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('配置已删除')),
+                        );
+                        setState(() {}); // 刷新界面
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('删除配置失败')),
+                        );
+                      }
+                    }
+                  },
+                ),
+              );
+            },
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('关闭'),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -83,6 +250,10 @@ class _VirtualGamepadSettingsPageState
           IconButton(
             icon: const Icon(Icons.settings),
             onPressed: () => _navigateToManagementScreen(),
+          ),
+          IconButton(
+            icon: const Icon(Icons.folder),
+            onPressed: () => _showConfigManagementDialog(),
           ),
         ],
       ),

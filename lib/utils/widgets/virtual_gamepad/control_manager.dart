@@ -11,12 +11,14 @@ typedef ControlEventListener = void Function(ControlEvent event);
 class ControlManager {
   static const String _storageKey = 'controls';
   static const String _nextIdKey = 'next_control_id';
+  static const String _configsKey = 'control_configs';
 
   static ControlManager? _instance;
 
   final List<ControlBase> _controls = [];
   final List<ControlEventListener> _eventListeners = [];
   int _nextId = 1;
+  String _currentConfigName = '默认配置';
 
   // 私有构造函数
   ControlManager._();
@@ -28,6 +30,92 @@ class ControlManager {
   }
 
   List<ControlBase> get controls => List.unmodifiable(_controls);
+  String get currentConfigName => _currentConfigName;
+
+  // 获取所有配置名称
+  Future<List<String>> getConfigNames() async {
+    final prefs = await SharedPreferences.getInstance();
+    final configsJson = prefs.getString(_configsKey);
+    if (configsJson != null) {
+      try {
+        final Map<String, dynamic> configs = jsonDecode(configsJson);
+        return configs.keys.toList();
+      } catch (e) {
+        print('Error loading config names: $e');
+      }
+    }
+    return ['默认配置'];
+  }
+
+  // 保存当前配置
+  Future<void> saveConfig(String configName) async {
+    final prefs = await SharedPreferences.getInstance();
+    final configsJson = prefs.getString(_configsKey);
+    Map<String, dynamic> configs = {};
+    
+    if (configsJson != null) {
+      try {
+        configs = jsonDecode(configsJson);
+      } catch (e) {
+        print('Error loading existing configs: $e');
+      }
+    }
+
+    // 保存当前配置
+    configs[configName] = {
+      'controls': _controls.map((c) => c.toMap()).toList(),
+      'nextId': _nextId,
+    };
+
+    await prefs.setString(_configsKey, jsonEncode(configs));
+    _currentConfigName = configName;
+  }
+
+  // 加载配置
+  Future<bool> loadConfig(String configName) async {
+    final prefs = await SharedPreferences.getInstance();
+    final configsJson = prefs.getString(_configsKey);
+    if (configsJson != null) {
+      try {
+        final Map<String, dynamic> configs = jsonDecode(configsJson);
+        if (configs.containsKey(configName)) {
+          final config = configs[configName];
+          _controls.clear();
+          _controls.addAll((config['controls'] as List)
+              .map((map) => ControlBase.fromMap(map)));
+          _nextId = config['nextId'] ?? 1;
+          _currentConfigName = configName;
+          return true;
+        }
+      } catch (e) {
+        print('Error loading config: $e');
+      }
+    }
+    return false;
+  }
+
+  // 删除配置
+  Future<bool> deleteConfig(String configName) async {
+    final prefs = await SharedPreferences.getInstance();
+    final configsJson = prefs.getString(_configsKey);
+    if (configsJson != null) {
+      try {
+        final Map<String, dynamic> configs = jsonDecode(configsJson);
+        if (configs.containsKey(configName)) {
+          configs.remove(configName);
+          await prefs.setString(_configsKey, jsonEncode(configs));
+          if (_currentConfigName == configName) {
+            // 如果删除的是当前配置，加载默认配置
+            await loadConfig('默认配置');
+          }
+          return true;
+        }
+      } catch (e) {
+        print('Error deleting config: $e');
+      }
+    }
+    return false;
+  }
 
   // 创建并添加摇杆
   void createJoystick({
