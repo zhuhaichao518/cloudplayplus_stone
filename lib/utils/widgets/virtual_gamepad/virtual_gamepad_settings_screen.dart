@@ -74,8 +74,11 @@ class _VirtualGamepadSettingsPageState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
         title: const Text('虚拟手柄设置'),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
         actions: [
           IconButton(
             icon: const Icon(Icons.settings),
@@ -94,7 +97,7 @@ class _VirtualGamepadSettingsPageState
               Positioned(
                 left: constraints.maxWidth * 0.1,
                 right: constraints.maxWidth * 0.1,
-                top: constraints.maxHeight * 0.1,
+                top: MediaQuery.of(context).padding.top + kToolbarHeight + 16,
                 child: Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(

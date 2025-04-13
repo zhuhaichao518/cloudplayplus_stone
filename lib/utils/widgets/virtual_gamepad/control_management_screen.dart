@@ -644,6 +644,15 @@ class _ControlManagementScreenState extends State<ControlManagementScreen> {
                       ],
                     ),
                     const SizedBox(height: 16),
+                    TextField(
+                      controller: labelController,
+                      decoration: InputDecoration(
+                        labelText: '按钮标签',
+                        hintText: isGamepadButton ? 'A, B, X, Y, etc.' : '按钮名称',
+                        border: const OutlineInputBorder(),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
                     if (isGamepadButton) ...[
                       const Text(
                         '请选择手柄按钮:',
