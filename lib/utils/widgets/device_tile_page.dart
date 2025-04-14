@@ -225,162 +225,362 @@ class _DeviceDetailPageState extends State<DeviceDetailPage> {
           });
           return SingleChildScrollView(
             padding:
-                EdgeInsets.symmetric(horizontal: 24.0, vertical: 48.0), // 增加内边距
+                const EdgeInsets.symmetric(horizontal: 24.0, vertical: 32.0),
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
-                // 使用更大的字体和粗体来突出设备类型
-                const Text(
-                  "设备名称:",
-                  style: TextStyle(fontWeight: FontWeight.bold), // 突出显示标签
-                ),
-                const SizedBox(width: 16), // 增加一些水平间距
-                // 用 Container 设置宽度，避免使用 Expanded
-                _editingDeviceName
-                    ? Container(
-                        width: 300, // 可以根据需要调整宽度
-                        child: TextField(
-                          controller: _deviceNameController,
-                          decoration: InputDecoration(
-                            hintText: widget.device.devicename, // 提示文本
-                          ),
-                          onChanged: (newName) {
-                            // 将新名称存储在一个临时变量中
-                            setState(() {
-                              //_newDeviceName = newName;
-                            });
-                          },
-                        ),
-                      )
-                    : Text(
-                        widget.device.devicename,
-                      ),
-                SizedBox(height: 8),
-                if (widget.device.websocketSessionid ==
-                    ApplicationInfo.thisDevice.websocketSessionid)
-                  ElevatedButton(
-                    onPressed: () {
-                      if (!_editingDeviceName) {
-                        setState(() {
-                          _editingDeviceName = true;
-                        });
-                      } else {
-                        setState(() {
-                          _editingDeviceName = false;
-                          widget.device.devicename = _deviceNameController.text;
-                          ApplicationInfo.deviceNameOverride =
-                              _deviceNameController.text;
-                          SharedPreferencesManager.setString(
-                              "deviceNameOverride", _deviceNameController.text);
-                          WebSocketService.updateDeviceInfo();
-                        });
-                      }
-                    },
-                    child: const Text("编辑设备名"),
+                // 设备信息卡片
+                Card(
+                  elevation: 2,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
                   ),
-                const SizedBox(height: 16), // 增加垂直间距
-                // 使用更大的字体和粗体来突出设备类型
-                Text(
-                  "设备平台:${widget.device.devicetype}",
-                ),
-                SizedBox(height: 16), // 增加垂直间距
-                if (widget.device.screencount > 1)
-                  for (int i = 1; i <= widget.device.screencount; i++)
-                    ListTile(
-                      title: Text('显示器 $i'),
-                      leading: Radio(
-                        value: i,
-                        groupValue: _selectedMonitorId,
-                        onChanged: (int? value) {
-                          setState(() {
-                            _selectedMonitorId = value!;
-                          });
-                        },
-                      ),
-                    ),
-                SizedBox(height: 16), // 增加垂直间距
-                // 使用装饰文本来展示应用ID
-                Text(
-                  "会话ID: ${widget.device.websocketSessionid.toString().substring(widget.device.websocketSessionid.toString().length - 6)}",
-                ),
-                SizedBox(height: 16), // 增加垂直间距
-                (widget.device.websocketSessionid !=
-                            ApplicationInfo.thisDevice.websocketSessionid &&
-                        widget.device.connective)
-                    ? TextField(
-                        controller: _passwordController,
-                        obscureText: true,
-                        decoration: InputDecoration(
-                          labelText: '连接密码',
-                          border: OutlineInputBorder(),
-                        ),
-                      )
-                    : Container(),
-                SizedBox(height: 16),
-                // 使用按钮来提供连接设备的交互
-                (widget.device.websocketSessionid !=
-                            ApplicationInfo.thisDevice.websocketSessionid &&
-                        widget.device.connective)
-                    ? ElevatedButton(
-                        onPressed: () => _connectDevice(context),
-                        child:
-                            const Text('连接设备', style: TextStyle(fontSize: 18)),
-                        style: ElevatedButton.styleFrom(
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                        ),
-                      )
-                    : (widget.device.websocketSessionid !=
-                                ApplicationInfo.thisDevice.websocketSessionid ||
-                            AppPlatform.isMobile)
-                        ? const SizedBox()
-                        : ApplicationInfo
-                                .connectable /* || (AppPlatform.isWindows && (ApplicationInfo.isSystem || SharedPreferencesManager.getBool('allowConnect')==true))*/
-                            ? ElevatedButton(
-                                onPressed: () => _unhostDevice(context),
-                                style: ElevatedButton.styleFrom(
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(10),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            const Icon(Icons.devices,
+                                size: 24, color: Colors.blue),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text(
+                                    "设备名称",
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      color: Colors.grey,
+                                    ),
                                   ),
-                                ),
-                                child: const Text('不允许本设备被连接',
-                                    style: TextStyle(fontSize: 18)),
-                              )
-                            : ElevatedButton(
-                                onPressed: () => _hostDevice(context),
-                                style: ElevatedButton.styleFrom(
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(10),
-                                  ),
-                                ),
-                                child: const Text('允许本设备被连接',
-                                    style: TextStyle(fontSize: 18)),
+                                  const SizedBox(height: 4),
+                                  _editingDeviceName
+                                      ? TextField(
+                                          controller: _deviceNameController,
+                                          decoration: InputDecoration(
+                                            hintText: widget.device.devicename,
+                                            border: OutlineInputBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(8),
+                                            ),
+                                            contentPadding:
+                                                const EdgeInsets.symmetric(
+                                                    horizontal: 12,
+                                                    vertical: 8),
+                                          ),
+                                        )
+                                      : Text(
+                                          widget.device.devicename,
+                                          style: const TextStyle(
+                                            fontSize: 18,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                ],
                               ),
-                const SizedBox(height: 24), // 增加垂直间距
-                // 如果设备是用户的，显示分享组件
-/*                if (widget.device.uid == ApplicationInfo.user.uid) ...[
-                  TextField(
-                    controller: _shareController,
-                    decoration: InputDecoration(
-                      labelText: '分享给...',
-                      border: OutlineInputBorder(),
+                            ),
+                            if (widget.device.websocketSessionid ==
+                                ApplicationInfo.thisDevice.websocketSessionid)
+                              IconButton(
+                                onPressed: () {
+                                  if (!_editingDeviceName) {
+                                    setState(() {
+                                      _editingDeviceName = true;
+                                    });
+                                  } else {
+                                    setState(() {
+                                      _editingDeviceName = false;
+                                      widget.device.devicename =
+                                          _deviceNameController.text;
+                                      ApplicationInfo.deviceNameOverride =
+                                          _deviceNameController.text;
+                                      SharedPreferencesManager.setString(
+                                          "deviceNameOverride",
+                                          _deviceNameController.text);
+                                      WebSocketService.updateDeviceInfo();
+                                    });
+                                  }
+                                },
+                                icon: Icon(
+                                  _editingDeviceName ? Icons.check : Icons.edit,
+                                  color: Colors.blue,
+                                ),
+                              ),
+                          ],
+                        ),
+                        const SizedBox(height: 16),
+                        Row(
+                          children: [
+                            const Icon(Icons.computer,
+                                size: 24, color: Colors.blue),
+                            const SizedBox(width: 8),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  "设备平台",
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: Colors.grey,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  widget.device.devicetype,
+                                  style: const TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
                   ),
-                  SizedBox(height: 24), // 增加垂直间距
-                  QrImageView(
-                    data: 'https://www.cloudplayplus.com',
-                    version: QrVersions.auto,
-                    size: 200.0,
+                ),
+                const SizedBox(height: 16),
+
+                // 连接控制卡片
+                if (widget.device.websocketSessionid !=
+                        ApplicationInfo.thisDevice.websocketSessionid &&
+                    widget.device.connective)
+                  Card(
+                    elevation: 2,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Row(
+                            children: [
+                              Icon(Icons.lock_outline,
+                                  size: 24, color: Colors.blue),
+                              SizedBox(width: 8),
+                              Text(
+                                "连接控制",
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 12),
+                          TextField(
+                            controller: _passwordController,
+                            obscureText: true,
+                            decoration: InputDecoration(
+                              labelText: '连接密码',
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 12, vertical: 8),
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          SizedBox(
+                            width: double.infinity,
+                            child: ElevatedButton(
+                              onPressed: () => _connectDevice(context),
+                              style: ElevatedButton.styleFrom(
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 12),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                              ),
+                              child: const Text('连接设备',
+                                  style: TextStyle(fontSize: 16)),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
-                  ElevatedButton(
-                    onPressed: () => _shareDevice(context),
-                    child: Text('共享设备', style: TextStyle(fontSize: 18)),
-                    style: ElevatedButton.styleFrom(
-                        // 按钮样式
+                const SizedBox(height: 16),
+
+                // 显示器选择卡片
+                if (widget.device.screencount > 1)
+                  Card(
+                    elevation: 2,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Row(
+                            children: [
+                              Icon(Icons.desktop_windows,
+                                  size: 24, color: Colors.blue),
+                              SizedBox(width: 8),
+                              Text(
+                                "显示器选择",
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 12),
+                          ...List.generate(
+                            widget.device.screencount,
+                            (index) => ListTile(
+                              contentPadding: EdgeInsets.zero,
+                              leading: Radio(
+                                value: index + 1,
+                                groupValue: _selectedMonitorId,
+                                onChanged: (int? value) {
+                                  setState(() {
+                                    _selectedMonitorId = value!;
+                                  });
+                                },
+                              ),
+                              title: Text(
+                                '显示器 ${index + 1}',
+                                style: const TextStyle(fontSize: 16),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                const SizedBox(height: 16),
+
+                // 会话信息卡片
+                Card(
+                  elevation: 2,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Row(
+                          children: [
+                            Icon(Icons.info_outline,
+                                size: 24, color: Colors.blue),
+                            SizedBox(width: 8),
+                            Text(
+                              "会话信息",
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
                         ),
+                        const SizedBox(height: 12),
+                        Text(
+                          "会话ID: ${widget.device.websocketSessionid.toString().substring(widget.device.websocketSessionid.toString().length - 6)}",
+                          style: const TextStyle(fontSize: 16),
+                        ),
+                      ],
+                    ),
                   ),
-                ],*/
+                ),
+                const SizedBox(height: 16),
+
+                // 设备连接权限控制
+                if (widget.device.websocketSessionid ==
+                        ApplicationInfo.thisDevice.websocketSessionid &&
+                    !AppPlatform.isMobile)
+                  Card(
+                    elevation: 2,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Row(
+                            children: [
+                              Icon(Icons.security,
+                                  size: 24, color: Colors.blue),
+                              SizedBox(width: 8),
+                              Text(
+                                "设备连接权限",
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 16),
+                          Row(
+                            children: [
+                              Icon(
+                                ApplicationInfo.connectable
+                                    ? Icons.check_circle
+                                    : Icons.cancel,
+                                color: ApplicationInfo.connectable
+                                    ? Colors.green
+                                    : Colors.red,
+                                size: 20,
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                ApplicationInfo.connectable
+                                    ? '当前状态：已允许连接'
+                                    : '当前状态：已禁止连接',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: ApplicationInfo.connectable
+                                      ? Colors.green
+                                      : Colors.red,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 16),
+                          SizedBox(
+                            width: double.infinity,
+                            child: ElevatedButton(
+                              onPressed: ApplicationInfo.connectable
+                                  ? () => _unhostDevice(context)
+                                  : () => _hostDevice(context),
+                              style: ElevatedButton.styleFrom(
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 12),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                backgroundColor: ApplicationInfo.connectable
+                                    ? Colors.red
+                                    : Colors.green,
+                              ),
+                              child: Text(
+                                ApplicationInfo.connectable
+                                    ? '不允许本设备被连接'
+                                    : '允许本设备被连接',
+                                style: const TextStyle(
+                                    fontSize: 16, color: Colors.white),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                const SizedBox(height: 24),
               ],
             ),
           );
