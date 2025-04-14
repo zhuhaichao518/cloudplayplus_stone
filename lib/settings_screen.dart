@@ -51,7 +51,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             title: const Text('串流设置'),
             tiles: <SettingsTile>[
               SettingsTile.navigation(
-                leading: const Icon(Icons.computer),
+                leading: const Icon(Icons.volume_up),
                 title: const Text('音视频设置'),
                 onPressed: (context) {
                   Navigation.navigateTo(
@@ -62,7 +62,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 },
               ),
               SettingsTile.navigation(
-                leading: const Icon(Icons.computer),
+                leading: const Icon(Icons.network_check),
                 title: const Text('网络设置'),
                 onPressed: (context) {
                   Navigation.navigateTo(
@@ -74,7 +74,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
               if (!AppPlatform.isMobile)
                 SettingsTile.navigation(
-                  leading: const Icon(Icons.computer),
+                  leading: const Icon(Icons.mouse),
                   title: const Text('鼠标设置'),
                   onPressed: (context) {
                     Navigation.navigateTo(
@@ -616,7 +616,7 @@ class _NetworkSettingsScreenState extends State<NetworkSettingsScreen> {
               tiles: [
                 SettingsTile.switchTile(
                   title: const Text('使用turn中继服务器'),
-                  leading: const Icon(Icons.mouse),
+                  leading: const Icon(Icons.network_ping),
                   initialValue: useTurnServer,
                   onToggle: (bool value) {
                     setState(() {

@@ -833,25 +833,25 @@ class _ControlManagementScreenState extends State<ControlManagementScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            const Text('导入/导出虚拟屏幕控件'),
-            TextButton(
-              onPressed: () {
-                Clipboard.setData(ClipboardData(text: exportController.text));
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('已复制导出内容到剪贴板')),
-                );
-              },
-              child: const Text('复制配置'),
-            ),
-          ],
-        ),
+        title: const Text('导入/导出虚拟屏幕控件'),
         content: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  TextButton(
+                    onPressed: () {
+                      Clipboard.setData(ClipboardData(text: exportController.text));
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('已复制导出内容到剪贴板')),
+                      );
+                    },
+                    child: const Text('复制配置'),
+                  ),
+                ],
+              ),
               const Text('导出JSON:'),
               TextField(
                 controller: exportController,
