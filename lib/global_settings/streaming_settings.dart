@@ -50,7 +50,7 @@ class StreamingSettings {
         SharedPreferencesManager.getInt('bitrate') ?? 80000; // Default to 80000
     showRemoteCursor = SharedPreferencesManager.getBool('renderRemoteCursor') ??
         false; // Default to false
-    streamAudio = SharedPreferencesManager.getBool('streamAudio') ??
+    streamAudio = SharedPreferencesManager.getBool('haveAudio') ??
         true; // Default to true
     // This will be updated when user clicks connect button.
     targetScreenId = 0;
