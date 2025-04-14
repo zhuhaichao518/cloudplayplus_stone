@@ -19,7 +19,7 @@
     // Cloudplayplus currently only plays audio on ios. But this does not work.
     //config.category = AVAudioSessionCategoryPlayback;
     config.categoryOptions =
-        AVAudioSessionCategoryOptionDefaultToSpeaker |
+        AVAudioSessionCategoryOptionDefaultToSpeaker |	
         AVAudioSessionCategoryOptionMixWithOthers| //CloudPlayPlus: 允许混音
         AVAudioSessionCategoryOptionAllowBluetooth |
         AVAudioSessionCategoryOptionAllowBluetoothA2DP |
