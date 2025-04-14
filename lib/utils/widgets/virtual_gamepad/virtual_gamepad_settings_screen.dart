@@ -265,7 +265,9 @@ class _VirtualGamepadSettingsPageState
           return Stack(
             children: [
               // Background
-              Container(color: Colors.grey[100]),
+              Container(
+                color: Theme.of(context).scaffoldBackgroundColor,
+              ),
 
               // Event Log
               Positioned(
@@ -275,17 +277,17 @@ class _VirtualGamepadSettingsPageState
                 child: Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: Colors.black.withOpacity(0.5),
+                    color: Theme.of(context).cardColor.withOpacity(0.8),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
+                      Text(
                         '最近事件:',
                         style: TextStyle(
-                          color: Colors.white,
+                          color: Theme.of(context).textTheme.bodyLarge?.color,
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
                         ),
@@ -295,8 +297,8 @@ class _VirtualGamepadSettingsPageState
                             padding: const EdgeInsets.symmetric(vertical: 4),
                             child: Text(
                               event,
-                              style: const TextStyle(
-                                color: Colors.white,
+                              style: TextStyle(
+                                color: Theme.of(context).textTheme.bodyMedium?.color,
                                 fontSize: 14,
                               ),
                             ),

@@ -164,7 +164,7 @@ class _ButtonWidgetState extends State<_ButtonWidget> {
             child: Text(
               widget.control.label,
               style: TextStyle(
-                color: Colors.white,
+                color: /*Theme.of(context).textTheme.bodyLarge?.color ?? */Colors.white,
                 fontSize: diameter * 0.3,
               ),
             ),
