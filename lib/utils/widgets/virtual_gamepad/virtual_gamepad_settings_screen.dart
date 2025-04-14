@@ -298,7 +298,10 @@ class _VirtualGamepadSettingsPageState
                             child: Text(
                               event,
                               style: TextStyle(
-                                color: Theme.of(context).textTheme.bodyMedium?.color,
+                                color: Theme.of(context)
+                                    .textTheme
+                                    .bodyMedium
+                                    ?.color,
                                 fontSize: 14,
                               ),
                             ),

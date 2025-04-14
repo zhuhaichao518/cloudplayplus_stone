@@ -371,7 +371,14 @@ class _StreamingSettingsScreen extends State<StreamingSettingsScreen> {
   @override
   Widget build(BuildContext context) {
     return CupertinoPageScaffold(
-      navigationBar: CupertinoNavigationBar(middle: Text('音视频设置')),
+      navigationBar: CupertinoNavigationBar(
+        middle: Text(
+          '音视频设置',
+          style: TextStyle(
+            color: Theme.of(context).textTheme.titleLarge?.color,
+          ),
+        ),
+      ),
       child: SafeArea(
         bottom: false,
         child: SettingsList(
@@ -546,7 +553,14 @@ class _NetworkSettingsScreenState extends State<NetworkSettingsScreen> {
   @override
   Widget build(BuildContext context) {
     return CupertinoPageScaffold(
-      navigationBar: CupertinoNavigationBar(middle: const Text('网络设置')),
+      navigationBar: CupertinoNavigationBar(
+        middle: Text(
+          '网络设置',
+          style: TextStyle(
+            color: Theme.of(context).textTheme.titleLarge?.color,
+          ),
+        ),
+      ),
       child: SafeArea(
         bottom: false,
         child: SettingsList(
@@ -751,7 +765,14 @@ class _CursorSettingsScreenState extends State<CursorSettingsScreen> {
   @override
   Widget build(BuildContext context) {
     return CupertinoPageScaffold(
-      navigationBar: CupertinoNavigationBar(middle: const Text('鼠标设置')),
+      navigationBar: CupertinoNavigationBar(
+        middle: Text(
+          '鼠标设置',
+          style: TextStyle(
+            color: Theme.of(context).textTheme.titleLarge?.color,
+          ),
+        ),
+      ),
       child: SafeArea(
         bottom: false,
         child: SettingsList(

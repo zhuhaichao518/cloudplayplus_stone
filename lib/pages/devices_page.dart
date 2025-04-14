@@ -182,7 +182,6 @@ class _DevicesPageState extends State<DevicesPage> {
         centerTitle: true,
         title: Text(
           data.devicename,
-          style: const TextStyle(color: Colors.black),
         ),
       ),
       detailsItemBuilder: (context, data) => DeviceDetailPage(device: data),
