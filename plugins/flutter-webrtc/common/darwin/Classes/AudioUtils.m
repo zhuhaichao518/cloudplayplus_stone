@@ -20,7 +20,7 @@
     //config.category = AVAudioSessionCategoryPlayback;
     config.categoryOptions =
         AVAudioSessionCategoryOptionDefaultToSpeaker |
-        //AVAudioSessionCategoryOptionMixWithOthers| //CloudPlayPlus: 不允许混音
+        AVAudioSessionCategoryOptionMixWithOthers| //CloudPlayPlus: 允许混音
         AVAudioSessionCategoryOptionAllowBluetooth |
         AVAudioSessionCategoryOptionAllowBluetoothA2DP |
         AVAudioSessionCategoryOptionAllowAirPlay;
