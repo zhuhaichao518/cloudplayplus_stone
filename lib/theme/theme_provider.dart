@@ -82,6 +82,8 @@ final lightTheme1 = FlexThemeData.light(
   //fontFamily: 'heiti',
 );
 
+const Color orangeColor = Color(0xffff6c0a);
+
 final darkTheme1 = FlexThemeData.dark(
   scheme: FlexScheme.deepOrangeM3,
   surfaceMode: FlexSurfaceMode.levelSurfacesLowScaffold,
@@ -95,11 +97,14 @@ final darkTheme1 = FlexThemeData.dark(
     useInputDecoratorThemeInDialogs: true,
     toggleButtonsSchemeColor: SchemeColor.inversePrimary,
   ),
+  colors: const FlexSchemeColor(
+    primary: Color(0xFFEA580C),
+    primaryContainer: Color(0xFFEA580C),
+    secondary: Color(0xFF292524),
+  ),
   visualDensity: FlexColorScheme.comfortablePlatformDensity,
   useMaterial3: true,
   swapLegacyOnMaterial3: true,
-  //fontFamily: GoogleFonts.notoSans().fontFamily,
-  //fontFamily: 'heiti',
 );
 
 class ThemeProvider with ChangeNotifier {
