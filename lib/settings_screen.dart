@@ -335,6 +335,7 @@ class _StreamingSettingsScreen extends State<StreamingSettingsScreen> {
   bool _renderRemoteCursor = false;
   int _bitrate = 80000;
   int _frameRate = 60;
+  String _codec = 'default';
   final Map<int, String> bitrates = {
     2500: '2500',
     5000: '5000',
@@ -365,6 +366,7 @@ class _StreamingSettingsScreen extends State<StreamingSettingsScreen> {
     _frameRate = SharedPreferencesManager.getInt('frameRate') ?? 60;
     _renderRemoteCursor =
         SharedPreferencesManager.getBool('renderRemoteCursor') ?? false;
+    _codec = SharedPreferencesManager.getString('codec') ?? 'default';
     setState(() {});
   }
 
@@ -388,6 +390,66 @@ class _StreamingSettingsScreen extends State<StreamingSettingsScreen> {
             SettingsSection(
               title: const Text('视频设置'),
               tiles: [
+                SettingsTile(
+                  title: const Text('编码器(自行测试效果)'),
+                  trailing: Material(child: Text('当前: $_codec')),
+                  leading: const Icon(Icons.video_settings),
+                  onPressed: (BuildContext context) async {
+                    final codec = await Navigation.navigateTo(
+                      context: context,
+                      screen: Scaffold(
+                        appBar: AppBar(title: const Text('编码器设置')),
+                        body: SettingsList(
+                          sections: [
+                            SettingsSection(
+                              title: const Text('编码器'),
+                              tiles: [
+                                SettingsTile(
+                                  title: const Text('默认'),
+                                  onPressed: (context) {
+                                    Navigator.of(context).pop('default');
+                                  },
+                                ),
+                                SettingsTile(
+                                  title: const Text('H.264'),
+                                  onPressed: (context) {
+                                    Navigator.of(context).pop('h264');
+                                  },
+                                ),
+                                SettingsTile(
+                                  title: const Text('VP9'),
+                                  onPressed: (context) {
+                                    Navigator.of(context).pop('vp9');
+                                  },
+                                ),
+                                SettingsTile(
+                                  title: const Text('VP8'),
+                                  onPressed: (context) {
+                                    Navigator.of(context).pop('vp8');
+                                  },
+                                ),
+                                SettingsTile(
+                                  title: const Text('AV1'),
+                                  onPressed: (context) {
+                                    Navigator.of(context).pop('av1');
+                                  },
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                      style: NavigationRouteStyle.cupertino,
+                    );
+                    if (codec != null) {
+                      setState(() {
+                        _codec = codec;
+                      });
+                      await SharedPreferencesManager.setString('codec', _codec);
+                      StreamingSettings.codec = _codec;
+                    }
+                  },
+                ),
                 SettingsTile.switchTile(
                   title: const Text('显示远程鼠标'),
                   leading: const Icon(Icons.mouse),

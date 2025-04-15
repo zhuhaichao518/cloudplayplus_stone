@@ -449,7 +449,8 @@ class StreamingSession {
           if (AppPlatform.isMacos) {
             //TODO(haichao):h264 encoder is slow for my m3 mac max. check other platforms.
             //setPreferredCodec(sdp, audio: 'opus', video: 'vp8');
-            setPreferredCodec(sdp, audio: 'opus', video: 'vp8');
+            //Mac上网页版的vp9更好 app版本av1稍微好一些 h264编码器都非常垃圾 不知道原因
+            setPreferredCodec(sdp, audio: 'opus', video: 'av1');
           } else {
             setPreferredCodec(sdp, audio: 'opus', video: 'h264');
           }
