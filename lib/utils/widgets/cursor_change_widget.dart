@@ -57,6 +57,8 @@ class _MouseStyleRegionState extends State<MouseStyleRegion> {
         },
         onExit: (event) {
           //修复快速移出无法移动到边角的问题。
+          //IOS 虚拟光标点击会被视为onExit, 所以不处理
+          if (AppPlatform.isIOS) return;
           WebrtcService.currentRenderingSession?.inputController
               ?.requestMoveMouseAbsl(0, 0, -1);
         },
