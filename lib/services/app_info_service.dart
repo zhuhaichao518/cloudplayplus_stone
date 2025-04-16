@@ -27,10 +27,13 @@ class ApplicationInfo {
       return deviceNameOverride!;
     }
     if (AppPlatform.isWeb) {
-      return '云玩家网页端';
+      return '云玩加网页端';
     }
     if (AppPlatform.isIOS) {
       return 'IOS设备';
+    }
+    if (AppPlatform.isMacos) {
+      return 'MacOS设备';
     }
     if (AppPlatform.isAndroid) {
       return '安卓设备';
