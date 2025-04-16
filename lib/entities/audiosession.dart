@@ -270,10 +270,17 @@ class AudioSession {
       StreamedManager.audioSenderCount--;
       if (StreamedManager.audioSenderCount == 0) {
         if (StreamedManager.localAudioStreams.containsKey(AUDIO_SYSTEM)) {
+          StreamedManager.localAudioStreams[AUDIO_SYSTEM]?.getAudioTracks().forEach((track) {
+            track.stop();
+          });
           StreamedManager.localAudioStreams[AUDIO_SYSTEM]?.dispose();
           StreamedManager.localAudioStreams.remove(AUDIO_SYSTEM);
         }
       }
+    }
+    if (audioSender != null) {
+      await pc?.removeTrack(audioSender!);
+      audioSender = null;
     }
     pc?.close();
     pc?.dispose();
