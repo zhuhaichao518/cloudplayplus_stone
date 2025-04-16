@@ -80,10 +80,12 @@ class _DeviceDetailPageState extends State<DeviceDetailPage> {
   }
 
   bool _showAllWindowButton = true;
+  Color _iconColor = Colors.blue;
 
   @override
   Widget build(BuildContext context) {
     inbuilding = true;
+    _iconColor = Theme.of(context).colorScheme.primary;
 
     MessageBoxManager().init(context);
     WebrtcService.updateCurrentRenderingDevice(
@@ -164,13 +166,13 @@ class _DeviceDetailPageState extends State<DeviceDetailPage> {
                                 false);
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blue,
+                        backgroundColor: _iconColor,
                         padding: const EdgeInsets.symmetric(
                             horizontal: 20, vertical: 12),
                       ),
                       child: const Text(
                         '展开所有窗口',
-                        style: TextStyle(fontSize: 16),
+                        style: TextStyle(fontSize: 16, color: Colors.white),
                       ),
                     ),
                   ),
@@ -242,8 +244,8 @@ class _DeviceDetailPageState extends State<DeviceDetailPage> {
                       children: [
                         Row(
                           children: [
-                            const Icon(Icons.devices,
-                                size: 24, color: Colors.blue),
+                            Icon(Icons.devices,
+                                size: 24, color: _iconColor),
                             const SizedBox(width: 8),
                             Expanded(
                               child: Column(
@@ -306,7 +308,7 @@ class _DeviceDetailPageState extends State<DeviceDetailPage> {
                                 },
                                 icon: Icon(
                                   _editingDeviceName ? Icons.check : Icons.edit,
-                                  color: Colors.blue,
+                                  color: _iconColor,
                                 ),
                               ),
                           ],
@@ -314,8 +316,8 @@ class _DeviceDetailPageState extends State<DeviceDetailPage> {
                         const SizedBox(height: 16),
                         Row(
                           children: [
-                            const Icon(Icons.computer,
-                                size: 24, color: Colors.blue),
+                            Icon(Icons.computer,
+                                size: 24, color: _iconColor),
                             const SizedBox(width: 8),
                             Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -359,12 +361,12 @@ class _DeviceDetailPageState extends State<DeviceDetailPage> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Row(
+                          Row(
                             children: [
                               Icon(Icons.lock_outline,
-                                  size: 24, color: Colors.blue),
-                              SizedBox(width: 8),
-                              Text(
+                                  size: 24, color: _iconColor),
+                              const SizedBox(width: 8),
+                              const Text(
                                 "连接控制",
                                 style: TextStyle(
                                   fontSize: 16,
@@ -420,12 +422,12 @@ class _DeviceDetailPageState extends State<DeviceDetailPage> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Row(
+                          Row(
                             children: [
                               Icon(Icons.desktop_windows,
-                                  size: 24, color: Colors.blue),
-                              SizedBox(width: 8),
-                              Text(
+                                  size: 24, color: _iconColor),
+                              const SizedBox(width: 8),
+                              const Text(
                                 "显示器选择",
                                 style: TextStyle(
                                   fontSize: 16,
@@ -471,12 +473,12 @@ class _DeviceDetailPageState extends State<DeviceDetailPage> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Row(
+                        Row(
                           children: [
                             Icon(Icons.info_outline,
-                                size: 24, color: Colors.blue),
-                            SizedBox(width: 8),
-                            Text(
+                                size: 24, color: _iconColor),
+                            const SizedBox(width: 8),
+                            const Text(
                               "会话信息",
                               style: TextStyle(
                                 fontSize: 16,
@@ -510,12 +512,12 @@ class _DeviceDetailPageState extends State<DeviceDetailPage> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Row(
+                          Row(
                             children: [
                               Icon(Icons.security,
-                                  size: 24, color: Colors.blue),
-                              SizedBox(width: 8),
-                              Text(
+                                  size: 24, color: _iconColor),
+                              const SizedBox(width: 8),
+                              const Text(
                                 "设备连接权限",
                                 style: TextStyle(
                                   fontSize: 16,
