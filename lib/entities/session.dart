@@ -375,12 +375,14 @@ class StreamingSession {
         }
       }
       */
-
+      
+      /* 为什么这里进不来？
       pc!.onDataChannel = (newchannel) async {
         if (settings.useClipBoard == true){
           startClipboardSync();
         }
       };
+      */
 
       pc!.onIceCandidate = (candidate) async {
         // We are controlled so source is ourself
@@ -411,6 +413,9 @@ class StreamingSession {
           }*/
           if (AppPlatform.isWindows) {
             //HardwareSimulator.showNotification(controller.nickname);
+          }
+          if (settings.useClipBoard == true) {
+              startClipboardSync();
           }
         } else if (state ==
             RTCPeerConnectionState.RTCPeerConnectionStateFailed) {
@@ -815,12 +820,8 @@ class StreamingSession {
   }
 
   void startClipboardSync() {
+    if (_clipboardTimer != null) return;
     _clipboardTimer = Timer.periodic(const Duration(seconds: 1), (timer) async {
-      if (connectionState != StreamingSessionConnectionState.connected) {
-        timer.cancel();
-        return;
-      }
-      
       final clipboardData = await Clipboard.getData(Clipboard.kTextPlain);
       final currentContent = clipboardData?.text ?? '';
       
