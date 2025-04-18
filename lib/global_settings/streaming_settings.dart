@@ -40,6 +40,8 @@ class StreamingSettings {
 
   static bool autoHideLocalCursor = true;
 
+  static bool useClipBoard = true;
+
   static void init() {
     InputController.resendCount =
         SharedPreferencesManager.getInt('ControlMsgResendCount') ?? 3;
@@ -88,6 +90,9 @@ class StreamingSettings {
 
     autoHideLocalCursor = SharedPreferencesManager.getBool('autoHideCursor') ??
         (AppPlatform.isDeskTop || AppPlatform.isWeb);
+
+    useClipBoard = SharedPreferencesManager.getBool('useClipBoard') ??
+        true;
   }
 
   //Screen id setting is not global, so we need to call before start streaming.
@@ -110,6 +115,7 @@ class StreamingSettings {
       'codec': codec,
       'hookCursorImage': hookCursorImage,
       'connectPassword': connectPassword,
+      'useClipBoard': useClipBoard,
     };
     data.removeWhere((key, value) => value == null);
     return data;
@@ -137,6 +143,7 @@ class StreamedSettings {
   bool? hookCursorImage;
   //设备的连接密码
   String? connectPassword = "";
+  bool? useClipBoard;
   static StreamedSettings fromJson(Map<String, dynamic> settings) {
     return StreamedSettings()
       ..framerate = settings['framerate'] as int?
@@ -151,6 +158,7 @@ class StreamedSettings {
       ..screenId = settings['targetScreenId'] as int?
       ..codec = settings['codec'] as String?
       ..hookCursorImage = settings['hookCursorImage'] as bool?
-      ..connectPassword = settings['connectPassword'] as String?;
+      ..connectPassword = settings['connectPassword'] as String?
+      ..useClipBoard = settings['useClipBoard'] as bool?;
   }
 }

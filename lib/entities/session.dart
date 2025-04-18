@@ -15,6 +15,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'package:hardware_simulator/hardware_simulator.dart';
 import 'package:synchronized/synchronized.dart';
+import 'package:flutter/services.dart';
 
 import '../base/logging.dart';
 import '../global_settings/streaming_settings.dart';
@@ -98,6 +99,9 @@ class StreamingSession {
   AudioSession? audioSession;
 
   final _lock = Lock();
+
+  Timer? _clipboardTimer;
+  String _lastClipboardContent = '';
 
   StreamingSession(this.controller, this.controlled) {
     connectionState = StreamingSessionConnectionState.free;
@@ -224,6 +228,10 @@ class StreamingSession {
               }
             }
           };
+        }
+
+        if (StreamingSettings.useClipBoard) {
+          startClipboardSync();
         }
       };
       screenId = StreamingSettings.targetScreenId!;
@@ -413,6 +421,9 @@ class StreamingSession {
 
       channel?.onMessage = (RTCDataChannelMessage msg) {
         processDataChannelMessageFromClient(msg);
+        if (settings.useClipBoard == true) {
+          startClipboardSync();
+        }
       };
 
       if (useUnsafeDatachannel) {
@@ -645,6 +656,8 @@ class StreamingSession {
         }
       }
     });
+
+    stopClipboardSync();
   }
 
   Timer? _pingTimeoutTimer;
@@ -682,7 +695,6 @@ class StreamingSession {
       switch (message.binary[0]) {
         case LP_PING:
           if (message.binary.length == 2 && message.binary[1] == RP_PING) {
-            //VLOG0("ping received from client");
             restartPingTimeoutTimer(30);
             Timer(const Duration(seconds: 1), () {
               if (connectionState ==
@@ -736,6 +748,12 @@ class StreamingSession {
           break;
         case "gamepad":
           inputController?.handleGamePadEvent(data['gamepad']);
+          break;
+        case "clipboard":
+          // 更新本地剪贴板
+          Clipboard.setData(ClipboardData(text: data['clipboard']));
+          _lastClipboardContent = data['clipboard'];
+          break;
         default:
           VLOG0("unhandled message from client.please debug");
       }
@@ -747,7 +765,6 @@ class StreamingSession {
       switch (message.binary[0]) {
         case LP_PING:
           if (message.binary.length == 2 && message.binary[1] == RP_PONG) {
-            //VLOG0("pong received from host");
             restartPingTimeoutTimer(30);
             Timer(const Duration(seconds: 1), () {
               if (connectionState ==
@@ -783,9 +800,42 @@ class StreamingSession {
         case "offer":
           audioSession?.onOfferReceived(data['offer']);
           break;
+        case "clipboard":
+          // 更新本地剪贴板
+          Clipboard.setData(ClipboardData(text: data['clipboard']));
+          _lastClipboardContent = data['clipboard'];
+          break;
         default:
           VLOG0("unhandled message from host.please debug");
       }
     }
+  }
+
+  void startClipboardSync() {
+    _clipboardTimer = Timer.periodic(const Duration(seconds: 1), (timer) async {
+      if (connectionState != StreamingSessionConnectionState.connected) {
+        timer.cancel();
+        return;
+      }
+      
+      final clipboardData = await Clipboard.getData(Clipboard.kTextPlain);
+      final currentContent = clipboardData?.text ?? '';
+      
+      if (currentContent != _lastClipboardContent) {
+        _lastClipboardContent = currentContent;
+        // 发送剪贴板内容到对端
+        if (channel != null && channel?.state == RTCDataChannelState.RTCDataChannelOpen) {
+          final message = {
+            'clipboard': currentContent
+          };
+          channel?.send(RTCDataChannelMessage(jsonEncode(message)));
+        }
+      }
+    });
+  }
+  
+  void stopClipboardSync() {
+    _clipboardTimer?.cancel();
+    _clipboardTimer = null;
   }
 }
