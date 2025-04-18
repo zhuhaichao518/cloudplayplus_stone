@@ -91,8 +91,11 @@ class StreamingSettings {
     autoHideLocalCursor = SharedPreferencesManager.getBool('autoHideCursor') ??
         (AppPlatform.isDeskTop || AppPlatform.isWeb);
 
-    useClipBoard = SharedPreferencesManager.getBool('useClipBoard') ??
-        true;
+    if (AppPlatform.isDeskTop) {
+      useClipBoard = SharedPreferencesManager.getBool('useClipBoard') ?? true;
+    } else {
+      useClipBoard = SharedPreferencesManager.getBool('useClipBoard') ?? false;
+    }
   }
 
   //Screen id setting is not global, so we need to call before start streaming.

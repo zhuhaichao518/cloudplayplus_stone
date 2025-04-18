@@ -16,6 +16,7 @@ import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'package:hardware_simulator/hardware_simulator.dart';
 import 'package:synchronized/synchronized.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/widgets.dart';
 
 import '../base/logging.dart';
 import '../global_settings/streaming_settings.dart';
@@ -103,9 +104,13 @@ class StreamingSession {
   Timer? _clipboardTimer;
   String _lastClipboardContent = '';
 
+  // 添加生命周期监听器
+  static final _lifecycleObserver = _AppLifecycleObserver();
+
   StreamingSession(this.controller, this.controlled) {
     connectionState = StreamingSessionConnectionState.free;
-    //controlled.connectionState.value = StreamingSessionConnectionState.free;
+    // 注册生命周期监听器
+    WidgetsBinding.instance.addObserver(_lifecycleObserver);
   }
 
   Function(String mediatype, MediaStream stream)? onAddRemoteStream;
@@ -663,6 +668,9 @@ class StreamingSession {
           }
         }
       }
+      
+      // 清理生命周期监听器
+      WidgetsBinding.instance.removeObserver(_lifecycleObserver);
     });
 
     stopClipboardSync();
@@ -821,25 +829,51 @@ class StreamingSession {
 
   void startClipboardSync() {
     if (_clipboardTimer != null) return;
-    _clipboardTimer = Timer.periodic(const Duration(seconds: 1), (timer) async {
-      final clipboardData = await Clipboard.getData(Clipboard.kTextPlain);
-      final currentContent = clipboardData?.text ?? '';
-      
-      if (currentContent != _lastClipboardContent) {
-        _lastClipboardContent = currentContent;
-        // 发送剪贴板内容到对端
-        if (channel != null && channel?.state == RTCDataChannelState.RTCDataChannelOpen) {
-          final message = {
-            'clipboard': currentContent
-          };
-          channel?.send(RTCDataChannelMessage(jsonEncode(message)));
-        }
-      }
-    });
+    
+    if (AppPlatform.isDeskTop) {
+      // 桌面端保持每秒检查一次
+      _clipboardTimer = Timer.periodic(const Duration(seconds: 1), (timer) async {
+        await _syncClipboard();
+      });
+    } else {
+      // 移动端和网页端只在应用切换到前台时同步
+      _lifecycleObserver.onResume = () async {
+        await _syncClipboard();
+      };
+    }
   }
-  
+
+  Future<void> _syncClipboard() async {
+    final clipboardData = await Clipboard.getData(Clipboard.kTextPlain);
+    final currentContent = clipboardData?.text ?? '';
+    
+    if (currentContent != _lastClipboardContent) {
+      _lastClipboardContent = currentContent;
+      // 发送剪贴板内容到对端
+      if (channel != null && channel?.state == RTCDataChannelState.RTCDataChannelOpen) {
+        final message = {
+          'clipboard': currentContent
+        };
+        channel?.send(RTCDataChannelMessage(jsonEncode(message)));
+      }
+    }
+  }
+
   void stopClipboardSync() {
     _clipboardTimer?.cancel();
     _clipboardTimer = null;
+    _lifecycleObserver.onResume = null;
+  }
+}
+
+// 添加生命周期监听器类
+class _AppLifecycleObserver extends WidgetsBindingObserver {
+  VoidCallback? onResume;
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      onResume?.call();
+    }
   }
 }

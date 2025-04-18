@@ -368,7 +368,11 @@ class _StreamingSettingsScreen extends State<StreamingSettingsScreen> {
     _renderRemoteCursor =
         SharedPreferencesManager.getBool('renderRemoteCursor') ?? false;
     _codec = SharedPreferencesManager.getString('codec') ?? 'default';
-    _useClipBoard = SharedPreferencesManager.getBool('useClipBoard') ?? true;
+    if (AppPlatform.isDeskTop) {
+      _useClipBoard = SharedPreferencesManager.getBool('useClipBoard') ?? true;
+    } else {
+      _useClipBoard = SharedPreferencesManager.getBool('useClipBoard') ?? false;
+    }
     setState(() {});
   }
 
