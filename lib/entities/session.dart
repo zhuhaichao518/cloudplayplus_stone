@@ -604,7 +604,7 @@ class StreamingSession {
     if (selfSessionType == SelfSessionType.controlled) {
       StreamedManager.stopStreaming(controller);
     }
-    pc?.close();
+    //pc?.close();
   }
 
   void stop() async {

@@ -2,6 +2,7 @@
 import 'package:cloudplayplus/base/logging.dart';
 import 'package:cloudplayplus/controller/gamepad_controller.dart';
 import 'package:cloudplayplus/controller/smooth_scroll_controller.dart';
+import 'package:cloudplayplus/global_settings/streaming_settings.dart';
 import 'package:cloudplayplus/services/app_info_service.dart';
 import 'package:cloudplayplus/services/webrtc_service.dart';
 import 'package:cloudplayplus/utils/widgets/on_screen_gamepad.dart';
@@ -373,9 +374,17 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
                             _pressedKey = _pressedKey + " Up";
                           }
                           print("${_pressedKey} at ${DateTime.now()}");*/
+                          PhysicalKeyboardKey keyToSend = event.physicalKey;
+                          if (StreamingSettings.switchCmdCtrl) {
+                            if (event.physicalKey == PhysicalKeyboardKey.metaLeft) {
+                              keyToSend = PhysicalKeyboardKey.controlLeft;
+                            } else if (event.physicalKey == PhysicalKeyboardKey.controlLeft) {
+                              keyToSend = PhysicalKeyboardKey.metaLeft;
+                            }
+                          }
                           WebrtcService.currentRenderingSession?.inputController
                               ?.requestKeyEvent(
-                                  physicalToWindowsKeyMap[event.physicalKey],
+                                  physicalToWindowsKeyMap[keyToSend],
                                   event is KeyDownEvent);
                         }
                       },

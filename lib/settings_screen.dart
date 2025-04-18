@@ -75,7 +75,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               if (!AppPlatform.isMobile)
                 SettingsTile.navigation(
                   leading: const Icon(Icons.mouse),
-                  title: const Text('鼠标设置'),
+                  title: const Text('键鼠设置'),
                   onPressed: (context) {
                     Navigation.navigateTo(
                       context: context,
@@ -333,7 +333,6 @@ class StreamingSettingsScreen extends StatefulWidget {
 class _StreamingSettingsScreen extends State<StreamingSettingsScreen> {
   bool _haveAudio = true;
   bool _useClipBoard = true;
-  bool _renderRemoteCursor = false;
   int _bitrate = 80000;
   int _frameRate = 60;
   String _codec = 'default';
@@ -365,8 +364,6 @@ class _StreamingSettingsScreen extends State<StreamingSettingsScreen> {
     _haveAudio = SharedPreferencesManager.getBool('haveAudio') ?? true;
     _bitrate = SharedPreferencesManager.getInt('bitRate') ?? 80000;
     _frameRate = SharedPreferencesManager.getInt('frameRate') ?? 60;
-    _renderRemoteCursor =
-        SharedPreferencesManager.getBool('renderRemoteCursor') ?? false;
     _codec = SharedPreferencesManager.getString('codec') ?? 'default';
     if (AppPlatform.isDeskTop) {
       _useClipBoard = SharedPreferencesManager.getBool('useClipBoard') ?? true;
@@ -454,19 +451,6 @@ class _StreamingSettingsScreen extends State<StreamingSettingsScreen> {
                       await SharedPreferencesManager.setString('codec', _codec);
                       StreamingSettings.codec = _codec;
                     }
-                  },
-                ),
-                SettingsTile.switchTile(
-                  title: const Text('显示远程鼠标'),
-                  leading: const Icon(Icons.mouse),
-                  initialValue: _renderRemoteCursor,
-                  onToggle: (bool value) {
-                    setState(() {
-                      _renderRemoteCursor = value;
-                      SharedPreferencesManager.setBool(
-                          'renderRemoteCursor', value);
-                      StreamingSettings.showRemoteCursor = value;
-                    });
                   },
                 ),
                 SettingsTile(
@@ -836,6 +820,8 @@ class CursorSettingsScreen extends StatefulWidget {
 
 class _CursorSettingsScreenState extends State<CursorSettingsScreen> {
   bool autoHideLocalCursor = true;
+  bool _renderRemoteCursor = false;
+  bool _switchCmdCtrl = false;
 
   @override
   void initState() {
@@ -845,6 +831,9 @@ class _CursorSettingsScreenState extends State<CursorSettingsScreen> {
 
   Future<void> _loadSettings() async {
     autoHideLocalCursor = StreamingSettings.autoHideLocalCursor;
+    _renderRemoteCursor =
+        SharedPreferencesManager.getBool('renderRemoteCursor') ?? false;
+    _switchCmdCtrl = StreamingSettings.switchCmdCtrl;
   }
 
   @override
@@ -852,7 +841,7 @@ class _CursorSettingsScreenState extends State<CursorSettingsScreen> {
     return CupertinoPageScaffold(
       navigationBar: CupertinoNavigationBar(
         middle: Text(
-          '鼠标设置',
+          '键鼠设置',
           style: TextStyle(
             color: Theme.of(context).textTheme.titleLarge?.color,
           ),
@@ -877,6 +866,32 @@ class _CursorSettingsScreenState extends State<CursorSettingsScreen> {
                       StreamingSettings.autoHideLocalCursor = value;
                       SharedPreferencesManager.setBool(
                           "autoHideLocalCursor", value);
+                    });
+                  },
+                ),
+                SettingsTile.switchTile(
+                  title: const Text('显示远程鼠标(仅使用不支持硬件加速的windows设备)'),
+                  leading: const Icon(Icons.mouse),
+                  initialValue: _renderRemoteCursor,
+                  onToggle: (bool value) {
+                    setState(() {
+                      _renderRemoteCursor = value;
+                      SharedPreferencesManager.setBool(
+                          'renderRemoteCursor', value);
+                      StreamingSettings.showRemoteCursor = value;
+                    });
+                  },
+                ),
+                SettingsTile.switchTile(
+                  title: const Text('(MacOS)交换command和control'),
+                  leading: const Icon(Icons.keyboard),
+                  initialValue: _switchCmdCtrl,
+                  onToggle: (bool value) {
+                    setState(() {
+                      _switchCmdCtrl = value;
+                      SharedPreferencesManager.setBool(
+                          'switchCmdCtrl', value);
+                      StreamingSettings.switchCmdCtrl = value;
                     });
                   },
                 ),

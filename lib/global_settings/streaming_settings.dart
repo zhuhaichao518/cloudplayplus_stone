@@ -39,6 +39,7 @@ class StreamingSettings {
   static String? connectPassword;
 
   static bool autoHideLocalCursor = true;
+  static bool switchCmdCtrl = false;
 
   static bool useClipBoard = true;
 
@@ -90,6 +91,8 @@ class StreamingSettings {
 
     autoHideLocalCursor = SharedPreferencesManager.getBool('autoHideCursor') ??
         (AppPlatform.isDeskTop || AppPlatform.isWeb);
+
+    switchCmdCtrl = SharedPreferencesManager.getBool('switchCmdCtrl') ?? AppPlatform.isMacos;
 
     if (AppPlatform.isDeskTop) {
       useClipBoard = SharedPreferencesManager.getBool('useClipBoard') ?? true;
