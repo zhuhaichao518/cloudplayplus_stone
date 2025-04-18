@@ -18,6 +18,7 @@ import '../../entities/session.dart';
 import '../../services/app_info_service.dart';
 import '../../services/webrtc_service.dart';
 import '../hash_util.dart';
+import 'cpp_icon.dart';
 
 class DeviceDetailPage extends StatefulWidget {
   final Device device;
@@ -178,6 +179,7 @@ class _DeviceDetailPageState extends State<DeviceDetailPage> {
                   ),
                 ),
                 FloatingMenuPanel(
+                  panelIcon: AppIcons.mainIcon,
                   onPressed: (index) async {
                     if (index == 0) {
                       await ScreenController.setIsFullScreen(

@@ -156,7 +156,10 @@ flutter:
   # "family" key with the font family name, and a "fonts" key with a
   # list giving the asset and other descriptors for the font. For
   # example:
-  #fonts:
+  fonts:
+  - family: AppIcons
+    fonts:
+      - asset: assets/fonts/CloudPlayPlus.ttf
   #  - family: heiti
   #    fonts:
   #      - asset: assets/fonts/NotoSans-Regular.ttf
