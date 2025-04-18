@@ -52,7 +52,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             tiles: <SettingsTile>[
               SettingsTile.navigation(
                 leading: const Icon(Icons.volume_up),
-                title: const Text('音视频设置'),
+                title: const Text('音视频/剪贴板设置'),
                 onPressed: (context) {
                   Navigation.navigateTo(
                     context: context,
@@ -378,7 +378,7 @@ class _StreamingSettingsScreen extends State<StreamingSettingsScreen> {
     return CupertinoPageScaffold(
       navigationBar: CupertinoNavigationBar(
         middle: Text(
-          '音视频设置',
+          '音视频/剪贴板设置',
           style: TextStyle(
             color: Theme.of(context).textTheme.titleLarge?.color,
           ),
