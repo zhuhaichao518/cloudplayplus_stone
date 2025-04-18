@@ -830,13 +830,13 @@ class StreamingSession {
   void startClipboardSync() {
     if (_clipboardTimer != null) return;
     
-    if (AppPlatform.isDeskTop) {
+    if (AppPlatform.isDeskTop && selfSessionType == SelfSessionType.controlled) {
       // 桌面端保持每秒检查一次
       _clipboardTimer = Timer.periodic(const Duration(seconds: 1), (timer) async {
         await _syncClipboard();
       });
     } else {
-      // 移动端和网页端只在应用切换到前台时同步
+      // 移动端和网页端或者控制端只在应用切换到前台时同步
       _lifecycleObserver.onResume = () async {
         await _syncClipboard();
       };

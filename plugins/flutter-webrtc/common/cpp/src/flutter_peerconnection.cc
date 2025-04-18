@@ -485,6 +485,8 @@ FlutterPeerConnection::mapToRtpTransceiverInit(const EncodableMap& params) {
   std::vector<scoped_refptr<RTCRtpEncodingParameters>> encodings;
   for (EncodableValue value : sendEncodings) {
     encodings.push_back(mapToEncoding(GetValue<EncodableMap>(value)));
+    //TODO(Haichao):maybe we can set priority?
+    //encodings->set_network_priority(RTCPriority.kHigh);
   }
   scoped_refptr<RTCRtpTransceiverInit> init =
       RTCRtpTransceiverInit::Create(dir, stream_ids, encodings);

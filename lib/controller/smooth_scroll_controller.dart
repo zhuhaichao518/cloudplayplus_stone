@@ -21,6 +21,8 @@ class SmoothScrollController {
   }
 
   void doScroll(double dx, double dy) {
+    if (dx.abs() < 3) dx = 0;
+    if (dy.abs() < 2) dy = 0;
     accumulatedx += dx.toInt();
     accumulatedy += dy.toInt();
     onScroll?.call(dx / 2, dy);
