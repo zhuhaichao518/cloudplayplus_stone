@@ -376,6 +376,12 @@ class StreamingSession {
       }
       */
 
+      pc!.onDataChannel = (newchannel) async {
+        if (settings.useClipBoard == true){
+          startClipboardSync();
+        }
+      };
+
       pc!.onIceCandidate = (candidate) async {
         // We are controlled so source is ourself
         await Future.delayed(
@@ -421,9 +427,6 @@ class StreamingSession {
 
       channel?.onMessage = (RTCDataChannelMessage msg) {
         processDataChannelMessageFromClient(msg);
-        if (settings.useClipBoard == true) {
-          startClipboardSync();
-        }
       };
 
       if (useUnsafeDatachannel) {

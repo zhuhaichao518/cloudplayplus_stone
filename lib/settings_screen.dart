@@ -332,6 +332,7 @@ class StreamingSettingsScreen extends StatefulWidget {
 
 class _StreamingSettingsScreen extends State<StreamingSettingsScreen> {
   bool _haveAudio = true;
+  bool _useClipBoard = true;
   bool _renderRemoteCursor = false;
   int _bitrate = 80000;
   int _frameRate = 60;
@@ -367,6 +368,7 @@ class _StreamingSettingsScreen extends State<StreamingSettingsScreen> {
     _renderRemoteCursor =
         SharedPreferencesManager.getBool('renderRemoteCursor') ?? false;
     _codec = SharedPreferencesManager.getString('codec') ?? 'default';
+    _useClipBoard = SharedPreferencesManager.getBool('useClipBoard') ?? true;
     setState(() {});
   }
 
@@ -554,6 +556,23 @@ class _StreamingSettingsScreen extends State<StreamingSettingsScreen> {
                       _haveAudio = value;
                       SharedPreferencesManager.setBool('haveAudio', value);
                       StreamingSettings.streamAudio = _haveAudio;
+                    });
+                  },
+                ),
+              ],
+            ),
+            SettingsSection(
+              title: const Text('剪贴板'),
+              tiles: [
+                SettingsTile.switchTile(
+                  title: const Text('使用剪贴板'),
+                  leading: const Icon(Icons.copy),
+                  initialValue: _useClipBoard,
+                  onToggle: (bool value) {
+                    setState(() {
+                      _useClipBoard = value;
+                      SharedPreferencesManager.setBool('useClipBoard', value);
+                      StreamingSettings.useClipBoard = _useClipBoard;
                     });
                   },
                 ),
