@@ -307,7 +307,7 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
                         _lastxPercent = xPercent;
                         _lastyPercent = yPercent;
                         WebrtcService.currentRenderingSession?.inputController?.requestTouchButton(
-                          xPercent, yPercent, event.pointer, true);
+                          xPercent, yPercent, event.pointer % 10, true);
                       } else {
                         WebrtcService.currentRenderingSession?.inputController
                             ?.requestMoveMouseAbsl(xPercent, yPercent,
@@ -326,7 +326,7 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
                       _leftButtonDown = false;
                       if (StreamingSettings.useTouchForTouch && WebrtcService.currentRenderingSession?.controlled.devicetype == 'Windows') {
                         WebrtcService.currentRenderingSession?.inputController?.requestTouchButton(
-                          _lastxPercent, _lastyPercent, event.pointer, true);
+                          _lastxPercent, _lastyPercent, event.pointer % 10, false);
                       } else {
                         WebrtcService.currentRenderingSession?.inputController
                             ?.requestMouseClick(1, _leftButtonDown);
@@ -356,7 +356,7 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
                         _lastxPercent = xPercent;
                         _lastyPercent = yPercent;
                         WebrtcService.currentRenderingSession?.inputController?.requestTouchMove(
-                          xPercent, yPercent, event.pointer);
+                          xPercent, yPercent, event.pointer % 10);
                       } else {
                         WebrtcService.currentRenderingSession?.inputController
                             ?.requestMoveMouseAbsl(xPercent, yPercent,

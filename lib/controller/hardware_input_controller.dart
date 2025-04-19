@@ -291,7 +291,7 @@ class InputController {
   }
 
   void requestTouchMove(double x, double y, int touchId) async {
-    ByteData byteData = ByteData(3);
+    ByteData byteData = ByteData(13);
     byteData.setUint8(0, LP_TOUCH_MOVE_ABSL);
     byteData.setFloat32(1, x, Endian.little);
     byteData.setFloat32(5, y, Endian.little);
