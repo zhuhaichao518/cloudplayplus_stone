@@ -430,7 +430,7 @@ class StreamingSession {
 
       //create data channel
       RTCDataChannelInit reliableDataChannelDict = RTCDataChannelInit()
-        ..maxRetransmits = 30
+        ..maxRetransmitTime = 100
         ..ordered = true;
       channel =
           await pc!.createDataChannel('userInput', reliableDataChannelDict);
