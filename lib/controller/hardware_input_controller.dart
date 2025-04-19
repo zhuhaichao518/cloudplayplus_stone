@@ -257,6 +257,71 @@ class InputController {
     HardwareSimulator.mouse.performMouseScroll(dx, dy);
   }
 
+  void requestTouchButton(double x, double y, int touchId, bool isDown) async {
+    // 创建一个ByteData足够存储 LP_MOUSE, screenId, dx, dy
+    ByteData byteData = ByteData(15);
+    byteData.setUint8(0, LP_TOUCH_BUTTON);
+    //set screen id to 0
+    byteData.setUint8(1, 0);
+
+    // 将dx, dy转换为浮点数并存储
+    byteData.setFloat32(2, x, Endian.little);
+    byteData.setFloat32(6, y, Endian.little);
+
+    byteData.setInt32(10, touchId, Endian.little);
+    byteData.setUint8(14, isDown ? 1 : 0);
+
+    // 转换ByteData为Uint8List
+    Uint8List buffer = byteData.buffer.asUint8List();
+
+    // 发送消息
+    channel.send(RTCDataChannelMessage.fromBinary(buffer));
+  }
+
+  void handleTouchButton(RTCDataChannelMessage message) {
+    if (!AppPlatform.isWindows) return;
+    Uint8List buffer = message.binary;
+    ByteData byteData = ByteData.sublistView(buffer);
+    double x = byteData.getFloat32(2, Endian.little);
+    double y = byteData.getFloat32(6, Endian.little);
+    int id = byteData.getInt32(10, Endian.little);
+    bool isDown = byteData.getUint8(14) == 1; 
+
+    HardwareSimulator.performTouchEvent(x, y, id, isDown);
+  }
+
+  void requestTouchMove(double x, double y, int touchId) async {
+    ByteData byteData = ByteData(3);
+    byteData.setUint8(0, LP_TOUCH_MOVE_ABSL);
+    byteData.setFloat32(1, x, Endian.little);
+    byteData.setFloat32(5, y, Endian.little);
+    byteData.setInt32(9, touchId, Endian.little);
+
+    // 转换 ByteData 为 Uint8List
+    Uint8List buffer = byteData.buffer.asUint8List();
+
+    // 发送消息
+    channel.send(RTCDataChannelMessage.fromBinary(buffer));
+
+    // 保证鼠标按下能立即发送到
+    if (sendEmptyPacket) {
+      for (int i = 0; i < resendCount; i++) {
+        channel.send(emptyMessage);
+      }
+    }
+  }
+
+  void handleTouchMove(RTCDataChannelMessage message) {
+    if (!AppPlatform.isWindows) return;
+    Uint8List buffer = message.binary;
+    ByteData byteData = ByteData.sublistView(buffer);
+    double x = byteData.getFloat32(1, Endian.little);
+    double y = byteData.getFloat32(5, Endian.little);
+    int id = byteData.getInt32(9, Endian.little);
+
+    HardwareSimulator.performTouchMove(x, y, id);
+  }
+
   void requestKeyEvent(int? keyCode, bool isDown) async {
     if (keyCode == null) return;
     // VLOG0("sending key event code {$keyCode} isDown {$isDown}");

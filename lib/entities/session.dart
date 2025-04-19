@@ -732,6 +732,12 @@ class StreamingSession {
         case LP_MOUSE_SCROLL:
           inputController?.handleMouseScroll(message);
           break;
+        case LP_TOUCH_MOVE_ABSL:
+          inputController?.handleTouchMove(message);
+          break;
+        case LP_TOUCH_BUTTON:
+          inputController?.handleTouchButton(message);
+          break;
         case LP_KEYPRESSED:
           inputController?.handleKeyEvent(message);
           break;

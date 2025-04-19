@@ -42,6 +42,9 @@ class StreamingSettings {
   static bool switchCmdCtrl = false;
 
   static bool useClipBoard = true;
+  
+  //if input is touch, then simulate touch on target device.
+  static bool useTouchForTouch = true;
 
   static void init() {
     InputController.resendCount =

@@ -6,6 +6,7 @@ class Device {
   final int uid;
   final String nickname;
   String devicename;
+  //TODO: use an enum value instead of string.
   final String devicetype;
   final String websocketSessionid;
   //allow this device to be connected
