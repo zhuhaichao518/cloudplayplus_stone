@@ -361,8 +361,6 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
                         WebrtcService.currentRenderingSession?.inputController
                             ?.requestMoveMouseAbsl(xPercent, yPercent,
                                 WebrtcService.currentRenderingSession!.screenId);
-                        WebrtcService.currentRenderingSession?.inputController
-                            ?.requestMouseClick(1, _leftButtonDown);
                       }
                     }
                     else {

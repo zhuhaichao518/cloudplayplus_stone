@@ -97,6 +97,8 @@ class StreamingSettings {
 
     switchCmdCtrl = SharedPreferencesManager.getBool('switchCmdCtrl') ?? AppPlatform.isMacos;
 
+    useTouchForTouch = SharedPreferencesManager.getBool('useTouchForTouch') ?? true;
+
     if (AppPlatform.isDeskTop) {
       useClipBoard = SharedPreferencesManager.getBool('useClipBoard') ?? true;
     } else {

@@ -72,7 +72,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   );
                 },
               ),
-              if (!AppPlatform.isMobile)
+              //if (!AppPlatform.isMobile)
                 SettingsTile.navigation(
                   leading: const Icon(Icons.mouse),
                   title: const Text('键鼠设置'),
@@ -822,6 +822,7 @@ class _CursorSettingsScreenState extends State<CursorSettingsScreen> {
   bool autoHideLocalCursor = true;
   bool _renderRemoteCursor = false;
   bool _switchCmdCtrl = false;
+  bool _useTouchForTouch = true;
 
   @override
   void initState() {
@@ -834,6 +835,7 @@ class _CursorSettingsScreenState extends State<CursorSettingsScreen> {
     _renderRemoteCursor =
         SharedPreferencesManager.getBool('renderRemoteCursor') ?? false;
     _switchCmdCtrl = StreamingSettings.switchCmdCtrl;
+    _useTouchForTouch = StreamingSettings.useTouchForTouch;
   }
 
   @override
@@ -892,6 +894,19 @@ class _CursorSettingsScreenState extends State<CursorSettingsScreen> {
                       SharedPreferencesManager.setBool(
                           'switchCmdCtrl', value);
                       StreamingSettings.switchCmdCtrl = value;
+                    });
+                  },
+                ),
+                SettingsTile.switchTile(
+                  title: const Text('使用触摸而不是鼠标消息(触摸设备控制windows)'),
+                  leading: const Icon(Icons.touch_app),
+                  initialValue: _useTouchForTouch,
+                  onToggle: (bool value) {
+                    setState(() {
+                      _useTouchForTouch = value;
+                      SharedPreferencesManager.setBool(
+                          'useTouchForTouch', value);
+                      StreamingSettings.useTouchForTouch = value;
                     });
                   },
                 ),
