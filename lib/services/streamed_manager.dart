@@ -1,5 +1,6 @@
 import 'package:cloudplayplus/global_settings/streaming_settings.dart';
 import 'package:cloudplayplus/utils/hash_util.dart';
+import 'package:cloudplayplus/utils/system_tray_manager.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'package:synchronized/synchronized.dart';
@@ -44,6 +45,11 @@ class StreamedManager {
     if (settings.connectPassword == null) return;
     if (StreamingSettings.connectPasswordHash !=
         HashUtil.hash(settings.connectPassword!)) return;
+    
+    //windows: 远端试图重启实例
+    if (settings.screenId == -1 && ApplicationInfo.isSystem && AppPlatform.isWindows) {
+      SystemTrayManager().exitApp();
+    }
 
     await _lock.synchronized(() async {
       if (sessions.containsKey(target.websocketSessionid)) {
