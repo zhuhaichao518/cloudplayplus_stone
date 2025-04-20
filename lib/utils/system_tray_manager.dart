@@ -69,6 +69,7 @@ class SystemTrayManager {
           label: '重启服务',
           onClicked: (_) => restart(),
         ),
+      MenuSeparator(),
       MenuItemLabel(
         label: '退出云玩加',
         onClicked: (_) => exitApp(),
