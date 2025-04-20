@@ -402,7 +402,13 @@ void FlutterMediaStream::SelectAudioInput(
   if (device_id == "system"){
     base_->audio_device_->SetRecordingDevice((uint16_t)playout_devices);
     found = true;
-  } else {
+  } /*else if (device_id == "closeSystem"){
+    //TODO(Haichao): why no voice after long time
+    base_->audio_device_->SetRecordingDevice((uint16_t)playout_devices + 1);
+    found = true;
+    AudioDeviceImpl::SetRecordingDevice has called stopRecording
+  } */
+  else {
     for (uint16_t i = 0; i < playout_devices; i++) {
       base_->audio_device_->RecordingDeviceName(i, strPlayoutName,
                                                 strPlayoutGuid);
