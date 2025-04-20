@@ -35,7 +35,6 @@ class StreamingSettings {
 
   static String connectPasswordHash = "";
   //这两项会在连接的瞬间更新
-  //如果为ScreenId为-1 说明想重启实例
   static int? targetScreenId;
   static String? connectPassword;
 
