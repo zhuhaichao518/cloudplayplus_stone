@@ -108,7 +108,7 @@ class _DeviceDetailPageState extends State<DeviceDetailPage> {
                     style: TextStyle(fontSize: 16, color: Colors.grey),
                   ),
                   Text(
-                    '若显示白屏 请点击“展开所有窗口” 触发远程桌面动画',
+                    '若显示黑/白屏 请点击“展开所有窗口” 或按win + tab触发远程桌面动画',
                     style: TextStyle(fontSize: 16, color: Colors.grey),
                   ),
                 ],
