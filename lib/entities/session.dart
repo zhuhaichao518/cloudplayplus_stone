@@ -594,8 +594,12 @@ class StreamingSession {
       Function(String mediatype, MediaStream stream)? callback) {
     onAddRemoteStream = callback;
   }
+  
+  bool isClosing_ = false;
 
   void close() {
+    if (isClosing_) return;
+    isClosing_ = true;
     //-- this should be called only when ping timeout
     if (selfSessionType == SelfSessionType.controller) {
       StreamingManager.stopStreaming(controlled);
@@ -625,9 +629,11 @@ class StreamingSession {
       candidates.clear();
       inputController = null;
       if (channel != null) {
-        await channel?.send(RTCDataChannelMessage.fromBinary(
-            Uint8List.fromList([LP_DISCONNECT, RP_PING])));
-        //TODO(haichao): sometimes pc is null so fail?
+        // just in case the message is blocked.
+        for (int i = 0; i <= InputController.resendCount + 2; i++) {
+          await channel?.send(RTCDataChannelMessage.fromBinary(
+              Uint8List.fromList([LP_DISCONNECT, RP_PING])));
+        }
         try {
           await channel?.close();
           channel = null;
