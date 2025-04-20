@@ -6,6 +6,8 @@ import 'package:cloudplayplus/services/login_service.dart';
 import 'package:cloudplayplus/services/shared_preferences_manager.dart';
 import 'package:cloudplayplus/services/streamed_manager.dart';
 import 'package:cloudplayplus/services/streaming_manager.dart';
+import 'package:cloudplayplus/utils/hash_util.dart';
+import 'package:cloudplayplus/utils/system_tray_manager.dart';
 import 'package:flutter/foundation.dart';
 import 'package:hardware_simulator/hardware_simulator.dart';
 
@@ -176,6 +178,13 @@ class WebSocketService {
           StreamedManager.startStreaming(
               Device.fromJson(data['requester_info']),
               StreamedSettings.fromJson(data['settings']));
+        }
+      case 'restartRequested':
+        {
+          if (StreamingSettings.connectPasswordHash ==
+            HashUtil.hash(data['password']) && AppPlatform.isWindows && ApplicationInfo.isSystem) {
+             SystemTrayManager().exitApp();
+          }
         }
       case 'offer':
         {

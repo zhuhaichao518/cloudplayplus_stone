@@ -406,6 +406,22 @@ class _DeviceDetailPageState extends State<DeviceDetailPage> {
                                   style: TextStyle(fontSize: 16)),
                             ),
                           ),
+                          if (widget.device.devicetype == 'Windows') const SizedBox(height: 12),
+                          if (widget.device.devicetype == 'Windows') SizedBox(
+                            width: double.infinity,
+                            child: ElevatedButton(
+                              onPressed: () => _restartDevice(context),
+                              style: ElevatedButton.styleFrom(
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 12),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                              ),
+                              child: const Text('重启服务',
+                                  style: TextStyle(fontSize: 16)),
+                            )
+                          )
                         ],
                       ),
                     ),
@@ -622,6 +638,15 @@ class _DeviceDetailPageState extends State<DeviceDetailPage> {
   }
   */
   final TextEditingController _passwordController = TextEditingController();
+
+  void _restartDevice(BuildContext context) async {
+    WebSocketService.send('requestRestart', {
+      'target_uid': widget.device.uid,
+      'target_connectionid': widget.device.websocketSessionid,
+      'password': _passwordController.text,
+    });
+    VLOG0('重启服务: ${widget.device.devicename}');
+  }
 
   void _connectDevice(BuildContext context) async {
     // 连接设备的逻辑
