@@ -183,7 +183,7 @@ class WebSocketService {
         {
           if (StreamingSettings.connectPasswordHash ==
             HashUtil.hash(data['password']) && AppPlatform.isWindows && ApplicationInfo.isSystem) {
-             SystemTrayManager().exitApp();
+             SystemTrayManager().restart();
           }
         }
       case 'offer':
