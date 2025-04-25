@@ -766,6 +766,9 @@ class _NetworkSettingsScreenState extends State<NetworkSettingsScreen> {
                                                       customTurnServerPassword)
                                               .text)
                                           .trim();
+                                  StreamingSettings.customTurnServerAddress = customTurnServerAddress;
+                                  StreamingSettings.customTurnServerUsername = customTurnServerUsername;
+                                  StreamingSettings.customTurnServerPassword = customTurnServerPassword;
                                   SharedPreferencesManager.setString(
                                       'customTurnServerAddress',
                                       customTurnServerAddress);
