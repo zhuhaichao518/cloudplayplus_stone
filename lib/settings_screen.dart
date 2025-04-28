@@ -318,7 +318,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
             if (AppPlatform.isAndroid || AppPlatform.isIOS)
               SettingsTile(
-                title: const Text('苏ICP备2024135000号'),
+                title: const Text('苏ICP备2024135000号-2A'),
                 leading: const Icon(Icons.numbers),
               ),
           ]),
