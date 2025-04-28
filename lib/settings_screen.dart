@@ -316,6 +316,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
               title: const Text('1.0.1'),
               leading: const Icon(Icons.sunny),
             ),
+            if (AppPlatform.isAndroid || AppPlatform.isIOS)
+              SettingsTile(
+                title: const Text('苏ICP备2024135000号'),
+                leading: const Icon(Icons.numbers),
+              ),
           ]),
         ],
       ),

@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:cloudplayplus/pages/login_screen.dart';
+import 'package:cloudplayplus/services/app_info_service.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:introduction_screen/introduction_screen.dart';
@@ -84,30 +85,32 @@ class _IntroScreenState extends State<IntroScreen> {
                     style: TextStyle(fontSize: 43.0),
                   ),
                   const SizedBox(width: 20.0, height: 20.0),
-                  const Row(
+                  Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(
+                      const Icon(
                         FontAwesomeIcons.windows,
                         size: 43.0,
                       ),
-                      SizedBox(width: 8.0),
-                      Icon(
+                      const SizedBox(width: 8.0),
+                      const Icon(
                         Icons.apple, // This is the icon for macOS and iOS
                         size: 43.0,
                       ),
-                      SizedBox(width: 8.0),
-                      Icon(
-                        Icons.android,
-                        size: 43.0,
-                      ),
-                      SizedBox(width: 8.0),
-                      Icon(
+                      if (!AppPlatform.isIOS) 
+                        const SizedBox(width: 8.0),
+                      if (!AppPlatform.isIOS) 
+                        const Icon(
+                          Icons.android,
+                          size: 43.0,
+                        ),
+                      const SizedBox(width: 8.0),
+                      const Icon(
                         FontAwesomeIcons.linux,
                         size: 43.0,
                       ),
-                      SizedBox(width: 8.0),
-                      Icon(
+                      const SizedBox(width: 8.0),
+                      const Icon(
                         Icons.web, // Web icon
                         size: 43.0,
                       ),
