@@ -2,6 +2,7 @@ import 'dart:io' if (dart.library.js) 'utils/web_util.dart';
 
 import 'package:cloudplayplus/controller/hardware_input_controller.dart';
 import 'package:cloudplayplus/services/app_init_service.dart';
+import 'package:cloudplayplus/utils/system_tray_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:hardware_simulator/hardware_simulator.dart';
 import 'package:provider/provider.dart';
@@ -50,6 +51,9 @@ void main() async {
       //appWindow.titleBarButtonSize = Size(60,60);
       //appWindow.titleBarHeight = 60;
       appWindow.alignment = Alignment.center;
+      if (AppPlatform.isDeskTop) {
+        SystemTrayManager().initialize();
+      }
       //假如登录成功 默认最小化
       if (ApplicationInfo.connectable && AppPlatform.isWindows) {
         AppInitService.appInitState.then((state) async {

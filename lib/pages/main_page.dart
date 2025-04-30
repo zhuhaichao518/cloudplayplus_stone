@@ -24,9 +24,6 @@ class _MainScreenState extends State<MainScreen> {
   initState() {
     super.initState();
     WebSocketService.init();
-    if (AppPlatform.isDeskTop) {
-      SystemTrayManager().initialize();
-    }
     _children = [
       DevicesPage(),
       //Grouped(),
