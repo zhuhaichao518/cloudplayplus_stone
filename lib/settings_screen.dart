@@ -590,6 +590,11 @@ class _NetworkSettingsScreenState extends State<NetworkSettingsScreen> {
   String customTurnServerAddress = "";
   String customTurnServerUsername = "";
   String customTurnServerPassword = "";
+  
+  //Turn server info
+  late TextEditingController _addressController;
+  late TextEditingController _usernameController;
+  late TextEditingController _passwordController;
 
   final Map<int, String> resendTimesMap = {
     0: '0',
@@ -609,6 +614,18 @@ class _NetworkSettingsScreenState extends State<NetworkSettingsScreen> {
   void initState() {
     super.initState();
     _loadSettings();
+    _addressController = TextEditingController(text: customTurnServerAddress);
+    _usernameController = TextEditingController(text: customTurnServerUsername);
+    _passwordController = TextEditingController(text: customTurnServerPassword);
+  }
+
+  @override
+  void dispose() {
+    // 释放控制器
+    _addressController.dispose();
+    _usernameController.dispose();
+    _passwordController.dispose();
+    super.dispose();
   }
 
   Future<void> _loadSettings() async {
@@ -622,6 +639,10 @@ class _NetworkSettingsScreenState extends State<NetworkSettingsScreen> {
     customTurnServerPassword =
         SharedPreferencesManager.getString('customTurnServerPassword') ??
             'pdhcppturn123';
+
+    _addressController.text = customTurnServerAddress;
+    _usernameController.text = customTurnServerUsername;
+    _passwordController.text = customTurnServerPassword;
   }
 
   @override
@@ -720,8 +741,7 @@ class _NetworkSettingsScreenState extends State<NetworkSettingsScreen> {
                             decoration: const InputDecoration(
                               hintText: '请输入自定义 TURN 服务器地址',
                             ),
-                            controller: TextEditingController(
-                                text: customTurnServerAddress),
+                            controller: _addressController,
                           ),
                           const SizedBox(height: 16.0),
                           const Text(
@@ -732,8 +752,7 @@ class _NetworkSettingsScreenState extends State<NetworkSettingsScreen> {
                             decoration: const InputDecoration(
                               hintText: '请输入自定义用户名',
                             ),
-                            controller: TextEditingController(
-                                text: customTurnServerUsername),
+                            controller: _usernameController,
                           ),
                           const SizedBox(height: 16.0),
                           const Text(
@@ -744,8 +763,7 @@ class _NetworkSettingsScreenState extends State<NetworkSettingsScreen> {
                             decoration: const InputDecoration(
                               hintText: '请输入自定义密码',
                             ),
-                            controller: TextEditingController(
-                                text: customTurnServerPassword),
+                            controller: _passwordController,
                             obscureText: true,
                           ),
                           const SizedBox(height: 16.0),
@@ -754,23 +772,9 @@ class _NetworkSettingsScreenState extends State<NetworkSettingsScreen> {
                               onPressed: () {
                                 // Update the values when the user presses the save button
                                 setState(() {
-                                  customTurnServerAddress =
-                                      (TextEditingController(
-                                                  text: customTurnServerAddress)
-                                              .text)
-                                          .trim();
-                                  customTurnServerUsername =
-                                      (TextEditingController(
-                                                  text:
-                                                      customTurnServerUsername)
-                                              .text)
-                                          .trim();
-                                  customTurnServerPassword =
-                                      (TextEditingController(
-                                                  text:
-                                                      customTurnServerPassword)
-                                              .text)
-                                          .trim();
+                                  customTurnServerAddress = _addressController.text.trim();
+                                  customTurnServerUsername = _usernameController.text.trim();
+                                  customTurnServerPassword = _passwordController.text.trim();
                                   StreamingSettings.customTurnServerAddress = customTurnServerAddress;
                                   StreamingSettings.customTurnServerUsername = customTurnServerUsername;
                                   StreamingSettings.customTurnServerPassword = customTurnServerPassword;
