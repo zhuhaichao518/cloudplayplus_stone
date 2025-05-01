@@ -38,6 +38,7 @@ class StreamingSettings {
   static int? targetScreenId;
   static String? connectPassword;
 
+  static bool revertCursorWheel = false;
   static bool autoHideLocalCursor = true;
   static bool switchCmdCtrl = false;
 
@@ -91,6 +92,9 @@ class StreamingSettings {
 
     connectPasswordHash =
         SharedPreferencesManager.getString('connectPasswordHash') ?? "";
+
+    revertCursorWheel = SharedPreferencesManager.getBool('revertCursorWheel') ??
+        (!AppPlatform.isMacos);
 
     autoHideLocalCursor = SharedPreferencesManager.getBool('autoHideCursor') ??
         (AppPlatform.isDeskTop || AppPlatform.isWeb);

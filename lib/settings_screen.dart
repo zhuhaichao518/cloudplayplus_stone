@@ -831,6 +831,7 @@ class CursorSettingsScreen extends StatefulWidget {
 }
 
 class _CursorSettingsScreenState extends State<CursorSettingsScreen> {
+  bool revertCursorWheel = true;
   bool autoHideLocalCursor = true;
   bool _renderRemoteCursor = false;
   bool _switchCmdCtrl = false;
@@ -844,6 +845,7 @@ class _CursorSettingsScreenState extends State<CursorSettingsScreen> {
 
   Future<void> _loadSettings() async {
     autoHideLocalCursor = StreamingSettings.autoHideLocalCursor;
+    revertCursorWheel = StreamingSettings.revertCursorWheel;
     _renderRemoteCursor =
         SharedPreferencesManager.getBool('renderRemoteCursor') ?? false;
     _switchCmdCtrl = StreamingSettings.switchCmdCtrl;
@@ -870,6 +872,19 @@ class _CursorSettingsScreenState extends State<CursorSettingsScreen> {
             SettingsSection(
               title: const Text('自动隐藏本地鼠标'),
               tiles: [
+                SettingsTile.switchTile(
+                  title: const Text('反转鼠标滚轮'),
+                  leading: const Icon(Icons.mouse),
+                  initialValue: revertCursorWheel,
+                  onToggle: (bool value) {
+                    setState(() {
+                      revertCursorWheel = value;
+                      StreamingSettings.revertCursorWheel = value;
+                      SharedPreferencesManager.setBool(
+                          "revertCursorWheel", value);
+                    });
+                  },
+                ),
                 SettingsTile.switchTile(
                   title: const Text('远程鼠标隐藏时，自动锁定本地鼠标(第一人称游戏建议开启)'),
                   leading: const Icon(Icons.mouse),
