@@ -60,6 +60,8 @@ class WebSocketService {
     }
     String? accessToken;
     String? refreshToken;
+    // ignore: non_constant_identifier_names
+    bool refreshToken_invalid_ = false;
     if (DevelopSettings.useSecureStorage) {
       accessToken = await SecureStorageManager.getString('access_token');
       refreshToken = await SecureStorageManager.getString('refresh_token');
@@ -82,7 +84,11 @@ class WebSocketService {
           await SharedPreferencesManager.setString(
               'access_token', newAccessToken);
         }
+        refreshToken_invalid_ = false;
         accessToken = newAccessToken;
+      } else if (newAccessToken == "invalid refresh token"){
+        refreshToken_invalid_ = true;
+        return;
       } else {
         return;
       }
@@ -105,6 +111,10 @@ class WebSocketService {
         Timer.periodic(const Duration(seconds: 30), (Timer timer) async {
           // 检查是否已经连接成功，如果是，则取消定时器
           if (connectionState == WebSocketConnectionState.connected) {
+            timer.cancel();
+            return;
+          }
+          if (refreshToken_invalid_) {
             timer.cancel();
             return;
           }
