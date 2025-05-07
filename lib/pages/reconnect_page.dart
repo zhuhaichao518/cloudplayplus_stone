@@ -19,11 +19,11 @@ class ReconnectScreen extends StatefulWidget {
 
 class _ReconnectScreenState extends State<ReconnectScreen> {
   int _secondsRemaining = 10;
-  late Timer _timer;
+  Timer? _timer;
   bool _isCancelled = false;
   bool _reconnectSuccess = false;
-  int _retryCount = 0;
-  static const int maxRetries = 5;  // 最大重试次数
+  int _retryCount = 1;
+  static const int maxRetries = 5;
 
   @override
   void initState() {
@@ -33,13 +33,12 @@ class _ReconnectScreenState extends State<ReconnectScreen> {
 
   @override
   void dispose() {
-    _timer.cancel();
+    _timer?.cancel();
     super.dispose();
   }
 
   void _startTimer() {
-    // 确保旧的定时器被清理
-    _timer.cancel();
+    _timer?.cancel();
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (_isCancelled || _reconnectSuccess) {
         timer.cancel();
@@ -47,7 +46,9 @@ class _ReconnectScreenState extends State<ReconnectScreen> {
       }
 
       setState(() {
-        _secondsRemaining--;
+        if (_secondsRemaining > 0) {
+          _secondsRemaining--;
+        }
       });
 
       if (_secondsRemaining <= 0) {
@@ -66,7 +67,10 @@ class _ReconnectScreenState extends State<ReconnectScreen> {
       return;
     }
 
-    _retryCount++;
+    setState(() {
+      _retryCount++;
+    });
+
     final success = await AppInitService.reconnect();
     if (success) {
       if (ApplicationInfo.connectable &&
@@ -78,22 +82,18 @@ class _ReconnectScreenState extends State<ReconnectScreen> {
         _reconnectSuccess = true;
       });
     } else if (!_isCancelled) {
-      _resetTimer();
+      setState(() {
+        _secondsRemaining = 10;
+      });
+      _startTimer();
     }
-  }
-
-  void _resetTimer() {
-    setState(() {
-      _secondsRemaining = 10;
-    });
-    _startTimer();
   }
 
   void _cancelReconnect() {
     setState(() {
       _isCancelled = true;
     });
-    _timer.cancel();  // 确保定时器被清理
+    _timer?.cancel();
     Navigator.of(context).pushReplacement(
       MaterialPageRoute(builder: (context) => const LoginScreen()),
     );
@@ -132,9 +132,8 @@ class _ReconnectScreenState extends State<ReconnectScreen> {
             const SpinKitCircle(size: 51.0, color: Colors.white),
             const SizedBox(height: 30),
             Text(
-              '网络连接失败: $_secondsRemaining 秒后重连',
-              style: const TextStyle(
-                  fontSize: 16 /*, color: Colors.deepOrangeAccent*/),
+              '网络连接失败: $_secondsRemaining 秒后重连 (第 $_retryCount 次尝试)',
+              style: const TextStyle(fontSize: 16),
             ),
             const SizedBox(height: 20),
             ElevatedButton(
