@@ -22,6 +22,8 @@ class _ReconnectScreenState extends State<ReconnectScreen> {
   late Timer _timer;
   bool _isCancelled = false;
   bool _reconnectSuccess = false;
+  int _retryCount = 0;
+  static const int maxRetries = 5;  // 最大重试次数
 
   @override
   void initState() {
@@ -36,6 +38,8 @@ class _ReconnectScreenState extends State<ReconnectScreen> {
   }
 
   void _startTimer() {
+    // 确保旧的定时器被清理
+    _timer.cancel();
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (_isCancelled || _reconnectSuccess) {
         timer.cancel();
@@ -56,6 +60,13 @@ class _ReconnectScreenState extends State<ReconnectScreen> {
   Future<void> _attemptReconnect() async {
     if (_isCancelled || _reconnectSuccess) return;
 
+    if (_retryCount >= maxRetries) {
+      VLOG0('达到最大重试次数，停止重连');
+      _cancelReconnect();
+      return;
+    }
+
+    _retryCount++;
     final success = await AppInitService.reconnect();
     if (success) {
       if (ApplicationInfo.connectable &&
@@ -82,6 +93,7 @@ class _ReconnectScreenState extends State<ReconnectScreen> {
     setState(() {
       _isCancelled = true;
     });
+    _timer.cancel();  // 确保定时器被清理
     Navigator.of(context).pushReplacement(
       MaterialPageRoute(builder: (context) => const LoginScreen()),
     );

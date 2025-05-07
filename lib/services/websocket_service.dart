@@ -31,6 +31,7 @@ enum WebSocketConnectionState {
 class WebSocketService {
   static SimpleWebSocket? _socket;
   static String _baseUrl = 'wss://www.cloudplayplus.com/ws/';
+  static Timer? _reconnectTimer;  // 添加定时器变量
 
   static const JsonEncoder _encoder = JsonEncoder();
   static const JsonDecoder _decoder = JsonDecoder();
@@ -108,14 +109,18 @@ class WebSocketService {
     _socket?.onClose = (code, message) async {
       onDisConnected();
       if (should_be_connected) {
-        Timer.periodic(const Duration(seconds: 30), (Timer timer) async {
+        // 确保旧的定时器被清理
+        _reconnectTimer?.cancel();
+        _reconnectTimer = Timer.periodic(const Duration(seconds: 30), (Timer timer) async {
           // 检查是否已经连接成功，如果是，则取消定时器
           if (connectionState == WebSocketConnectionState.connected) {
             timer.cancel();
+            _reconnectTimer = null;
             return;
           }
           if (refreshToken_invalid_) {
             timer.cancel();
+            _reconnectTimer = null;
             return;
           }
           reconnect();
@@ -140,6 +145,9 @@ class WebSocketService {
     should_be_connected = true;
     _socket?.close();
     _socket = null;
+    // 确保旧的定时器被清理
+    _reconnectTimer?.cancel();
+    _reconnectTimer = null;
     init();
   }
 
@@ -147,6 +155,9 @@ class WebSocketService {
     should_be_connected = false;
     _socket?.close();
     _socket = null;
+    // 确保定时器被清理
+    _reconnectTimer?.cancel();
+    _reconnectTimer = null;
   }
 
   static Future<void> onMessage(message) async {
