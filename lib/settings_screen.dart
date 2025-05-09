@@ -175,14 +175,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
             tiles: <SettingsTile>[
               SettingsTile.navigation(
                 leading: const Icon(Icons.logout),
-                title: const Text('退出登陆'),
+                title: const Text('退出登录'),
                 onPressed: (context) {
                   showDialog(
                     context: context,
                     builder: (BuildContext context) {
                       return AlertDialog(
                         title: const Text('退出'),
-                        content: const Text('确定要退出登陆吗?'),
+                        content: const Text('确定要退出登录吗?'),
                         actions: [
                           TextButton(
                             onPressed: () {
