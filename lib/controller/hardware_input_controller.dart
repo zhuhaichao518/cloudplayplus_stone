@@ -280,6 +280,13 @@ class InputController {
 
     // 发送消息
     channel.send(RTCDataChannelMessage.fromBinary(buffer));
+    
+    // 保证触摸按下能立即发送到
+    if (sendEmptyPacket) {
+      for (int i = 0; i < resendCount; i++) {
+        channel.send(emptyMessage);
+      }
+    }
   }
 
   void handleTouchButton(RTCDataChannelMessage message) {
@@ -309,7 +316,7 @@ class InputController {
 
     // 保证鼠标按下能立即发送到
     if (sendEmptyPacket) {
-      for (int i = 0; i < resendCount; i++) {
+      for (int i = 0; i < resendCount/2; i++) {
         channel.send(emptyMessage);
       }
     }
