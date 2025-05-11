@@ -44,7 +44,7 @@ enum StreamingSessionConnectionState {
   answerSent,
   answerReceived,
   // TODO: use RTCPeerConnectionState instead.
-  connceting,
+  connecting,
   connected,
   disconnecting,
   disconnected,
