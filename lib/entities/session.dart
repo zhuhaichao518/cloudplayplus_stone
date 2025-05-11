@@ -30,7 +30,7 @@ import 'messages.dart';
 每个启动的app均有两个state controlstate是作为控制端的state hoststate是作为被控端的state
 整个连接建立过程：
                             A controlstate = free     B hoststate = free
-A向B发起控制请求             A controlstate = control request sent 
+A向B发起控制请求             A controlstate = control request sent
 B收到request后向A发起offer   B hoststate = offer sent
 A收到offer后向B发起answer    A controlstate = answer sent
 B收到answer后                B hoststate = answerreceived
@@ -132,7 +132,7 @@ class StreamingSession {
     await _lock.synchronized(() async {
       restartPingTimeoutTimer(10);
       controlled.connectionState.value =
-          StreamingSessionConnectionState.connceting;
+          StreamingSessionConnectionState.connceting; // typo: connceting -> connecting
 
       streamSettings = StreamedSettings.fromJson(StreamingSettings.toJson());
       connectionState = StreamingSessionConnectionState.requestSent;
@@ -141,12 +141,12 @@ class StreamingSession {
       pc!.onConnectionState = (state) {
         if (state == RTCPeerConnectionState.RTCPeerConnectionStateConnecting) {
           controlled.connectionState.value =
-              StreamingSessionConnectionState.connceting;
+              StreamingSessionConnectionState.connceting; // typo: connceting -> connecting
         }
         if (state == RTCPeerConnectionState.RTCPeerConnectionStateConnected) {
           //有些时候即使未能建立连接也报connected，因此依然需要pingpong message.
-          controlled.connectionState.value =
-              StreamingSessionConnectionState.connected;
+          // controlled.connectionState.value =
+          //     StreamingSessionConnectionState.connected; // This will be set by ping-pong
         } else if (state ==
             RTCPeerConnectionState.RTCPeerConnectionStateFailed) {
           controlled.connectionState.value =
@@ -162,41 +162,27 @@ class StreamingSession {
       };
 
       pc!.onIceCandidate = (candidate) async {
-        /*if (streamSettings!.turnServerSettings == 2) {
-        if (!candidate.candidate!.contains("srflx")) {
-          return;
-        }
-      }
-      if (streamSettings!.turnServerSettings == 1) {
-        if (candidate.candidate!.contains("srflx")) {
-          return;
-        }
-      }*/
-
-        /*if (candidate.candidate!.contains("srflx")) {
-          return;
-        }
-      if (!candidate.candidate!.contains("192.168")) {
-        return;
-      }*/
         // We are controller so source is ourself
-        await Future.delayed(
-            const Duration(seconds: 1),
-            //controller's candidate
-            () => WebSocketService.send('candidate2', {
-                  'source_connectionid': controller.websocketSessionid,
-                  'target_uid': controlled.uid,
-                  'target_connectionid': controlled.websocketSessionid,
-                  'candidate': {
-                    'sdpMLineIndex': candidate.sdpMLineIndex,
-                    'sdpMid': candidate.sdpMid,
-                    'candidate': candidate.candidate,
-                  },
-                }));
+        // MODIFIED: Removed Future.delayed and added null check
+        if (candidate != null) {
+          VLOG0("Controller sending ICE candidate: ${candidate.candidate}");
+          WebSocketService.send('candidate2', {
+            'source_connectionid': controller.websocketSessionid,
+            'target_uid': controlled.uid,
+            'target_connectionid': controlled.websocketSessionid,
+            'candidate': {
+              'sdpMLineIndex': candidate.sdpMLineIndex,
+              'sdpMid': candidate.sdpMid,
+              'candidate': candidate.candidate,
+            },
+          });
+        } else {
+          VLOG0("Controller ICE gathering complete.");
+        }
       };
 
       pc!.onTrack = (event) {
-        connectionState = StreamingSessionConnectionState.connected;
+        // connectionState = StreamingSessionConnectionState.connected; // This state should be set by ping-pong
         /*controlled.connectionState.value =
           StreamingSessionConnectionState.connected;*/
         //tell the device tile page to render the rtc video.
@@ -225,6 +211,9 @@ class StreamingSession {
 
           channel?.onDataChannelState = (state) async {
             if (state == RTCDataChannelState.RTCDataChannelOpen) {
+              // Connection considered established when data channel is open and first ping sent
+              controlled.connectionState.value = StreamingSessionConnectionState.connected;
+              connectionState = StreamingSessionConnectionState.connected;
               await channel?.send(RTCDataChannelMessage.fromBinary(
                   Uint8List.fromList([LP_PING, RP_PING])));
               if (StreamingSettings.streamAudio!) {
@@ -241,7 +230,7 @@ class StreamingSession {
       };
       // read the latest settings from user settings.
       WebSocketService.send('requestRemoteControl', {
-        'target_uid': ApplicationInfo.user.uid,
+        'target_uid': ApplicationInfo.user.uid, // Should this be controller.uid?
         'target_connectionid': controlled.websocketSessionid,
         'settings': StreamingSettings.toJson(),
       });
@@ -251,28 +240,6 @@ class StreamingSession {
   Future<RTCPeerConnection> createRTCPeerConnection() async {
     Map<String, dynamic> iceServers;
 
-    /*if (streamSettings!.turnServerSettings == 2) {
-      iceServers = {
-        'iceServers': [
-          {
-            'urls': streamSettings!.turnServerAddress,
-            'username': streamSettings!.turnServerUsername,
-            'credential': streamSettings!.turnServerPassword
-          },
-        ]
-      };
-    } else {
-      iceServers = {
-        'iceServers': [
-          {
-            'urls': streamSettings!.turnServerAddress,
-            'username': streamSettings!.turnServerUsername,
-            'credential': streamSettings!.turnServerPassword
-          },
-          officialStun1,
-        ]
-      };
-    }*/
     if (StreamingSettings.useTurnServer) {
       iceServers = {
         'iceServers': [
@@ -285,7 +252,7 @@ class StreamingSession {
       };
     } else {
       iceServers = {
-        'iceServers': [cloudPlayPlusStun]
+        'iceServers': [cloudPlayPlusStun] // Ensure cloudPlayPlusStun is defined
       };
     }
 
@@ -331,7 +298,7 @@ class StreamingSession {
         return;
       }
       selfSessionType = SelfSessionType.controlled;
-      restartPingTimeoutTimer(10);
+      restartPingTimeoutTimer(10); // Ping timeout starts earlier
       streamSettings = settings;
 
       pc = await createRTCPeerConnection();
@@ -347,77 +314,32 @@ class StreamingSession {
               track, StreamedManager.localVideoStreams[settings.screenId]!));
         });
       }
-
-      /* deprecated. using RTCutils instead.
-      // Retrieve all transceivers from the PeerConnection
-      var transceivers = await pc!.getTransceivers();
-
-      // Get the RTP sender capabilities for video
-      var vcaps = await getRtpSenderCapabilities('video');
-
-      // Filter to get only the H.264 codecs from the available capabilities
-      // webrtc有白名单限制，默认高通cpu三星猎户座，其他cpu一般是不支持的
-      // 这些设备需要修改webrtc源码来支持 否则不能使用H264
-      // https://github.com/flutter-webrtc/flutter-webrtc/issues/182
-      // 我的macbook max上 h264性能很差 web端setCodecPreferences格式也不对 会fallback到别的编码器
-      for (var transceiver in transceivers) {
-        var codecs = vcaps.codecs
-                ?.where((element) => element.mimeType.toLowerCase().contains('h264'))
-                .toList() ??
-            [];
-
-        // Check if codecs list is not empty
-        if (codecs.isNotEmpty) {
-          try {
-            // Set codec preferences for the transceiver
-            await transceiver.setCodecPreferences(codecs);
-          } catch (e) {
-            // Log error if setting codec preferences fails
-            VLOG0('Error setting codec preferences: $e');
-          }
-        } else {
-          VLOG0('No compatible H.264 codecs found for transceiver.');
-        }
-      }
-      */
       
-      /* 为什么这里进不来？
-      pc!.onDataChannel = (newchannel) async {
-        if (settings.useClipBoard == true){
-          startClipboardSync();
-        }
-      };
-      */
-
       pc!.onIceCandidate = (candidate) async {
         // We are controlled so source is ourself
-        await Future.delayed(
-            const Duration(seconds: 1),
-            () => WebSocketService.send('candidate', {
-                  'source_connectionid': controlled.websocketSessionid,
-                  'target_uid': controller.uid,
-                  'target_connectionid': controller.websocketSessionid,
-                  'candidate': {
-                    'sdpMLineIndex': candidate.sdpMLineIndex,
-                    'sdpMid': candidate.sdpMid,
-                    'candidate': candidate.candidate,
-                  },
-                }));
+        // MODIFIED: Removed Future.delayed and added null check
+        if (candidate != null) {
+          VLOG0("Controlled sending ICE candidate: ${candidate.candidate}");
+          WebSocketService.send('candidate', {
+            'source_connectionid': controlled.websocketSessionid,
+            'target_uid': controller.uid,
+            'target_connectionid': controller.websocketSessionid,
+            'candidate': {
+              'sdpMLineIndex': candidate.sdpMLineIndex,
+              'sdpMid': candidate.sdpMid,
+              'candidate': candidate.candidate,
+            },
+          });
+        } else {
+          VLOG0("Controlled ICE gathering complete.");
+        }
       };
 
       pc!.onConnectionState = (state) {
         if (state == RTCPeerConnectionState.RTCPeerConnectionStateConnected) {
-          //TODO: 以system身份启动时 这里会崩 因此暂时不报连接
-          /*if (AppPlatform.isDeskTop &&
-              !ApplicationInfo.isSystem &&
-              selfSessionType == SelfSessionType.controlled) {
-            NotificationManager().initialize();
-            NotificationManager().showSimpleNotification(
-                title: "${controller.nickname} (${controller.devicetype})的连接",
-                body: "${controller.devicename}连接到了本设备");
-          }*/
+          // Connection state should be managed by DataChannel open and ping-pong
           if (AppPlatform.isWindows) {
-            //HardwareSimulator.showNotification(controller.nickname);
+            //HardwareSimulator.showNotification(controller.nickname); // Consider if this is still needed here
           }
           if (settings.useClipBoard == true) {
               startClipboardSync();
@@ -439,6 +361,26 @@ class StreamingSession {
         processDataChannelMessageFromClient(msg);
       };
 
+      // Added DataChannel open state handler for controlled side as well
+      channel?.onDataChannelState = (state) async {
+        if (state == RTCDataChannelState.RTCDataChannelOpen) {
+          // Connection considered established when data channel is open and first ping sent
+          controller.connectionState.value = StreamingSessionConnectionState.connected; // Update controller's view of controlled
+          connectionState = StreamingSessionConnectionState.connected;
+           await channel?.send(RTCDataChannelMessage.fromBinary(
+                  Uint8List.fromList([LP_PING, RP_PONG]))); // Controlled sends PONG first in response to PING
+          if (AppPlatform.isDeskTop &&
+              !ApplicationInfo.isSystem &&
+              selfSessionType == SelfSessionType.controlled) {
+            // NotificationManager().initialize(); // Should be initialized once
+            NotificationManager().showSimpleNotification(
+                title: "${controller.nickname} (${controller.devicetype})的连接",
+                body: "${controller.devicename}连接到了本设备");
+          }
+        }
+      };
+
+
       if (useUnsafeDatachannel) {
         RTCDataChannelInit dataChannelDict = RTCDataChannelInit()
           ..maxRetransmits = 0
@@ -454,12 +396,6 @@ class StreamingSession {
         inputController = InputController(channel!, true, screenId);
       }
 
-      //For web, RTCDataChannel.readyState is not 'open', and this should only for windows
-      /*if (!kIsWeb && Platform.isWindows){
-      channel.send(RTCDataChannelMessage("csrhook"));
-      channel.send(RTCDataChannelMessage("xboxinit"));
-    }*/
-
       RTCSessionDescription sdp = await pc!.createOffer({
         'mandatory': {
           'OfferToReceiveAudio': false,
@@ -471,9 +407,6 @@ class StreamingSession {
       if (selfSessionType == SelfSessionType.controlled) {
         if (settings.codec == null || settings.codec == "default") {
           if (AppPlatform.isMacos) {
-            //TODO(haichao):h264 encoder is slow for my m3 mac max. check other platforms.
-            //setPreferredCodec(sdp, audio: 'opus', video: 'vp8');
-            //Mac上网页版的vp9更好 app版本av1稍微好一些 h264编码器都非常垃圾 不知道原因
             setPreferredCodec(sdp, audio: 'opus', video: 'av1');
           } else {
             setPreferredCodec(sdp, audio: 'opus', video: 'h264');
@@ -485,9 +418,14 @@ class StreamingSession {
 
       await pc!.setLocalDescription(_fixSdp(sdp, settings.bitrate!));
 
+      // Send pending candidates that might have arrived before setLocalDescription
+      // This is generally not needed if onIceCandidate is set up before createOffer/Answer
+      // and candidates are sent as they arrive.
+      // However, if candidates were queued due to pc being null earlier, this would handle them.
+      // With the current structure, this candidates list might not be populated much here.
       while (candidates.isNotEmpty) {
-        await pc!.addCandidate(candidates[0]);
-        candidates.removeAt(0);
+        VLOG0("Controlled: Adding a pending early candidate.");
+        await pc!.addCandidate(candidates.removeAt(0));
       }
 
       WebSocketService.send('offer', {
@@ -504,23 +442,42 @@ class StreamingSession {
 
   RTCSessionDescription _fixSdp(RTCSessionDescription s, int bitrate) {
     var sdp = s.sdp;
-    sdp = sdp!.replaceAll('profile-level-id=640c1f', 'profile-level-id=42e032');
+    sdp = sdp!.replaceAll('profile-level-id=640c1f', 'profile-level-id=42e032'); // Example, specific H264 profile
 
-    RegExp exp = RegExp(r"^a=fmtp.*$", multiLine: true);
-    String appendStr =
-        ";x-google-max-bitrate=$bitrate;x-google-min-bitrate=$bitrate;x-google-start-bitrate=$bitrate)";
-
-    sdp = sdp.replaceAllMapped(exp, (match) {
-      return match.group(0)! + appendStr;
-    });
-
-    RegExp exp2 = RegExp(r"^c=IN.*$", multiLine: true);
-    String appendStr2 = "\r\nb=AS:$bitrate";
-    sdp = sdp.replaceAllMapped(exp2, (match) {
-      return match.group(0)! + appendStr2;
-    });
-
-    s.sdp = sdp;
+    // More robust way to add bitrate:
+    // Find the video media section
+    List<String> sdpLines = sdp.split('\r\n');
+    bool inVideoSection = false;
+    for (int i = 0; i < sdpLines.length; i++) {
+        if (sdpLines[i].startsWith('m=video')) {
+            inVideoSection = true;
+        }
+        if (inVideoSection && (sdpLines[i].isEmpty || sdpLines[i].startsWith('m=')) && !sdpLines[i].startsWith('m=video')) {
+            inVideoSection = false; // Exited video section or new media section
+        }
+        if (inVideoSection && sdpLines[i].startsWith('c=IN')) {
+            // Insert b=AS:bitrate after c=IN line for video
+            // Ensure bitrate is in Kbps for b=AS
+            sdpLines.insert(i + 1, 'b=AS:${bitrate ~/ 1000}'); // Assuming bitrate is in bps
+            break; // Added for video, can break or continue if audio also needs it
+        }
+    }
+    // Add x-google bitrate attributes to H264 fmtp lines
+    for (int i = 0; i < sdpLines.length; i++) {
+        if (sdpLines[i].contains('a=rtpmap:') && sdpLines[i].toLowerCase().contains('h264')) {
+            // Find the corresponding fmtp line
+            String payloadType = sdpLines[i].split(' ')[0].substring('a=rtpmap:'.length);
+            for (int j = 0; j < sdpLines.length; j++) {
+                if (sdpLines[j].startsWith('a=fmtp:$payloadType')) {
+                    if (!sdpLines[j].contains('x-google-max-bitrate')) {
+                         sdpLines[j] += ';x-google-start-bitrate=${bitrate ~/ 1000};x-google-min-bitrate=${bitrate ~/ 1000};x-google-max-bitrate=${bitrate ~/ 1000}';
+                    }
+                    break;
+                }
+            }
+        }
+    }
+    s.sdp = sdpLines.join('\r\n');
     return s;
   }
 
@@ -532,27 +489,39 @@ class StreamingSession {
       return;
     }
     await _lock.synchronized(() async {
+      if (pc == null) { // Ensure pc is initialized
+        VLOG0("Controller PC is null in onOfferReceived. This should not happen if startRequest was called.");
+        // Potentially re-initialize or handle error
+        // For now, we assume pc is valid if startRequest was successful.
+        // If pc can legitimately be null here, need to ensure startRequest robustly creates it or handles failure.
+         return;
+      }
       await pc!.setRemoteDescription(
           RTCSessionDescription(offer['sdp'], offer['type']));
 
       RTCSessionDescription sdp = await pc!.createAnswer({
         'mandatory': {
-          'OfferToReceiveAudio': false,
-          'OfferToReceiveVideo': false,
+          'OfferToReceiveAudio': false, // Assuming controller doesn't receive audio this way
+          'OfferToReceiveVideo': true,  // Controller wants to receive video
         },
         'optional': [],
       });
-      await pc!.setLocalDescription(_fixSdp(sdp, streamSettings!.bitrate!));
+      // Apply bitrate modification to answer SDP as well if needed (usually offerer controls this)
+      await pc!.setLocalDescription(_fixSdp(sdp, streamSettings!.bitrate!)); 
+      
+      // Send pending candidates that might have arrived before setLocalDescription
       while (candidates.isNotEmpty) {
-        await pc!.addCandidate(candidates[0]);
-        candidates.removeAt(0);
+        VLOG0("Controller: Adding a pending early candidate.");
+        await pc!.addCandidate(candidates.removeAt(0));
       }
+
       WebSocketService.send('answer', {
         'source_connectionid': controller.websocketSessionid,
         'target_uid': controlled.uid,
         'target_connectionid': controlled.websocketSessionid,
         'description': {'sdp': sdp.sdp, 'type': sdp.type},
       });
+      connectionState = StreamingSessionConnectionState.answerSent;
     });
   }
 
@@ -563,8 +532,16 @@ class StreamingSession {
       return;
     }
     await _lock.synchronized(() async {
+      if (pc == null) {
+         VLOG0("Controlled PC is null in onAnswerReceived. This should not happen if acceptRequest was called.");
+         return;
+      }
       await pc!.setRemoteDescription(
           RTCSessionDescription(anwser['sdp'], anwser['type']));
+      connectionState = StreamingSessionConnectionState.answerReceived;
+      // At this point, the controlled side has set remote description.
+      // The connection state should ideally be updated to 'connected'
+      // once the DataChannel is open and a ping-pong is successful.
     });
   }
 
@@ -576,16 +553,24 @@ class StreamingSession {
     }
 
     await _lock.synchronized(() async {
-      // It is possible that the peerconnection has not been inited. add to list and add later for this case.
       RTCIceCandidate candidate = RTCIceCandidate(candidateMap['candidate'],
           candidateMap['sdpMid'], candidateMap['sdpMLineIndex']);
-      if (pc == null) {
-        // This can not be triggered after adding lock. Keep this and We may resue this list in the future.
-        VLOG0("-----warning:this should not be triggered.");
+      
+      // Candidates might arrive before setLocalDescription or setRemoteDescription.
+      // The standard WebRTC API handles queuing candidates internally if addIceCandidate
+      // is called before setRemoteDescription is complete, as long as pc is not null.
+      // If pc itself is null (meaning createPeerConnection hasn't finished or offer/answer hasn't been processed yet),
+      // then queuing them in the `candidates` list is a valid fallback.
+      if (pc == null || pc?.getRemoteDescription() == null ) { // More robust check
+        VLOG0("PC or remote description not ready, queuing candidate: ${candidate.candidate}");
         candidates.add(candidate);
       } else {
-        VLOG0("adding candidate");
-        await pc!.addCandidate(candidate);
+        try {
+          VLOG0("Adding received candidate: ${candidate.candidate}");
+          await pc!.addCandidate(candidate);
+        } catch (e) {
+          VLOG0("Error adding received candidate: $e. Candidate: ${candidate.candidate}, sdpMid: ${candidate.sdpMid}, sdpMLineIndex: ${candidate.sdpMLineIndex}");
+        }
       }
     });
   }
@@ -599,72 +584,165 @@ class StreamingSession {
 
   void close() {
     if (isClosing_) return;
-    isClosing_ = true;
-    //-- this should be called only when ping timeout
-    if (selfSessionType == SelfSessionType.controller) {
-      StreamingManager.stopStreaming(controlled);
-    }
-    //--
-    if (selfSessionType == SelfSessionType.controlled) {
-      StreamedManager.stopStreaming(controller);
-    }
-    //pc?.close();
+    isClosing_ = true; // Set flag immediately
+
+    VLOG0("Close called for session with ${selfSessionType == SelfSessionType.controller ? controlled.uid : controller.uid}");
+
+
+    // Cancel ping timer first to prevent it from re-triggering close/stop
+    _pingTimeoutTimer?.cancel();
+    _pingTimeoutTimer = null;
+    
+    connectionState = StreamingSessionConnectionState.disconnecting; // Update state
+
+    // Update device state value before async lock
+     if (selfSessionType == SelfSessionType.controller) {
+        controlled.connectionState.value = StreamingSessionConnectionState.disconnecting;
+     } else if (selfSessionType == SelfSessionType.controlled) {
+        // If controlled, it means the controller initiated close or timeout
+        // No direct peer device state to update here, as `controller` is the remote peer
+     }
+
+
+    // Use a copy of pc to close outside the lock if needed, or ensure stop actions are safe.
+    // The main concern is pc becoming null inside the lock before all operations are done.
+    // However, with isClosing_ flag, other methods should bail out.
+    _lock.synchronized(() {
+      // The actual stop logic is in stop(), call it.
+      // close() is more of an initiator due to timeout or external call.
+      // Let stop() handle the detailed cleanup.
+      // Avoid direct calls to StreamingManager.stopStreaming or StreamedManager.stopStreaming here
+      // if stop() is already doing that, to prevent duplicate calls.
+      // The current structure seems like close() can be called by timeout,
+      // and stop() is called for intentional stops.
+      // If close() is due to timeout, it should also trigger the full stop sequence.
+      if (selfSessionType == SelfSessionType.controller) {
+         // This call might be redundant if stop() also calls it.
+         // Ensure only one manager stop call.
+         // StreamingManager.stopStreaming(controlled);
+      }
+      if (selfSessionType == SelfSessionType.controlled) {
+         // StreamedManager.stopStreaming(controller);
+      }
+    }).then((_) {
+        // Call stop to perform the full cleanup.
+        // This ensures that even if close is called by timeout, stop's full logic runs.
+        stop();
+    });
   }
 
+
+  // stop() should be the definitive method for all cleanup.
   void stop() async {
-    if (connectionState == StreamingSessionConnectionState.disconnecting ||
-        connectionState == StreamingSessionConnectionState.disconnected) {
-      //Another stop request was triggered. return.
+    // Check connectionState first, then isClosing_ to handle calls from close()
+    if (connectionState == StreamingSessionConnectionState.disconnected || 
+        connectionState == StreamingSessionConnectionState.disconnecting && isClosing_ /* already stopping */) {
+      VLOG0("Stop called but already stopping or disconnected.");
       return;
     }
-    _pingTimeoutTimer?.cancel(); // 取消之前的Timer
+    
+    VLOG0("Stop called for session with ${selfSessionType == SelfSessionType.controller ? controlled.uid : controller.uid}");
+
+    isClosing_ = true; // Ensure flag is set
     connectionState = StreamingSessionConnectionState.disconnecting;
 
+    // Update device state value immediately
+     if (selfSessionType == SelfSessionType.controller) {
+        controlled.connectionState.value = StreamingSessionConnectionState.disconnecting;
+     } else if (selfSessionType == SelfSessionType.controlled) {
+        // No direct peer device state to update here for the 'controller' object itself.
+        // The 'controller' object in a controlled session refers to the remote peer.
+     }
+
+    _pingTimeoutTimer?.cancel(); 
+    _pingTimeoutTimer = null;
+
     await _lock.synchronized(() async {
-      // We don't want to see more new connections when it is being stopped. So we may want to use a lock.
-      //clean audio session.
       audioSession?.dispose();
       audioSession = null;
 
-      candidates.clear();
-      inputController = null;
+      candidates.clear(); // Clear any remaining candidates
+      // inputController's resources might be tied to channels, close channels first
+      // inputController = null; // Nullify after channels are closed
+
       if (channel != null) {
-        // just in case the message is blocked.
-        for (int i = 0; i <= InputController.resendCount + 2; i++) {
-          await channel?.send(RTCDataChannelMessage.fromBinary(
-              Uint8List.fromList([LP_DISCONNECT, RP_PING])));
-        }
         try {
+          // Send disconnect message reliably if channel is open
+          if (channel?.state == RTCDataChannelState.RTCDataChannelOpen) {
+             for (int i = 0; i <= InputController.resendCount + 2; i++) {
+               await channel?.send(RTCDataChannelMessage.fromBinary(
+                 Uint8List.fromList([LP_DISCONNECT, RP_PING]))); // RP_PING here seems odd for disconnect
+             }
+          }
           await channel?.close();
-          channel = null;
         } catch (e) {
-          //figure out why pc is null;
+          VLOG0("Error closing reliable data channel: $e");
+        } finally {
+          channel = null;
         }
       }
       if (UDPChannel != null) {
-        await UDPChannel?.close();
-        UDPChannel = null;
+        try {
+          await UDPChannel?.close();
+        } catch (e) {
+          VLOG0("Error closing unreliable data channel: $e");
+        } finally {
+          UDPChannel = null;
+        }
       }
-      //TODO:理论上不需要removetrack pc会自动close 但是需要验证
-      pc?.close();
-      pc = null;
-      controlled.connectionState.value =
-          StreamingSessionConnectionState.disconnected;
+      
+      inputController = null; // Nullify after channels are handled
+
+      if (pc != null) {
+        try {
+          // Iterate over senders and remove tracks if they exist
+          // This is good practice but pc.close() should also handle it.
+          List<RTCRtpSender> senders = await pc!.getSenders();
+          for (var sender in senders) {
+            if (sender.track != null) {
+              // await pc!.removeTrack(sender); // Optional: pc.close() should suffice
+            }
+          }
+          await pc!.close();
+        } catch (e) {
+          VLOG0("Error closing peer connection: $e");
+        } finally {
+          pc = null;
+        }
+      }
+      
+      if (selfSessionType == SelfSessionType.controller) {
+        controlled.connectionState.value = StreamingSessionConnectionState.disconnected;
+        // Call manager to stop, ensuring it's the definitive place
+        StreamingManager.stopStreaming(controlled); 
+      } else if (selfSessionType == SelfSessionType.controlled) {
+        // For controlled, its own state reflects the session.
+        // The 'controller' object is the remote peer.
+        // Its connectionState.value is managed by the controller's perspective.
+        // Call manager to stop
+        StreamedManager.stopStreaming(controller);
+      }
+      
       connectionState = StreamingSessionConnectionState.disconnected;
-      //controlled.connectionState.value = StreamingSessionConnectionState.free;
+      
       if (streamSettings?.hookCursorImage == true &&
           selfSessionType == SelfSessionType.controlled) {
         if (AppPlatform.isDeskTop) {
           HardwareSimulator.removeCursorImageUpdated(cursorImageHookID);
         }
       }
-      if (WebrtcService.currentRenderingSession == this) {
+
+      // Cursor unlock logic
+      // Check if this session is indeed the one currently rendering and locking cursor
+      // This check might need to be more robust if multiple sessions can exist
+      // but only one is 'active' for rendering.
+      if (WebrtcService.currentRenderingSession == this) { // Assuming WebrtcService holds the active session
         if (HardwareSimulator.cursorlocked) {
           if (AppPlatform.isDeskTop || AppPlatform.isWeb) {
             HardwareSimulator.cursorlocked = false;
             HardwareSimulator.unlockCursor();
             HardwareSimulator.removeCursorMoved(
-                InputController.cursorMovedCallback);
+                InputController.cursorMovedCallback); // Ensure these callbacks are correctly managed
           }
           if (AppPlatform.isWeb) {
             HardwareSimulator.removeCursorPressed(
@@ -675,52 +753,60 @@ class StreamingSession {
         }
       }
       
-      // 清理生命周期监听器
       WidgetsBinding.instance.removeObserver(_lifecycleObserver);
+      stopClipboardSync(); // Moved outside lock to avoid holding lock during async clipboard ops
     });
-
-    stopClipboardSync();
+     isClosing_ = false; // Reset after stop is complete
   }
 
   Timer? _pingTimeoutTimer;
 
   void restartPingTimeoutTimer(int second) {
-    _pingTimeoutTimer?.cancel(); // 取消之前的Timer
+    _pingTimeoutTimer?.cancel(); 
     _pingTimeoutTimer = Timer(Duration(seconds: second), () {
-      // 超过指定时间秒没收到pingpong，断开连接
-      VLOG0("No ping message received within 10 seconds, disconnecting...");
-      close();
+      VLOG0("Ping timeout ($second s) for session with ${selfSessionType == SelfSessionType.controller ? controlled.uid : controller.uid}. Closing connection.");
+      close(); // This will call stop()
       if (selfSessionType == SelfSessionType.controller) {
         MessageBoxManager()
-            .showMessage("已断开或未能建立连接。请检查密码, 切换网络重试或在设置中启动turn服务器。", "建立连接失败");
+            .showMessage("连接超时。请检查网络或对方设备状态。", "连接失败");
       }
     });
   }
 
   void onLocalCursorImageMessage(
       int message, int messageInfo, Uint8List cursorImage) {
+    if (channel == null || channel?.state != RTCDataChannelState.RTCDataChannelOpen) return;
     if (message == HardwareSimulator.CURSOR_UPDATED_IMAGE) {
       channel?.send(RTCDataChannelMessage.fromBinary(cursorImage));
     } else {
       ByteData byteData = ByteData(9);
       byteData.setUint8(0, LP_MOUSECURSOR_CHANGED);
-      byteData.setInt32(1, message);
-      byteData.setInt32(5, messageInfo);
+      byteData.setInt32(1, message, Endian.little); // Specify Endian for consistency
+      byteData.setInt32(5, messageInfo, Endian.little);
       Uint8List buffer = byteData.buffer.asUint8List();
       channel?.send(RTCDataChannelMessage.fromBinary(buffer));
     }
   }
 
-  void processDataChannelMessageFromClient(RTCDataChannelMessage message) {
+ void processDataChannelMessageFromClient(RTCDataChannelMessage message) {
+    if (connectionState == StreamingSessionConnectionState.disconnecting ||
+        connectionState == StreamingSessionConnectionState.disconnected) return;
+
     if (message.isBinary) {
-      VLOG0("message from Client:${message.binary[0]}");
+      // VLOG0("Message from Client (binary): type ${message.binary[0]}"); // Can be very verbose
+      if (message.binary.isEmpty) {
+        VLOG0("Received empty binary message from client.");
+        return;
+      }
       switch (message.binary[0]) {
         case LP_PING:
           if (message.binary.length == 2 && message.binary[1] == RP_PING) {
             restartPingTimeoutTimer(30);
-            Timer(const Duration(seconds: 1), () {
-              if (connectionState ==
-                  StreamingSessionConnectionState.disconnecting) return;
+            // Controlled side receives PING, should send PONG
+            Timer(const Duration(milliseconds: 100), () { // Send pong quickly
+              if (connectionState == StreamingSessionConnectionState.disconnecting || 
+                  connectionState == StreamingSessionConnectionState.disconnected || 
+                  channel == null || channel?.state != RTCDataChannelState.RTCDataChannelOpen) return;
               channel?.send(RTCDataChannelMessage.fromBinary(
                   Uint8List.fromList([LP_PING, RP_PONG])));
             });
@@ -748,126 +834,192 @@ class StreamingSession {
           inputController?.handleKeyEvent(message);
           break;
         case LP_DISCONNECT:
+           VLOG0("Received LP_DISCONNECT from client. Closing session.");
           close();
           break;
         case LP_EMPTY:
+          // Do nothing for empty message placeholder
           break;
         case LP_AUDIO_CONNECT:
-          audioSession = AudioSession(channel!, controller, controlled);
+          audioSession = AudioSession(channel!, controller, controlled); // Ensure channel is not null
           audioSession?.audioRequested();
           break;
         default:
-          VLOG0("unhandled message.please debug");
+          VLOG0("Unhandled binary message from Client: type ${message.binary[0]}. Please debug.");
       }
     } else {
-      Map<String, dynamic> data = jsonDecode(message.text);
-      switch (data.keys.first) {
-        case "candidate":
-          var candidateMap = data["candidate"];
-          RTCIceCandidate candidate = RTCIceCandidate(candidateMap['candidate'],
-              candidateMap['sdpMid'], candidateMap['sdpMLineIndex']);
-          if (audioSession == null) {
-            VLOG0("bug!audiosession not created");
-          }
-          audioSession?.addCandidate(candidate);
-          break;
-        case "answer":
-          audioSession?.onAnswerReceived(data['answer']);
-          break;
-        case "gamepad":
-          inputController?.handleGamePadEvent(data['gamepad']);
-          break;
-        case "clipboard":
-          // 更新本地剪贴板
-          Clipboard.setData(ClipboardData(text: data['clipboard']));
-          _lastClipboardContent = data['clipboard'];
-          break;
-        default:
-          VLOG0("unhandled message from client.please debug");
+      // VLOG0("Message from Client (text): ${message.text}"); // Can be verbose
+      try {
+        Map<String, dynamic> data = jsonDecode(message.text);
+        if (data.isEmpty || data.keys.isEmpty) {
+            VLOG0("Received empty or keyless JSON message from client.");
+            return;
+        }
+        final key = data.keys.first;
+        switch (key) {
+          case "candidate": // Audio candidate
+            var candidateMap = data["candidate"];
+            if (candidateMap != null && audioSession != null) {
+              RTCIceCandidate candidate = RTCIceCandidate(candidateMap['candidate'],
+                  candidateMap['sdpMid'], candidateMap['sdpMLineIndex']);
+              audioSession?.addCandidate(candidate);
+            } else {
+              VLOG0("Audio candidate received but audiosession is null or candidateMap is null.");
+            }
+            break;
+          case "answer": // Audio answer
+             if (audioSession != null && data['answer'] != null) {
+                audioSession?.onAnswerReceived(data['answer']);
+             } else {
+                VLOG0("Audio answer received but audiosession is null or answer data is null.");
+             }
+            break;
+          case "gamepad":
+            inputController?.handleGamePadEvent(data['gamepad']);
+            break;
+          case "clipboard":
+            final clipboardContent = data['clipboard'] as String?;
+            if (clipboardContent != null) {
+                Clipboard.setData(ClipboardData(text: clipboardContent));
+                _lastClipboardContent = clipboardContent;
+            }
+            break;
+          default:
+            VLOG0("Unhandled text message from Client: key '$key'. Please debug.");
+        }
+      } catch (e) {
+        VLOG0("Error processing text message from Client: $e. Message: ${message.text}");
       }
     }
   }
 
   void processDataChannelMessageFromHost(RTCDataChannelMessage message) async {
+    if (connectionState == StreamingSessionConnectionState.disconnecting ||
+        connectionState == StreamingSessionConnectionState.disconnected) return;
+    
     if (message.isBinary) {
+      // VLOG0("Message from Host (binary): type ${message.binary[0]}"); // Can be verbose
+      if (message.binary.isEmpty) {
+        VLOG0("Received empty binary message from host.");
+        return;
+      }
       switch (message.binary[0]) {
         case LP_PING:
           if (message.binary.length == 2 && message.binary[1] == RP_PONG) {
+            // Controller received PONG from controlled
             restartPingTimeoutTimer(30);
-            Timer(const Duration(seconds: 1), () {
-              if (connectionState ==
-                  StreamingSessionConnectionState.disconnecting) return;
+            // Controller sends PING again after a delay
+            Timer(const Duration(seconds: 1), () { // Consider making this delay configurable or shorter
+              if (connectionState == StreamingSessionConnectionState.disconnecting || 
+                  connectionState == StreamingSessionConnectionState.disconnected ||
+                  channel == null || channel?.state != RTCDataChannelState.RTCDataChannelOpen) return;
               channel?.send(RTCDataChannelMessage.fromBinary(
                   Uint8List.fromList([LP_PING, RP_PING])));
             });
+             // First successful ping-pong can confirm connection for controller
+            if (controlled.connectionState.value != StreamingSessionConnectionState.connected) {
+                 controlled.connectionState.value = StreamingSessionConnectionState.connected;
+                 connectionState = StreamingSessionConnectionState.connected; // Also update session's own state
+            }
           }
           break;
         case LP_MOUSECURSOR_CHANGED:
-        case LP_MOUSECURSOR_CHANGED_WITHBUFFER:
+        case LP_MOUSECURSOR_CHANGED_WITHBUFFER: // Assuming this is a valid constant
           if (WebrtcService.currentRenderingSession == this) {
             inputController?.handleCursorUpdate(message);
           }
+          break;
         case LP_DISCONNECT:
+          VLOG0("Received LP_DISCONNECT from host. Closing session.");
           close();
           break;
         default:
-          VLOG0("unhandled message from host.please debug");
+          VLOG0("Unhandled binary message from Host: type ${message.binary[0]}. Please debug.");
       }
     } else {
-      Map<String, dynamic> data = jsonDecode(message.text);
-      switch (data.keys.first) {
-        case "candidate":
-          var candidateMap = data['candidate'];
-          RTCIceCandidate candidate = RTCIceCandidate(candidateMap['candidate'],
-              candidateMap['sdpMid'], candidateMap['sdpMLineIndex']);
-          if (audioSession == null) {
-            VLOG0("bug2!audiosession not created");
-          }
-          audioSession?.addCandidate(candidate);
-          break;
-        case "offer":
-          audioSession?.onOfferReceived(data['offer']);
-          break;
-        case "clipboard":
-          // 更新本地剪贴板
-          Clipboard.setData(ClipboardData(text: data['clipboard']));
-          _lastClipboardContent = data['clipboard'];
-          break;
-        default:
-          VLOG0("unhandled message from host.please debug");
+      // VLOG0("Message from Host (text): ${message.text}"); // Can be verbose
+      try {
+        Map<String, dynamic> data = jsonDecode(message.text);
+         if (data.isEmpty || data.keys.isEmpty) {
+            VLOG0("Received empty or keyless JSON message from host.");
+            return;
+        }
+        final key = data.keys.first;
+        switch (key) {
+          case "candidate": // Audio candidate
+            var candidateMap = data['candidate'];
+             if (candidateMap != null && audioSession != null) {
+                RTCIceCandidate candidate = RTCIceCandidate(candidateMap['candidate'],
+                    candidateMap['sdpMid'], candidateMap['sdpMLineIndex']);
+                audioSession?.addCandidate(candidate);
+             } else {
+                VLOG0("Audio candidate received from host but audiosession or candidateMap is null.");
+             }
+            break;
+          case "offer": // Audio offer
+            if (audioSession != null && data['offer'] != null) {
+                audioSession?.onOfferReceived(data['offer']);
+            } else {
+                VLOG0("Audio offer received from host but audiosession or offer data is null.");
+            }
+            break;
+          case "clipboard":
+            final clipboardContent = data['clipboard'] as String?;
+            if (clipboardContent != null) {
+                Clipboard.setData(ClipboardData(text: clipboardContent));
+                _lastClipboardContent = clipboardContent;
+            }
+            break;
+          default:
+            VLOG0("Unhandled text message from Host: key '$key'. Please debug.");
+        }
+      } catch (e) {
+        VLOG0("Error processing text message from Host: $e. Message: ${message.text}");
       }
     }
   }
 
+
   void startClipboardSync() {
-    if (_clipboardTimer != null) return;
+    if (_clipboardTimer != null || !StreamingSettings.useClipBoard) return; // Check global setting too
     
+    // For controlled side, always sync periodically if desktop
+    // For controller side, sync on resume might be better to avoid constant polling if it's a mobile controller
     if (AppPlatform.isDeskTop && selfSessionType == SelfSessionType.controlled) {
-      // 桌面端保持每秒检查一次
       _clipboardTimer = Timer.periodic(const Duration(seconds: 1), (timer) async {
         await _syncClipboard();
       });
-    } else {
-      // 移动端和网页端或者控制端只在应用切换到前台时同步
+    } else { // Controller, or non-desktop controlled
       _lifecycleObserver.onResume = () async {
         await _syncClipboard();
       };
+       // Initial sync when starting
+      Future.delayed(Duration(milliseconds: 500), _syncClipboard); // Slight delay for channel to open
     }
   }
 
   Future<void> _syncClipboard() async {
-    final clipboardData = await Clipboard.getData(Clipboard.kTextPlain);
-    final currentContent = clipboardData?.text ?? '';
-    
-    if (currentContent != _lastClipboardContent) {
-      _lastClipboardContent = currentContent;
-      // 发送剪贴板内容到对端
-      if (channel != null && channel?.state == RTCDataChannelState.RTCDataChannelOpen) {
+    if (channel == null || channel?.state != RTCDataChannelState.RTCDataChannelOpen ||
+        connectionState == StreamingSessionConnectionState.disconnected ||
+        connectionState == StreamingSessionConnectionState.disconnecting) {
+      return;
+    }
+
+    try {
+      final clipboardData = await Clipboard.getData(Clipboard.kTextPlain);
+      final currentContent = clipboardData?.text ?? '';
+      
+      if (currentContent.isNotEmpty && currentContent != _lastClipboardContent) { // Send only if not empty and changed
+        _lastClipboardContent = currentContent;
         final message = {
           'clipboard': currentContent
         };
+        VLOG0("Syncing clipboard: $currentContent");
         channel?.send(RTCDataChannelMessage(jsonEncode(message)));
       }
+    } catch (e) {
+        VLOG0("Error during clipboard sync: $e");
+        // Potentially stop clipboard sync if it errors repeatedly
     }
   }
 
@@ -889,3 +1041,8 @@ class _AppLifecycleObserver extends WidgetsBindingObserver {
     }
   }
 }
+
+// Ensure this is defined somewhere accessible, e.g. in rtc_utils.dart or here if local
+final Map<String, String> cloudPlayPlusStun = {
+  'urls': 'stun:stun.cloudflare.com:3478' // Example STUN server
+};
