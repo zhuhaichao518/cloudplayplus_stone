@@ -60,8 +60,9 @@ class InputController {
   double lasty = 1;
   RTCDataChannel channel;
   bool reliable;
+  int screenId = 0;
 
-  InputController(this.channel, this.reliable);
+  InputController(this.channel, this.reliable, this.screenId);
 
   int outSequenceID = 0;
 
@@ -290,7 +291,7 @@ class InputController {
     int id = byteData.getInt32(10, Endian.little);
     bool isDown = byteData.getUint8(14) == 1; 
 
-    HardwareSimulator.performTouchEvent(x, y, id, isDown);
+    HardwareSimulator.performTouchEvent(x, y, id, isDown, screenId);
   }
 
   void requestTouchMove(double x, double y, int touchId) async {
@@ -322,7 +323,7 @@ class InputController {
     double y = byteData.getFloat32(5, Endian.little);
     int id = byteData.getInt32(9, Endian.little);
 
-    HardwareSimulator.performTouchMove(x, y, id);
+    HardwareSimulator.performTouchMove(x, y, id, screenId);
   }
 
   void requestKeyEvent(int? keyCode, bool isDown) async {

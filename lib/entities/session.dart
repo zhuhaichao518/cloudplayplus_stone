@@ -128,7 +128,7 @@ class StreamingSession {
       return;
     }
     selfSessionType = SelfSessionType.controller;
-
+    screenId = StreamingSettings.targetScreenId!;
     await _lock.synchronized(() async {
       restartPingTimeoutTimer(10);
       controlled.connectionState.value =
@@ -209,7 +209,7 @@ class StreamingSession {
       pc!.onDataChannel = (newchannel) async {
         if (newchannel.label == "userInputUnsafe") {
           UDPChannel = newchannel;
-          inputController = InputController(UDPChannel!, false);
+          inputController = InputController(UDPChannel!, false, screenId);
           //This channel is only used to send unsafe user input
           /*
         channel?.onMessage = (msg) {
@@ -217,7 +217,7 @@ class StreamingSession {
         } else {
           channel = newchannel;
           if (!useUnsafeDatachannel) {
-            inputController = InputController(channel!, true);
+            inputController = InputController(channel!, true, screenId);
           }
           channel?.onMessage = (msg) {
             processDataChannelMessageFromHost(msg);
@@ -239,7 +239,6 @@ class StreamingSession {
           startClipboardSync();
         }
       };
-      screenId = StreamingSettings.targetScreenId!;
       // read the latest settings from user settings.
       WebSocketService.send('requestRemoteControl', {
         'target_uid': ApplicationInfo.user.uid,
@@ -336,10 +335,11 @@ class StreamingSession {
       streamSettings = settings;
 
       pc = await createRTCPeerConnection();
+      
+      screenId = settings.screenId!;
 
       if (StreamedManager.localVideoStreams[settings.screenId] != null) {
         // one track expected.
-        screenId = settings.screenId!;
         StreamedManager.localVideoStreams[settings.screenId]!
             .getTracks()
             .forEach((track) async {
@@ -449,9 +449,9 @@ class StreamingSession {
         UDPChannel?.onMessage = (RTCDataChannelMessage msg) {
           processDataChannelMessageFromClient(msg);
         };
-        inputController = InputController(UDPChannel!, false);
+        inputController = InputController(UDPChannel!, false, screenId);
       } else {
-        inputController = InputController(channel!, true);
+        inputController = InputController(channel!, true, screenId);
       }
 
       //For web, RTCDataChannel.readyState is not 'open', and this should only for windows
