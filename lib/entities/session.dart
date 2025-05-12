@@ -710,6 +710,11 @@ class StreamingSession {
       channel?.send(RTCDataChannelMessage.fromBinary(buffer));
     }
   }
+  
+  // TODO: remove this when data channel bug is fixed.
+  // Sometimes message from host to client does not arrive in time.
+  // Send some empty packages to flush the connection.
+  bool ensureConnectedFromHost = false;
 
   void processDataChannelMessageFromClient(RTCDataChannelMessage message) {
     if (message.isBinary) {
@@ -723,6 +728,13 @@ class StreamingSession {
                   StreamingSessionConnectionState.disconnecting) return;
               channel?.send(RTCDataChannelMessage.fromBinary(
                   Uint8List.fromList([LP_PING, RP_PONG])));
+              if (!ensureConnectedFromHost) {
+                for (int i = 0;i < 20; i++) {
+                  //Flush the channel, just in case the message does not arrive in time.
+                  channel?.send(InputController.emptyMessage);
+                }
+                ensureConnectedFromHost = true;
+              }
             });
           }
           break;
@@ -807,8 +819,11 @@ class StreamingSession {
           if (WebrtcService.currentRenderingSession == this) {
             inputController?.handleCursorUpdate(message);
           }
+          break;
         case LP_DISCONNECT:
           close();
+          break;
+        case LP_EMPTY:
           break;
         default:
           VLOG0("unhandled message from host.please debug");
