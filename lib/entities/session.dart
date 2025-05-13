@@ -44,7 +44,7 @@ enum StreamingSessionConnectionState {
   answerSent,
   answerReceived,
   // TODO: use RTCPeerConnectionState instead.
-  connceting,
+  connecting,
   connected,
   disconnecting,
   disconnected,
@@ -132,7 +132,7 @@ class StreamingSession {
     await _lock.synchronized(() async {
       restartPingTimeoutTimer(10);
       controlled.connectionState.value =
-          StreamingSessionConnectionState.connceting;
+          StreamingSessionConnectionState.connecting;
 
       streamSettings = StreamedSettings.fromJson(StreamingSettings.toJson());
       connectionState = StreamingSessionConnectionState.requestSent;
@@ -141,7 +141,7 @@ class StreamingSession {
       pc!.onConnectionState = (state) {
         if (state == RTCPeerConnectionState.RTCPeerConnectionStateConnecting) {
           controlled.connectionState.value =
-              StreamingSessionConnectionState.connceting;
+              StreamingSessionConnectionState.connecting;
         }
         if (state == RTCPeerConnectionState.RTCPeerConnectionStateConnected) {
           //有些时候即使未能建立连接也报connected，因此依然需要pingpong message.
@@ -313,7 +313,7 @@ class StreamingSession {
     close();
   }
 
-  //accept request and send offer to the peer. you should verify this is authorized before calling this funciton.
+  //accept request and send offer to the peer. you should verify this is authorized before calling this function.
   //We are the 'controlled'.
   void acceptRequest(StreamedSettings settings) async {
     await _lock.synchronized(() async {
@@ -556,7 +556,7 @@ class StreamingSession {
     });
   }
 
-  void onAnswerReceived(Map<String, dynamic> anwser) async {
+  void onAnswerReceived(Map<String, dynamic> answer) async {
     if (connectionState == StreamingSessionConnectionState.disconnecting ||
         connectionState == StreamingSessionConnectionState.disconnected) {
       VLOG0("received answer on disconnection. Dropping");
@@ -564,7 +564,7 @@ class StreamingSession {
     }
     await _lock.synchronized(() async {
       await pc!.setRemoteDescription(
-          RTCSessionDescription(anwser['sdp'], anwser['type']));
+          RTCSessionDescription(answser['sdp'], anwser['type']));
     });
   }
 
@@ -580,7 +580,7 @@ class StreamingSession {
       RTCIceCandidate candidate = RTCIceCandidate(candidateMap['candidate'],
           candidateMap['sdpMid'], candidateMap['sdpMLineIndex']);
       if (pc == null) {
-        // This can not be triggered after adding lock. Keep this and We may resue this list in the future.
+        // This can not be triggered after adding lock. Keep this and We may reuse this list in the future.
         VLOG0("-----warning:this should not be triggered.");
         candidates.add(candidate);
       } else {
@@ -779,7 +779,7 @@ class StreamingSession {
           RTCIceCandidate candidate = RTCIceCandidate(candidateMap['candidate'],
               candidateMap['sdpMid'], candidateMap['sdpMLineIndex']);
           if (audioSession == null) {
-            VLOG0("bug!audiosession not created");
+            VLOG0("bug!audiSession not created");
           }
           audioSession?.addCandidate(candidate);
           break;
@@ -836,7 +836,7 @@ class StreamingSession {
           RTCIceCandidate candidate = RTCIceCandidate(candidateMap['candidate'],
               candidateMap['sdpMid'], candidateMap['sdpMLineIndex']);
           if (audioSession == null) {
-            VLOG0("bug2!audiosession not created");
+            VLOG0("bug2!audioSession not created");
           }
           audioSession?.addCandidate(candidate);
           break;
