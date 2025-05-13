@@ -779,7 +779,7 @@ class StreamingSession {
           RTCIceCandidate candidate = RTCIceCandidate(candidateMap['candidate'],
               candidateMap['sdpMid'], candidateMap['sdpMLineIndex']);
           if (audioSession == null) {
-            VLOG0("bug!audiSession not created");
+            VLOG0("bug!audioSession not created");
           }
           audioSession?.addCandidate(candidate);
           break;
