@@ -238,9 +238,9 @@ class AudioSession {
     channel.send(msg);
   }
 
-  void onAnswerReceived(Map<String, dynamic> anwser) async {
+  void onAnswerReceived(Map<String, dynamic> answer) async {
     await pc!.setRemoteDescription(
-        RTCSessionDescription(anwser['sdp'], anwser['type']));
+        RTCSessionDescription(anwser['sdp'], answer['type']));
   }
 
 /*
@@ -254,7 +254,7 @@ class AudioSession {
   Future<void> addCandidate(RTCIceCandidate candidate) async {
     await _lock.synchronized(() async {
       if (pc == null) {
-        // This can not be triggered if we await properly. Keep this and We may resue this list in the future.
+        // This can not be triggered if we await properly. Keep this and We may reuse this list in the future.
         VLOG0("-----warning:this should not be triggered.");
         candidates.add(candidate);
       } else {
