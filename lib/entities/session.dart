@@ -147,6 +147,7 @@ class StreamingSession {
           //有些时候即使未能建立连接也报connected，因此依然需要pingpong message.
           controlled.connectionState.value =
               StreamingSessionConnectionState.connected;
+          restartPingTimeoutTimer(40);
         } else if (state ==
             RTCPeerConnectionState.RTCPeerConnectionStateFailed) {
           controlled.connectionState.value =
@@ -416,6 +417,7 @@ class StreamingSession {
                 title: "${controller.nickname} (${controller.devicetype})的连接",
                 body: "${controller.devicename}连接到了本设备");
           }*/
+          restartPingTimeoutTimer(40);
           if (AppPlatform.isWindows) {
             //HardwareSimulator.showNotification(controller.nickname);
           }
@@ -710,11 +712,6 @@ class StreamingSession {
       channel?.send(RTCDataChannelMessage.fromBinary(buffer));
     }
   }
-  
-  // TODO: remove this when data channel bug is fixed.
-  // Sometimes message from host to client does not arrive in time.
-  // Send some empty packages to flush the connection.
-  bool ensureConnectedFromHost = false;
 
   void processDataChannelMessageFromClient(RTCDataChannelMessage message) {
     if (message.isBinary) {
@@ -728,13 +725,6 @@ class StreamingSession {
                   StreamingSessionConnectionState.disconnecting) return;
               channel?.send(RTCDataChannelMessage.fromBinary(
                   Uint8List.fromList([LP_PING, RP_PONG])));
-              if (!ensureConnectedFromHost) {
-                for (int i = 0;i < 20; i++) {
-                  //Flush the channel, just in case the message does not arrive in time.
-                  channel?.send(InputController.emptyMessage);
-                }
-                ensureConnectedFromHost = true;
-              }
             });
           }
           break;
