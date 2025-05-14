@@ -23,11 +23,15 @@ typedef CursorUpdatedCallback = void Function(MouseCursor newcursor);
 class InputController {
   static StreamSubscription<GamepadEvent>? _subscription;
 
-  static List<GamepadController> _gamepads = [];
-
-  final Map<String, bool> buttonInputs = {};
-
-  static void init() {
+  final Map<String, bool> buttonInputs = {}; 
+  
+  static void init() async {
+    var gamepads = await Gamepads.list();
+    if (gamepads.isNotEmpty && gamepads[0].name == "uinput-goodix") {
+      // For xiaomi, there is always a virtual uinput-goodix reported.
+      CGamepadController.ignore_first = true;
+    }
+    CGamepadController.gamepads = gamepads;
     _subscription = Gamepads.events.listen((event) {
       CGamepadController.onEvent(event);
       /* We can not implement by this way because the state is not updated yet when here is triggered.

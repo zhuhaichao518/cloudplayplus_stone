@@ -133,6 +133,21 @@ class CGamepadState {
 
     //SN30 pro
     "ellipsis.circle": XINPUT_GAMEPAD_BACK,
+
+    //Android
+    'KEYCODE_BUTTON_A': XINPUT_GAMEPAD_A,
+    'KEYCODE_BUTTON_B': XINPUT_GAMEPAD_B,
+    'KEYCODE_BUTTON_X': XINPUT_GAMEPAD_X,
+    'KEYCODE_BUTTON_Y': XINPUT_GAMEPAD_Y,
+    'KEYCODE_BUTTON_SELECT': XINPUT_GAMEPAD_BACK,
+    'KEYCODE_BUTTON_START': XINPUT_GAMEPAD_START,
+    'KEYCODE_BUTTON_THUMBL': XINPUT_GAMEPAD_LEFT_THUMB,
+    'KEYCODE_BUTTON_THUMBR': XINPUT_GAMEPAD_RIGHT_THUMB,
+    'KEYCODE_BUTTON_L1' : XINPUT_GAMEPAD_LEFT_SHOULDER,
+    'KEYCODE_BUTTON_R1' : XINPUT_GAMEPAD_RIGHT_SHOULDER,
+    'AXIS_HAT_X': XINPUT_GAMEPAD_DPAD_LEFT,
+    'AXIS_HAT_Y': XINPUT_GAMEPAD_DPAD_UP,
+    //'KEYCODE_BUTTON_MODE': 西瓜键
   };
 
   final Map<String, int> analogMapping = {
@@ -157,6 +172,16 @@ class CGamepadState {
     //Gamesir-X2
     'l2.rectangle.roundedtop': bLeftTrigger,
     'r2.rectangle.roundedtop': bRightTrigger,
+
+    //Android
+    'AXIS_Y': sThumbLY,
+    'AXIS_X': sThumbLX,
+    'AXIS_Z': sThumbRX,
+    'AXIS_RZ': sThumbRY,
+    'AXIS_BRAKE': bLeftTrigger,
+    'AXIS_LTRIGGER': bLeftTrigger,
+    'AXIS_GAS': bRightTrigger,
+    'AXIS_RTRIGGER': bRightTrigger,
   };
 
   /// Updates the state based on the given event.
@@ -195,7 +220,7 @@ class CGamepadState {
           // For Gamesir-X2 controller, buttons are reported as analogs.
           final mapped = buttonMapping[event.key];
           if (mapped != null) {
-            if (AppPlatform.isMacos || AppPlatform.isIOS) {
+            if (AppPlatform.isMacos || AppPlatform.isIOS || AppPlatform.isAndroid) {
               if (mapped == XINPUT_GAMEPAD_DPAD_LEFT) {
                 if (event.value == -1) {
                   buttonDown[XINPUT_GAMEPAD_DPAD_LEFT] = true;
@@ -237,7 +262,7 @@ class CGamepadState {
         }
         final mapped = buttonMapping[event.key];
         if (mapped != null) {
-          if (AppPlatform.isMacos || AppPlatform.isIOS) {
+          if (AppPlatform.isMacos || AppPlatform.isIOS || AppPlatform.isAndroid) {
             if (mapped == XINPUT_GAMEPAD_DPAD_LEFT) {
               if (event.value == -1) {
                 buttonDown[XINPUT_GAMEPAD_DPAD_LEFT] = true;
@@ -257,7 +282,15 @@ class CGamepadState {
                 buttonDown[XINPUT_GAMEPAD_DPAD_DOWN] = true;
               }
             } else {
-              buttonDown[mapped] = event.value != 0;
+              if (AppPlatform.isAndroid) {
+                if (buttonDown[mapped] == (event.value == 0)) {
+                  // no update. but android keeps triggering event.
+                  return false;
+                }
+                buttonDown[mapped] = event.value == 0;
+              } else {
+                buttonDown[mapped] = event.value != 0;
+              }
             }
           } else {
             buttonDown[mapped] = event.value != 0;
@@ -283,7 +316,8 @@ class CGamepadState {
 
 class CGamepadController {
   static Map<String, CGamepadState> gamepadstates = {};
-
+  static bool ignore_first = false;
+  static List<GamepadController> gamepads = [];
   static void onEvent(GamepadEvent event) {
     CGamepadState state;
     if (!gamepadstates.containsKey(event.gamepadId)) {
@@ -291,8 +325,22 @@ class CGamepadController {
     }
     state = gamepadstates[event.gamepadId]!;
     if (state.update(event)) {
-      WebrtcService.currentRenderingSession?.inputController
-          ?.requestGamePadEvent(event.gamepadId, state.getStateString());
+      if (AppPlatform.isAndroid) {
+        int realId = 0;
+        for (int i = 0; i< gamepads.length;i++){
+          if (gamepads[i].id == event.gamepadId) {
+            realId = i;
+            if (ignore_first && i > 0) {
+              realId--;
+            }
+          }
+        }
+        WebrtcService.currentRenderingSession?.inputController
+            ?.requestGamePadEvent(realId.toString(), state.getStateString());     
+      } else {
+        WebrtcService.currentRenderingSession?.inputController
+            ?.requestGamePadEvent(event.gamepadId, state.getStateString());
+      }
     }
     //VLOG0(state.getStateString());
   }

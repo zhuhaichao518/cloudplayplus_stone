@@ -468,10 +468,9 @@ packages:
   gamepads_android:
     dependency: transitive
     description:
-      name: gamepads_android
-      sha256: "2e793ef0e841326666c008b4a29faf2582166838988ba7df99d82ed0abae3326"
-      url: "https://pub.dev"
-    source: hosted
+      path: "plugins/flutter_gamecontroller/packages/gamepads_android"
+      relative: true
+    source: path
     version: "0.1.2+2"
   gamepads_darwin:
     dependency: transitive
