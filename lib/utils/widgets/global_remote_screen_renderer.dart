@@ -17,6 +17,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
+import 'package:wakelock_plus/wakelock_plus.dart';
 
 import '../../controller/hardware_input_controller.dart';
 import '../../controller/platform_key_map.dart';
@@ -247,6 +248,7 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
       }
     };
     ControlManager().addEventListener(_handleControlEvent);
+    WakelockPlus.enable();
   }
 
   @override
@@ -589,6 +591,7 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
   void dispose() {
     aspectRatioNotifier.dispose(); // 销毁时清理 ValueNotifier
     ControlManager().removeEventListener(_handleControlEvent);
+    WakelockPlus.enable();
     super.dispose();
   }
 }

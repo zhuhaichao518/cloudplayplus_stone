@@ -23,7 +23,7 @@ class _ReconnectScreenState extends State<ReconnectScreen> {
   bool _isCancelled = false;
   bool _reconnectSuccess = false;
   int _retryCount = 1;
-  static const int maxRetries = 5;
+  static const int maxRetries = 99999;
 
   @override
   void initState() {
@@ -83,7 +83,7 @@ class _ReconnectScreenState extends State<ReconnectScreen> {
       });
     } else if (!_isCancelled) {
       setState(() {
-        _secondsRemaining = 10;
+        _secondsRemaining = 10 + _retryCount;
       });
       _startTimer();
     }

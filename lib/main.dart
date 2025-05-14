@@ -4,6 +4,7 @@ import 'package:cloudplayplus/controller/hardware_input_controller.dart';
 import 'package:cloudplayplus/services/app_init_service.dart';
 import 'package:cloudplayplus/utils/system_tray_manager.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'package:hardware_simulator/hardware_simulator.dart';
 import 'package:provider/provider.dart';
@@ -21,10 +22,22 @@ import 'package:flutter_web_plugins/url_strategy.dart';
 
 import 'utils/widgets/virtual_gamepad/control_manager.dart';
 
+void _handleSystemUiChange() {
+  SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive);
+}
+
 /// Performs one-time setup of audio routing for Web RTC calls
 Future<void> initializeWebRtcAudio() async {
   // must be called first
   if (AppPlatform.isAndroid) {
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive);
+    SystemChrome.setSystemUIChangeCallback((systemOverlaysAreVisible) async {
+      if (systemOverlaysAreVisible) {
+        // 用户手动显示系统UI后，延迟1秒重新隐藏
+        Future.delayed(const Duration(seconds: 1), _handleSystemUiChange);
+      }
+      return;
+    });
     await _initializeAndroidWebRtcAudio();
   }
   if (AppPlatform.isIOS) {
