@@ -116,6 +116,12 @@ class CGamepadState {
     'b.circle': XINPUT_GAMEPAD_B,
     'x.circle': XINPUT_GAMEPAD_X,
     'y.circle': XINPUT_GAMEPAD_Y,
+    'xmark.circle': XINPUT_GAMEPAD_A,
+    'circle.circle': XINPUT_GAMEPAD_B,
+    'square.circle': XINPUT_GAMEPAD_X,
+    'triangle.circle': XINPUT_GAMEPAD_Y,
+    'plus.rectangle': XINPUT_GAMEPAD_BACK,
+    'capsule.portrait': XINPUT_GAMEPAD_START,
     'lb.rectangle.roundedbottom': XINPUT_GAMEPAD_LEFT_SHOULDER,
     'rb.rectangle.roundedbottom': XINPUT_GAMEPAD_RIGHT_SHOULDER,
     'rectangle.fill.on.rectangle.fill.circle': XINPUT_GAMEPAD_BACK,
@@ -310,6 +316,7 @@ class CGamepadState {
         }
         break;
     }
+    //TODO: 应该return false, 前面有update的分支return true，需要详细测试
     return true;
   }
 }
