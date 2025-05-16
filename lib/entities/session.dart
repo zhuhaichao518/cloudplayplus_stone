@@ -893,5 +893,9 @@ class _AppLifecycleObserver extends WidgetsBindingObserver {
       SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive);
       onResume?.call();
     }
+    // IOS does not allow websocket from background. Reconnect on Resume.
+    if (AppPlatform.isIOS && WebSocketService.connectionState == WebSocketConnectionState.disconnected){
+      WebSocketService.reconnect();
+    }
   }
 }
