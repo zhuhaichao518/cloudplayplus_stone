@@ -246,8 +246,7 @@ class _DeviceDetailPageState extends State<DeviceDetailPage> {
                       children: [
                         Row(
                           children: [
-                            Icon(Icons.devices,
-                                size: 24, color: _iconColor),
+                            Icon(Icons.devices, size: 24, color: _iconColor),
                             const SizedBox(width: 8),
                             Expanded(
                               child: Column(
@@ -318,8 +317,7 @@ class _DeviceDetailPageState extends State<DeviceDetailPage> {
                         const SizedBox(height: 16),
                         Row(
                           children: [
-                            Icon(Icons.computer,
-                                size: 24, color: _iconColor),
+                            Icon(Icons.computer, size: 24, color: _iconColor),
                             const SizedBox(width: 8),
                             Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -406,22 +404,23 @@ class _DeviceDetailPageState extends State<DeviceDetailPage> {
                                   style: TextStyle(fontSize: 16)),
                             ),
                           ),
-                          if (widget.device.devicetype == 'Windows') const SizedBox(height: 12),
-                          if (widget.device.devicetype == 'Windows') SizedBox(
-                            width: double.infinity,
-                            child: ElevatedButton(
-                              onPressed: () => _restartDevice(context),
-                              style: ElevatedButton.styleFrom(
-                                padding:
-                                    const EdgeInsets.symmetric(vertical: 12),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                              ),
-                              child: const Text('重启服务',
-                                  style: TextStyle(fontSize: 16)),
-                            )
-                          )
+                          if (widget.device.devicetype == 'Windows')
+                            const SizedBox(height: 12),
+                          if (widget.device.devicetype == 'Windows')
+                            SizedBox(
+                                width: double.infinity,
+                                child: ElevatedButton(
+                                  onPressed: () => _restartDevice(context),
+                                  style: ElevatedButton.styleFrom(
+                                    padding: const EdgeInsets.symmetric(
+                                        vertical: 12),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                  ),
+                                  child: const Text('重启服务',
+                                      style: TextStyle(fontSize: 16)),
+                                ))
                         ],
                       ),
                     ),
@@ -532,8 +531,7 @@ class _DeviceDetailPageState extends State<DeviceDetailPage> {
                         children: [
                           Row(
                             children: [
-                              Icon(Icons.security,
-                                  size: 24, color: _iconColor),
+                              Icon(Icons.security, size: 24, color: _iconColor),
                               const SizedBox(width: 8),
                               const Text(
                                 "设备连接权限",

@@ -90,7 +90,7 @@ class LoginService {
       if (responseBody != null && responseBody.containsKey('access')) {
         return responseBody['access'];
       }
-    } else if (response.statusCode == 400){
+    } else if (response.statusCode == 400) {
       return "invalid refresh token";
     }
 

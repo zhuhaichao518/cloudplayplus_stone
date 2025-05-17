@@ -149,8 +149,8 @@ class CGamepadState {
     'KEYCODE_BUTTON_START': XINPUT_GAMEPAD_START,
     'KEYCODE_BUTTON_THUMBL': XINPUT_GAMEPAD_LEFT_THUMB,
     'KEYCODE_BUTTON_THUMBR': XINPUT_GAMEPAD_RIGHT_THUMB,
-    'KEYCODE_BUTTON_L1' : XINPUT_GAMEPAD_LEFT_SHOULDER,
-    'KEYCODE_BUTTON_R1' : XINPUT_GAMEPAD_RIGHT_SHOULDER,
+    'KEYCODE_BUTTON_L1': XINPUT_GAMEPAD_LEFT_SHOULDER,
+    'KEYCODE_BUTTON_R1': XINPUT_GAMEPAD_RIGHT_SHOULDER,
     'AXIS_HAT_X': XINPUT_GAMEPAD_DPAD_LEFT,
     'AXIS_HAT_Y': XINPUT_GAMEPAD_DPAD_UP,
     //'KEYCODE_BUTTON_MODE': 西瓜键
@@ -226,7 +226,9 @@ class CGamepadState {
           // For Gamesir-X2 controller, buttons are reported as analogs.
           final mapped = buttonMapping[event.key];
           if (mapped != null) {
-            if (AppPlatform.isMacos || AppPlatform.isIOS || AppPlatform.isAndroid) {
+            if (AppPlatform.isMacos ||
+                AppPlatform.isIOS ||
+                AppPlatform.isAndroid) {
               if (mapped == XINPUT_GAMEPAD_DPAD_LEFT) {
                 if (event.value == -1) {
                   buttonDown[XINPUT_GAMEPAD_DPAD_LEFT] = true;
@@ -268,7 +270,9 @@ class CGamepadState {
         }
         final mapped = buttonMapping[event.key];
         if (mapped != null) {
-          if (AppPlatform.isMacos || AppPlatform.isIOS || AppPlatform.isAndroid) {
+          if (AppPlatform.isMacos ||
+              AppPlatform.isIOS ||
+              AppPlatform.isAndroid) {
             if (mapped == XINPUT_GAMEPAD_DPAD_LEFT) {
               if (event.value == -1) {
                 buttonDown[XINPUT_GAMEPAD_DPAD_LEFT] = true;
@@ -334,7 +338,7 @@ class CGamepadController {
     if (state.update(event)) {
       if (AppPlatform.isAndroid) {
         int realId = 0;
-        for (int i = 0; i< gamepads.length;i++){
+        for (int i = 0; i < gamepads.length; i++) {
           if (gamepads[i].id == event.gamepadId) {
             realId = i;
             if (ignore_first && i > 0) {
@@ -343,7 +347,7 @@ class CGamepadController {
           }
         }
         WebrtcService.currentRenderingSession?.inputController
-            ?.requestGamePadEvent(realId.toString(), state.getStateString());     
+            ?.requestGamePadEvent(realId.toString(), state.getStateString());
       } else {
         WebrtcService.currentRenderingSession?.inputController
             ?.requestGamePadEvent(event.gamepadId, state.getStateString());

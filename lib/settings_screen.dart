@@ -73,17 +73,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 },
               ),
               //if (!AppPlatform.isMobile)
-                SettingsTile.navigation(
-                  leading: const Icon(Icons.mouse),
-                  title: const Text('键鼠设置'),
-                  onPressed: (context) {
-                    Navigation.navigateTo(
-                      context: context,
-                      screen: const CursorSettingsScreen(),
-                      style: NavigationRouteStyle.cupertino,
-                    );
-                  },
-                ),
+              SettingsTile.navigation(
+                leading: const Icon(Icons.mouse),
+                title: const Text('键鼠设置'),
+                onPressed: (context) {
+                  Navigation.navigateTo(
+                    context: context,
+                    screen: const CursorSettingsScreen(),
+                    style: NavigationRouteStyle.cupertino,
+                  );
+                },
+              ),
               SettingsTile.navigation(
                 leading: const Icon(Icons.gamepad),
                 title: const Text('屏幕手柄设置'),
@@ -113,6 +113,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     themeProvider.setStreamingMode(0);
                     SharedPreferencesManager.setInt('ControlMsgResendCount', 2);
                     InputController.resendCount = 2;
+                    StreamingSettings.autoHideLocalCursor = false;
+                    SharedPreferencesManager.setBool(
+                        "autoHideLocalCursor", false);
                   });
                 },
               ),
@@ -127,6 +130,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     themeProvider.setStreamingMode(1);
                     SharedPreferencesManager.setInt('ControlMsgResendCount', 6);
                     InputController.resendCount = 6;
+                    StreamingSettings.autoHideLocalCursor = true;
+                    SharedPreferencesManager.setBool(
+                        "autoHideLocalCursor", true);
                   });
                 },
               ),
@@ -590,7 +596,7 @@ class _NetworkSettingsScreenState extends State<NetworkSettingsScreen> {
   String customTurnServerAddress = "";
   String customTurnServerUsername = "";
   String customTurnServerPassword = "";
-  
+
   //Turn server info
   late TextEditingController _addressController;
   late TextEditingController _usernameController;
@@ -715,9 +721,9 @@ class _NetworkSettingsScreenState extends State<NetworkSettingsScreen> {
                   initialValue: useTurnServer,
                   onToggle: (bool value) {
                     setState(() {
-                      //默认关着 就不持久化了
                       useTurnServer = value;
                       StreamingSettings.useTurnServer = value;
+                      SharedPreferencesManager.setBool('useTurnServer', value);
                     });
                   },
                 ),
@@ -772,12 +778,18 @@ class _NetworkSettingsScreenState extends State<NetworkSettingsScreen> {
                               onPressed: () {
                                 // Update the values when the user presses the save button
                                 setState(() {
-                                  customTurnServerAddress = _addressController.text.trim();
-                                  customTurnServerUsername = _usernameController.text.trim();
-                                  customTurnServerPassword = _passwordController.text.trim();
-                                  StreamingSettings.customTurnServerAddress = customTurnServerAddress;
-                                  StreamingSettings.customTurnServerUsername = customTurnServerUsername;
-                                  StreamingSettings.customTurnServerPassword = customTurnServerPassword;
+                                  customTurnServerAddress =
+                                      _addressController.text.trim();
+                                  customTurnServerUsername =
+                                      _usernameController.text.trim();
+                                  customTurnServerPassword =
+                                      _passwordController.text.trim();
+                                  StreamingSettings.customTurnServerAddress =
+                                      customTurnServerAddress;
+                                  StreamingSettings.customTurnServerUsername =
+                                      customTurnServerUsername;
+                                  StreamingSettings.customTurnServerPassword =
+                                      customTurnServerPassword;
                                   SharedPreferencesManager.setString(
                                       'customTurnServerAddress',
                                       customTurnServerAddress);
@@ -918,8 +930,7 @@ class _CursorSettingsScreenState extends State<CursorSettingsScreen> {
                   onToggle: (bool value) {
                     setState(() {
                       _switchCmdCtrl = value;
-                      SharedPreferencesManager.setBool(
-                          'switchCmdCtrl', value);
+                      SharedPreferencesManager.setBool('switchCmdCtrl', value);
                       StreamingSettings.switchCmdCtrl = value;
                     });
                   },

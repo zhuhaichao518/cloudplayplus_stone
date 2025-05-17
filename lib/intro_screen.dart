@@ -97,9 +97,8 @@ class _IntroScreenState extends State<IntroScreen> {
                         Icons.apple, // This is the icon for macOS and iOS
                         size: 43.0,
                       ),
-                      if (!AppPlatform.isIOS) 
-                        const SizedBox(width: 8.0),
-                      if (!AppPlatform.isIOS) 
+                      if (!AppPlatform.isIOS) const SizedBox(width: 8.0),
+                      if (!AppPlatform.isIOS)
                         const Icon(
                           Icons.android,
                           size: 43.0,

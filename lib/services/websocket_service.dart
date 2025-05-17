@@ -31,7 +31,7 @@ enum WebSocketConnectionState {
 class WebSocketService {
   static SimpleWebSocket? _socket;
   static String _baseUrl = 'wss://www.cloudplayplus.com/ws/';
-  static Timer? _reconnectTimer;  // 添加定时器变量
+  static Timer? _reconnectTimer; // 添加定时器变量
 
   static const JsonEncoder _encoder = JsonEncoder();
   static const JsonDecoder _decoder = JsonDecoder();
@@ -87,7 +87,7 @@ class WebSocketService {
         }
         refreshToken_invalid_ = false;
         accessToken = newAccessToken;
-      } else if (newAccessToken == "invalid refresh token"){
+      } else if (newAccessToken == "invalid refresh token") {
         refreshToken_invalid_ = true;
         return;
       } else {
@@ -111,7 +111,8 @@ class WebSocketService {
       if (should_be_connected) {
         // 确保旧的定时器被清理
         _reconnectTimer?.cancel();
-        _reconnectTimer = Timer.periodic(const Duration(seconds: 30), (Timer timer) async {
+        _reconnectTimer =
+            Timer.periodic(const Duration(seconds: 30), (Timer timer) async {
           // 检查是否已经连接成功，如果是，则取消定时器
           if (connectionState == WebSocketConnectionState.connected) {
             timer.cancel();
@@ -203,8 +204,10 @@ class WebSocketService {
       case 'restartRequested':
         {
           if (StreamingSettings.connectPasswordHash ==
-            HashUtil.hash(data['password']) && AppPlatform.isWindows && ApplicationInfo.isSystem) {
-             SystemTrayManager().restart();
+                  HashUtil.hash(data['password']) &&
+              AppPlatform.isWindows &&
+              ApplicationInfo.isSystem) {
+            SystemTrayManager().restart();
           }
         }
       case 'offer':

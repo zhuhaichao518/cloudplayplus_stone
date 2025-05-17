@@ -23,8 +23,8 @@ typedef CursorUpdatedCallback = void Function(MouseCursor newcursor);
 class InputController {
   static StreamSubscription<GamepadEvent>? _subscription;
 
-  final Map<String, bool> buttonInputs = {}; 
-  
+  final Map<String, bool> buttonInputs = {};
+
   static void init() async {
     var gamepads = await Gamepads.list();
     if (gamepads.isNotEmpty && gamepads[0].name == "uinput-goodix") {
@@ -239,7 +239,7 @@ class InputController {
     dx ??= 0;
     dy ??= 0;
     if (StreamingSettings.revertCursorWheel) {
-      dy = - dy;
+      dy = -dy;
     }
     // 创建一个 ByteData 足够存储 LP_MOUSEBUTTON, buttonId, isDown
     ByteData byteData = ByteData(9);
@@ -284,7 +284,7 @@ class InputController {
 
     // 发送消息
     channel.send(RTCDataChannelMessage.fromBinary(buffer));
-    
+
     // 保证触摸按下能立即发送到
     if (sendEmptyPacket) {
       for (int i = 0; i < resendCount; i++) {
@@ -300,7 +300,7 @@ class InputController {
     double x = byteData.getFloat32(2, Endian.little);
     double y = byteData.getFloat32(6, Endian.little);
     int id = byteData.getInt32(10, Endian.little);
-    bool isDown = byteData.getUint8(14) == 1; 
+    bool isDown = byteData.getUint8(14) == 1;
 
     HardwareSimulator.performTouchEvent(x, y, id, isDown, screenId);
   }
@@ -320,7 +320,7 @@ class InputController {
 
     // 保证鼠标按下能立即发送到
     if (sendEmptyPacket) {
-      for (int i = 0; i < resendCount/2; i++) {
+      for (int i = 0; i < resendCount / 2; i++) {
         channel.send(emptyMessage);
       }
     }

@@ -843,7 +843,8 @@ class _ControlManagementScreenState extends State<ControlManagementScreen> {
                 children: [
                   TextButton(
                     onPressed: () {
-                      Clipboard.setData(ClipboardData(text: exportController.text));
+                      Clipboard.setData(
+                          ClipboardData(text: exportController.text));
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(content: Text('已复制导出内容到剪贴板')),
                       );

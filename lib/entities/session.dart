@@ -336,7 +336,7 @@ class StreamingSession {
       streamSettings = settings;
 
       pc = await createRTCPeerConnection();
-      
+
       screenId = settings.screenId!;
 
       if (StreamedManager.localVideoStreams[settings.screenId] != null) {
@@ -381,7 +381,7 @@ class StreamingSession {
         }
       }
       */
-      
+
       /* 为什么这里进不来？
       pc!.onDataChannel = (newchannel) async {
         if (settings.useClipBoard == true){
@@ -422,7 +422,7 @@ class StreamingSession {
             //HardwareSimulator.showNotification(controller.nickname);
           }
           if (settings.useClipBoard == true) {
-              startClipboardSync();
+            startClipboardSync();
           }
         } else if (state ==
             RTCPeerConnectionState.RTCPeerConnectionStateFailed) {
@@ -596,7 +596,7 @@ class StreamingSession {
       Function(String mediatype, MediaStream stream)? callback) {
     onAddRemoteStream = callback;
   }
-  
+
   bool isClosing_ = false;
 
   void close() {
@@ -676,7 +676,7 @@ class StreamingSession {
           }
         }
       }
-      
+
       // 清理生命周期监听器
       WidgetsBinding.instance.removeObserver(_lifecycleObserver);
     });
@@ -846,10 +846,12 @@ class StreamingSession {
 
   void startClipboardSync() {
     if (_clipboardTimer != null) return;
-    
-    if (AppPlatform.isDeskTop && selfSessionType == SelfSessionType.controlled) {
+
+    if (AppPlatform.isDeskTop &&
+        selfSessionType == SelfSessionType.controlled) {
       // 桌面端保持每秒检查一次
-      _clipboardTimer = Timer.periodic(const Duration(seconds: 1), (timer) async {
+      _clipboardTimer =
+          Timer.periodic(const Duration(seconds: 1), (timer) async {
         await _syncClipboard();
       });
     } else {
@@ -863,14 +865,13 @@ class StreamingSession {
   Future<void> _syncClipboard() async {
     final clipboardData = await Clipboard.getData(Clipboard.kTextPlain);
     final currentContent = clipboardData?.text ?? '';
-    
+
     if (currentContent != _lastClipboardContent) {
       _lastClipboardContent = currentContent;
       // 发送剪贴板内容到对端
-      if (channel != null && channel?.state == RTCDataChannelState.RTCDataChannelOpen) {
-        final message = {
-          'clipboard': currentContent
-        };
+      if (channel != null &&
+          channel?.state == RTCDataChannelState.RTCDataChannelOpen) {
+        final message = {'clipboard': currentContent};
         channel?.send(RTCDataChannelMessage(jsonEncode(message)));
       }
     }
@@ -894,7 +895,9 @@ class _AppLifecycleObserver extends WidgetsBindingObserver {
       onResume?.call();
     }
     // IOS does not allow websocket from background. Reconnect on Resume.
-    if (AppPlatform.isIOS && WebSocketService.connectionState == WebSocketConnectionState.disconnected){
+    if (AppPlatform.isIOS &&
+        WebSocketService.connectionState ==
+            WebSocketConnectionState.disconnected) {
       WebSocketService.reconnect();
     }
   }

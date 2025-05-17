@@ -43,7 +43,7 @@ class StreamingSettings {
   static bool switchCmdCtrl = false;
 
   static bool useClipBoard = true;
-  
+
   //if input is touch, then simulate touch on target device.
   static bool useTouchForTouch = true;
 
@@ -76,6 +76,7 @@ class StreamingSettings {
     turnServerPassword =
         SharedPreferencesManager.getString('turnServerPassword') ??
             ''; // Default to empty string*/
+    useTurnServer = SharedPreferencesManager.getBool('useTurnServer') ?? false;
     customTurnServerAddress =
         SharedPreferencesManager.getString('customTurnServerAddress') ??
             'turn:106.14.91.137:3478';
@@ -96,12 +97,15 @@ class StreamingSettings {
     revertCursorWheel = SharedPreferencesManager.getBool('revertCursorWheel') ??
         (!AppPlatform.isMacos);
 
-    autoHideLocalCursor = SharedPreferencesManager.getBool('autoHideCursor') ??
-        (AppPlatform.isDeskTop || AppPlatform.isWeb);
+    autoHideLocalCursor =
+        SharedPreferencesManager.getBool('autoHideLocalCursor') ??
+            (AppPlatform.isDeskTop || AppPlatform.isWeb);
 
-    switchCmdCtrl = SharedPreferencesManager.getBool('switchCmdCtrl') ?? AppPlatform.isMacos;
+    switchCmdCtrl = SharedPreferencesManager.getBool('switchCmdCtrl') ??
+        AppPlatform.isMacos;
 
-    useTouchForTouch = SharedPreferencesManager.getBool('useTouchForTouch') ?? true;
+    useTouchForTouch =
+        SharedPreferencesManager.getBool('useTouchForTouch') ?? true;
 
     if (AppPlatform.isDeskTop) {
       useClipBoard = SharedPreferencesManager.getBool('useClipBoard') ?? true;

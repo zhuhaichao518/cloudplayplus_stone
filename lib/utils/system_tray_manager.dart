@@ -82,7 +82,9 @@ class SystemTrayManager {
     switch (eventName) {
       case kSystemTrayEventClick:
         //Windows左键也弹出吧
-        Platform.isWindows ? _systemTray.popUpContextMenu() : _systemTray.popUpContextMenu();
+        Platform.isWindows
+            ? _systemTray.popUpContextMenu()
+            : _systemTray.popUpContextMenu();
         break;
       case kSystemTrayEventRightClick:
         Platform.isWindows ? _systemTray.popUpContextMenu() : showWindow();

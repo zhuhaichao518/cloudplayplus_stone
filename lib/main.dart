@@ -58,8 +58,7 @@ Future<void> _initializeAndroidWebRtcAudio() async {
     androidAudioMode: AndroidAudioMode.normal,
     androidAudioFocusMode: AndroidAudioFocusMode.gain,
     androidAudioStreamType: AndroidAudioStreamType.music,
-    androidAudioAttributesUsageType:
-    AndroidAudioAttributesUsageType.media,
+    androidAudioAttributesUsageType: AndroidAudioAttributesUsageType.media,
     androidAudioAttributesContentType: AndroidAudioAttributesContentType.speech,
   );
   WebRTC.initialize(
@@ -90,8 +89,7 @@ Future<void> _initializeAppleWebRtcAudio() async {
       appleAudioCategoryOptions: {
         AppleAudioCategoryOption.mixWithOthers,
       },
-      appleAudioMode: AppleAudioMode.default_
-  ));
+      appleAudioMode: AppleAudioMode.default_));
 }
 
 void main() async {
@@ -109,7 +107,7 @@ void main() async {
       exit(0);
     }
   }
-  
+
   // Maybe We can run without await
   await initializeWebRtcAudio();
 
