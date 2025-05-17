@@ -3,7 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'webrtc_initializer.dart';
 
-class WebRTCInitializerNative implements WebRTCInitializer {
+class WebRTCInitializerPlatForm implements WebRTCInitializer {
   void _handleSystemUiChange() {
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive);
   }
