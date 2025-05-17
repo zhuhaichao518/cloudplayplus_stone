@@ -27,6 +27,7 @@ class ApplicationInfo {
       return deviceNameOverride!;
     }
     if (AppPlatform.isWeb) {
+      // \u4E91\u73A9\u52A0\u7F51\u9875\u7AEF
       return '云玩加网页端';
     }
     if (AppPlatform.isIOS) {

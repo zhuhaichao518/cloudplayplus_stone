@@ -88,9 +88,9 @@ class InputController {
   static RTCDataChannelMessage emptyMessage =
       RTCDataChannelMessage.fromBinary(Uint8List.fromList([LP_EMPTY]));
 
-  void requestMoveMouseAbsl(double x, double y, int screenId) async {
-    // user cursor moved out of scope
-    if (screenId == -1) {
+  void requestMoveMouseAbsl(double x, double y, int tempScreenId) async {
+    // Cursor moved out of scope when tempScreenId = -1
+    if (tempScreenId == -1) {
       x = lastx;
       y = lasty;
       bool shouldSend = false;
