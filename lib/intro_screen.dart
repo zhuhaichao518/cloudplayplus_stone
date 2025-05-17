@@ -163,8 +163,12 @@ class _IntroScreenState extends State<IntroScreen> {
                           'streamingMode', _streamingmode);
                       themeProvider.setStreamingMode(_streamingmode);
                       if (_streamingmode == 0) {
+                        SharedPreferencesManager.setBool(
+                          "autoHideLocalCursor", false);
                         _themeColor = Colors.blue;
                       } else {
+                        SharedPreferencesManager.setBool(
+                          "autoHideLocalCursor", true);
                         _themeColor = const Color.fromARGB(255, 239, 84, 11);
                       }
                     });
