@@ -26,6 +26,8 @@ class InputController {
   final Map<String, bool> buttonInputs = {};
 
   static void init() async {
+    // We don't use Gamepads for windows.
+    if (AppPlatform.isWindows) return;
     var gamepads = await Gamepads.list();
     if (gamepads.isNotEmpty && gamepads[0].name == "uinput-goodix") {
       // For xiaomi, there is always a virtual uinput-goodix reported.
