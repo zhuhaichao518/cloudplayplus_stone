@@ -229,7 +229,8 @@ class StreamingSession {
               await channel?.send(RTCDataChannelMessage.fromBinary(
                   Uint8List.fromList([LP_PING, RP_PING])));
               if (StreamingSettings.streamAudio!) {
-                audioSession = AudioSession(channel!, controller, controlled);
+                StreamingSettings.audioBitrate ??= 128;
+                audioSession = AudioSession(channel!, controller, controlled, StreamingSettings.audioBitrate!);
                 await audioSession!.requestAudio();
               }
             }
@@ -755,7 +756,7 @@ class StreamingSession {
         case LP_EMPTY:
           break;
         case LP_AUDIO_CONNECT:
-          audioSession = AudioSession(channel!, controller, controlled);
+          audioSession = AudioSession(channel!, controller, controlled, 128);
           audioSession?.audioRequested();
           break;
         default:

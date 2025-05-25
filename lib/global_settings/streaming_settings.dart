@@ -20,6 +20,7 @@ var cloudPlayPlusStun = {
 class StreamingSettings {
   static int? framerate;
   static int? bitrate;
+  static int? audioBitrate;
   //the remote peer will render the cursor.
   static bool? showRemoteCursor;
 
@@ -55,6 +56,8 @@ class StreamingSettings {
         SharedPreferencesManager.getInt('framerate') ?? 60; // Default to 60
     bitrate =
         SharedPreferencesManager.getInt('bitrate') ?? 80000; // Default to 80000
+    audioBitrate =
+        SharedPreferencesManager.getInt('audioBitRate') ?? 128; // Default to 128 kbps
     showRemoteCursor = SharedPreferencesManager.getBool('renderRemoteCursor') ??
         false; // Default to false
     streamAudio = SharedPreferencesManager.getBool('haveAudio') ??
@@ -123,6 +126,7 @@ class StreamingSettings {
     Map<String, dynamic> data = {
       'framerate': framerate,
       'bitrate': bitrate,
+      'audioBitrate': audioBitrate,
       'showRemoteCursor': showRemoteCursor,
       'streamAudio': streamAudio,
       /*'turnServerSettings': turnServerSettings,
@@ -144,6 +148,7 @@ class StreamingSettings {
 class StreamedSettings {
   int? framerate;
   int? bitrate;
+  int? audioBitrate;
   //the remote peer will render the cursor.
   bool? showRemoteCursor;
 
@@ -163,17 +168,14 @@ class StreamedSettings {
   //设备的连接密码
   String? connectPassword = "";
   bool? useClipBoard;
+
   static StreamedSettings fromJson(Map<String, dynamic> settings) {
     return StreamedSettings()
       ..framerate = settings['framerate'] as int?
       ..bitrate = settings['bitrate'] as int?
+      ..audioBitrate = settings['audioBitrate'] as int?
       ..showRemoteCursor = settings['showRemoteCursor'] as bool?
       ..streamAudio = settings['streamAudio'] as bool?
-      /*..turnServerSettings = settings['turnServerSettings'] as int?
-      ..useCustomTurnServer = settings['useCustomTurnServer'] as bool?
-      ..turnServerAddress = settings['customTurnServerAddress'] as String?
-      ..turnServerUsername = settings['turnServerUsername'] as String?
-      ..turnServerPassword = settings['turnServerPassword'] as String?*/
       ..screenId = settings['targetScreenId'] as int?
       ..codec = settings['codec'] as String?
       ..hookCursorImage = settings['hookCursorImage'] as bool?

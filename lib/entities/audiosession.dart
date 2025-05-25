@@ -24,6 +24,8 @@ class AudioSession {
 
   Device controller, controlled;
 
+  int bitrate = 128;
+
   Future<RTCPeerConnection> createRTCPeerConnection() async {
     Map<String, dynamic> iceServers;
 
@@ -60,7 +62,7 @@ class AudioSession {
     }, config);
   }
 
-  AudioSession(this.channel, this.controller, this.controlled);
+  AudioSession(this.channel, this.controller, this.controlled, this.bitrate);
 
   //client
   Future<void> requestAudio() async {
@@ -119,6 +121,21 @@ class AudioSession {
             }
           : false,
     };
+  }
+
+  RTCSessionDescription _fixSdp(RTCSessionDescription s) {
+    var sdp = s.sdp;
+    if (sdp == null) return s;
+    // 添加 maxplaybackrate 参数来设置采样率
+    // https://juejin.cn/post/6844904147624394760
+    RegExp exp = RegExp(r"^a=fmtp.*$", multiLine: true);
+    String appendStr = ";stereo=1;maxaveragebitrate=${bitrate*1000};maxplaybackrate=48000";
+    //String appendStr = ";maxplaybackrate=$bitrate";
+    sdp = sdp.replaceAllMapped(exp, (match) {
+      return match.group(0)! + appendStr;
+    });
+    s.sdp = sdp;
+    return s;
   }
 
   //host
@@ -203,7 +220,7 @@ class AudioSession {
     };
 
     RTCSessionDescription sdp = await pc!.createOffer(oaConstraints);
-
+    sdp = _fixSdp(sdp);
     await pc!.setLocalDescription(sdp);
 
     Map<String, dynamic> mapData = {
@@ -225,7 +242,8 @@ class AudioSession {
       'optional': [],
     };
     RTCSessionDescription sdp = await pc!.createAnswer(oaConstraints);
-
+    //No need to fix sdp for the controller side.
+    //sdp = _fixSdp(sdp);
     await pc!.setLocalDescription(sdp);
     while (candidates.isNotEmpty) {
       await pc!.addCandidate(candidates[0]);
@@ -243,14 +261,6 @@ class AudioSession {
         RTCSessionDescription(anwser['sdp'], anwser['type']));
   }
 
-/*
-  RTCSessionDescription _fixSdp(RTCSessionDescription s) {
-    var sdp = s.sdp;
-    sdp = sdp!.replaceAll('profile-level-id=640c1f', 'profile-level-id=42e032');
-    s.sdp = sdp;
-    return s;
-  }
-*/
   Future<void> addCandidate(RTCIceCandidate candidate) async {
     await _lock.synchronized(() async {
       if (pc == null) {

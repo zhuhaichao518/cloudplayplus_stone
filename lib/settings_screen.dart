@@ -319,7 +319,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
           SettingsSection(title: const Text('版本号'), tiles: <SettingsTile>[
             SettingsTile(
-              title: const Text('1.0.4'),
+              title: const Text('1.0.5'),
               leading: const Icon(Icons.sunny),
             ),
             if (AppPlatform.isAndroid || AppPlatform.isIOS)
@@ -345,6 +345,7 @@ class _StreamingSettingsScreen extends State<StreamingSettingsScreen> {
   bool _haveAudio = true;
   bool _useClipBoard = true;
   int _bitrate = 80000;
+  int _audioBitrate = 128;
   int _frameRate = 60;
   String _codec = 'default';
   final Map<int, String> bitrates = {
@@ -356,6 +357,12 @@ class _StreamingSettingsScreen extends State<StreamingSettingsScreen> {
     80000: '80000',
     160000: '160000',
     //0: '无限',
+  };
+  final Map<int, String> audioBitrates = {
+    32: '32',
+    64: '64',
+    128: '128',
+    256: '256',
   };
   final Map<int, String> frameRates = {
     10: '10',
@@ -374,6 +381,7 @@ class _StreamingSettingsScreen extends State<StreamingSettingsScreen> {
   Future<void> _loadSettings() async {
     _haveAudio = SharedPreferencesManager.getBool('haveAudio') ?? true;
     _bitrate = SharedPreferencesManager.getInt('bitRate') ?? 80000;
+    _audioBitrate = SharedPreferencesManager.getInt('audioBitRate') ?? 128;
     _frameRate = SharedPreferencesManager.getInt('frameRate') ?? 60;
     _codec = SharedPreferencesManager.getString('codec') ?? 'default';
     if (AppPlatform.isDeskTop) {
@@ -556,6 +564,43 @@ class _StreamingSettingsScreen extends State<StreamingSettingsScreen> {
                       SharedPreferencesManager.setBool('haveAudio', value);
                       StreamingSettings.streamAudio = _haveAudio;
                     });
+                  },
+                ),
+                SettingsTile(
+                  title: const Text('音频码率 (kbps)'),
+                  trailing: Material(child: Text('当前: ${audioBitrates[_audioBitrate]} kbps')),
+                  leading: const Icon(Icons.audiotrack),
+                  onPressed: (BuildContext context) async {
+                    final audioBitrate = await Navigation.navigateTo(
+                      context: context,
+                      screen: Scaffold(
+                        appBar: AppBar(title: const Text('音频码率设置')),
+                        body: SettingsList(
+                          sections: [
+                            SettingsSection(
+                              title: const Text('音频码率'),
+                              tiles: audioBitrates.keys.map((bitrateKey) {
+                                final bitrateValue = audioBitrates[bitrateKey];
+                                return SettingsTile(
+                                  title: Text('$bitrateValue kbps'),
+                                  onPressed: (context) {
+                                    Navigator.of(context).pop(bitrateKey);
+                                  },
+                                );
+                              }).toList(),
+                            ),
+                          ],
+                        ),
+                      ),
+                      style: NavigationRouteStyle.cupertino,
+                    );
+                    if (audioBitrate != null) {
+                      setState(() {
+                        _audioBitrate = audioBitrate;
+                      });
+                      await SharedPreferencesManager.setInt('audioBitRate', _audioBitrate);
+                      StreamingSettings.audioBitrate = _audioBitrate;
+                    }
                   },
                 ),
               ],

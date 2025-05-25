@@ -169,10 +169,11 @@ void FlutterMediaStream::GetUserAudio(const EncodableMap& constraints,
     EncodableMap settings;
     settings[EncodableValue("deviceId")] = EncodableValue(sourceId);
     settings[EncodableValue("kind")] = EncodableValue("audioinput");
-    settings[EncodableValue("autoGainControl")] = EncodableValue(true);
-    settings[EncodableValue("echoCancellation")] = EncodableValue(true);
-    settings[EncodableValue("noiseSuppression")] = EncodableValue(true);
-    settings[EncodableValue("channelCount")] = EncodableValue(1);
+    // These are optimized for voice call.
+    settings[EncodableValue("autoGainControl")] = EncodableValue(false);
+    settings[EncodableValue("echoCancellation")] = EncodableValue(false);
+    settings[EncodableValue("noiseSuppression")] = EncodableValue(false);
+    settings[EncodableValue("channelCount")] = EncodableValue(2);
     settings[EncodableValue("latency")] = EncodableValue(0);
     track_info[EncodableValue("settings")] = EncodableValue(settings);
 
