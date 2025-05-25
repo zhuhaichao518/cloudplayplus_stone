@@ -552,7 +552,7 @@ class _StreamingSettingsScreen extends State<StreamingSettingsScreen> {
               ],
             ),
             SettingsSection(
-              title: const Text('音屏设置'),
+              title: const Text('音频设置'),
               tiles: [
                 SettingsTile.switchTile(
                   title: const Text('打开音频'),
