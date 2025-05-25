@@ -98,6 +98,7 @@ class StreamingSession {
   int cursorImageHookID = 0;
 
   AudioSession? audioSession;
+  int audioBitrate = 128;
 
   final _lock = Lock();
 
@@ -230,6 +231,7 @@ class StreamingSession {
                   Uint8List.fromList([LP_PING, RP_PING])));
               if (StreamingSettings.streamAudio!) {
                 StreamingSettings.audioBitrate ??= 128;
+                audioBitrate = StreamingSettings.audioBitrate!;
                 audioSession = AudioSession(channel!, controller, controlled, StreamingSettings.audioBitrate!);
                 await audioSession!.requestAudio();
               }
@@ -756,7 +758,7 @@ class StreamingSession {
         case LP_EMPTY:
           break;
         case LP_AUDIO_CONNECT:
-          audioSession = AudioSession(channel!, controller, controlled, 128);
+          audioSession = AudioSession(channel!, controller, controlled, audioBitrate);
           audioSession?.audioRequested();
           break;
         default:

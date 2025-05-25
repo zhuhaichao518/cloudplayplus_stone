@@ -242,8 +242,7 @@ class AudioSession {
       'optional': [],
     };
     RTCSessionDescription sdp = await pc!.createAnswer(oaConstraints);
-    //No need to fix sdp for the controller side.
-    //sdp = _fixSdp(sdp);
+    sdp = _fixSdp(sdp);
     await pc!.setLocalDescription(sdp);
     while (candidates.isNotEmpty) {
       await pc!.addCandidate(candidates[0]);
