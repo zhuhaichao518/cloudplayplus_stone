@@ -59,11 +59,12 @@ void FlutterMediaStream::GetUserMedia(
 
 void addDefaultAudioConstraints(
     scoped_refptr<RTCMediaConstraints> audioConstraints) {
-  audioConstraints->AddOptionalConstraint("googNoiseSuppression", "true");
-  audioConstraints->AddOptionalConstraint("googEchoCancellation", "true");
-  audioConstraints->AddOptionalConstraint("echoCancellation", "true");
-  audioConstraints->AddOptionalConstraint("googEchoCancellation2", "true");
-  audioConstraints->AddOptionalConstraint("googDAEchoCancellation", "true");
+  // Maybe set these to true when implementing voice communication.
+  audioConstraints->AddOptionalConstraint("googNoiseSuppression", "false");
+  audioConstraints->AddOptionalConstraint("googEchoCancellation", "false");
+  audioConstraints->AddOptionalConstraint("echoCancellation", "false");
+  audioConstraints->AddOptionalConstraint("googEchoCancellation2", "false");
+  audioConstraints->AddOptionalConstraint("googDAEchoCancellation", "false");
 }
 
 std::string getSourceIdConstraint(const EncodableMap& mediaConstraints) {
