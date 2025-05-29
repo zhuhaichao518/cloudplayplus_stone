@@ -50,8 +50,8 @@ class InitPage extends StatelessWidget {
                 ),
               ));
         } else if (snapshot.hasError) {
-          // When failed host lookup, exception may occur.
-          return const LoginScreen();
+          // When failed host lookup, exception may occur. Reconnect for this case
+          return const ReconnectScreen();
           //return Center(child: Text('Error: ${snapshot.error}'));
         } else {
           AppInitState appStatus = snapshot.data ?? AppInitState.firstTime;
