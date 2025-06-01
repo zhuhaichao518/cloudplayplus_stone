@@ -57,7 +57,7 @@ class StreamingSettings {
     bitrate =
         SharedPreferencesManager.getInt('bitrate') ?? 80000; // Default to 80000
     audioBitrate =
-        SharedPreferencesManager.getInt('audioBitRate') ?? 128; // Default to 128 kbps
+        SharedPreferencesManager.getInt('audioBitRate') ?? 32; // Default to 128 kbps
     showRemoteCursor = SharedPreferencesManager.getBool('renderRemoteCursor') ??
         false; // Default to false
     streamAudio = SharedPreferencesManager.getBool('haveAudio') ??

@@ -345,7 +345,7 @@ class _StreamingSettingsScreen extends State<StreamingSettingsScreen> {
   bool _haveAudio = true;
   bool _useClipBoard = true;
   int _bitrate = 80000;
-  int _audioBitrate = 128;
+  int _audioBitrate = 32;
   int _frameRate = 60;
   String _codec = 'default';
   final Map<int, String> bitrates = {
@@ -381,7 +381,7 @@ class _StreamingSettingsScreen extends State<StreamingSettingsScreen> {
   Future<void> _loadSettings() async {
     _haveAudio = SharedPreferencesManager.getBool('haveAudio') ?? true;
     _bitrate = SharedPreferencesManager.getInt('bitRate') ?? 80000;
-    _audioBitrate = SharedPreferencesManager.getInt('audioBitRate') ?? 128;
+    _audioBitrate = SharedPreferencesManager.getInt('audioBitRate') ?? 32;
     _frameRate = SharedPreferencesManager.getInt('frameRate') ?? 60;
     _codec = SharedPreferencesManager.getString('codec') ?? 'default';
     if (AppPlatform.isDeskTop) {

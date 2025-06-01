@@ -98,7 +98,7 @@ class StreamingSession {
   int cursorImageHookID = 0;
 
   AudioSession? audioSession;
-  int audioBitrate = 128;
+  int audioBitrate = 32;
 
   final _lock = Lock();
 
@@ -230,7 +230,7 @@ class StreamingSession {
               await channel?.send(RTCDataChannelMessage.fromBinary(
                   Uint8List.fromList([LP_PING, RP_PING])));
               if (StreamingSettings.streamAudio!) {
-                StreamingSettings.audioBitrate ??= 128;
+                StreamingSettings.audioBitrate ??= 32;
                 audioBitrate = StreamingSettings.audioBitrate!;
                 audioSession = AudioSession(channel!, controller, controlled, StreamingSettings.audioBitrate!);
                 await audioSession!.requestAudio();
