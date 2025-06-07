@@ -94,6 +94,9 @@ class _MyHomePageState extends State<MyHomePage> {
               cursorBuffer: _buffer,
               deltax: _deltax,
               deltay: _deltay,
+              onPositionChanged: (percentage) {
+                print('鼠标位置百分比: x=${percentage.dx.toStringAsFixed(2)}, y=${percentage.dy.toStringAsFixed(2)}');
+              },
             ),
           ),
         ],

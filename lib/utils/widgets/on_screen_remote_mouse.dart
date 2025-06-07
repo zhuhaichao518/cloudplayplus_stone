@@ -7,6 +7,7 @@ class OnScreenRemoteMouse extends LeafRenderObjectWidget {
   final Uint8List? cursorBuffer;
   final double deltax;
   final double deltay;
+  final ValueChanged<Offset>? onPositionChanged;
 
   const OnScreenRemoteMouse({
     super.key,
@@ -14,6 +15,7 @@ class OnScreenRemoteMouse extends LeafRenderObjectWidget {
     this.cursorBuffer,
     this.deltax = 0,
     this.deltay = 0,
+    this.onPositionChanged,
   });
 
   @override
@@ -23,6 +25,7 @@ class OnScreenRemoteMouse extends LeafRenderObjectWidget {
       cursorBuffer: cursorBuffer,
       deltax: deltax,
       deltay: deltay,
+      onPositionChanged: onPositionChanged,
     );
   }
 
@@ -32,7 +35,8 @@ class OnScreenRemoteMouse extends LeafRenderObjectWidget {
       ..position = position
       ..cursorBuffer = cursorBuffer
       ..deltax = deltax
-      ..deltay = deltay;
+      ..deltay = deltay
+      ..onPositionChanged = onPositionChanged;
   }
 }
 
@@ -42,16 +46,19 @@ class RenderRemoteMouse extends RenderBox {
     Uint8List? cursorBuffer,
     required double deltax,
     required double deltay,
+    ValueChanged<Offset>? onPositionChanged,
   })  : _position = position,
         _cursorBuffer = cursorBuffer,
         _deltax = deltax,
-        _deltay = deltay;
+        _deltay = deltay,
+        _onPositionChanged = onPositionChanged;
 
   Offset _position;
   Offset get position => _position;
   set position(Offset value) {
     if (_position == value) return;
     _position = value;
+    _updatePositionPercentage();
     markNeedsPaint();
   }
 
@@ -68,7 +75,8 @@ class RenderRemoteMouse extends RenderBox {
   double get deltax => _deltax;
   set deltax(double value) {
     if (_deltax == value) return;
-    _deltax = value;
+    _deltax = _clampDelta(value, true);
+    _updatePositionPercentage();
     markNeedsPaint();
   }
 
@@ -76,8 +84,38 @@ class RenderRemoteMouse extends RenderBox {
   double get deltay => _deltay;
   set deltay(double value) {
     if (_deltay == value) return;
-    _deltay = value;
+    _deltay = _clampDelta(value, false);
+    _updatePositionPercentage();
     markNeedsPaint();
+  }
+
+  ValueChanged<Offset>? _onPositionChanged;
+  ValueChanged<Offset>? get onPositionChanged => _onPositionChanged;
+  set onPositionChanged(ValueChanged<Offset>? value) {
+    _onPositionChanged = value;
+  }
+
+  Offset _positionPercentage = Offset.zero;
+  Offset get positionPercentage => _positionPercentage;
+
+  void _updatePositionPercentage() {
+    if (parent == null) return;
+    
+    final parentBox = parent as RenderBox;
+    final parentSize = parentBox.size;
+    
+    final currentX = _position.dx + _deltax;
+    final currentY = _position.dy + _deltay;
+    
+    final newPercentage = Offset(
+      currentX / parentSize.width,
+      currentY / parentSize.height,
+    );
+    
+    if (_positionPercentage != newPercentage) {
+      _positionPercentage = newPercentage;
+      _onPositionChanged?.call(_positionPercentage);
+    }
   }
 
   ui.Image? _cursorImage;
@@ -170,5 +208,23 @@ class RenderRemoteMouse extends RenderBox {
       context.canvas.drawImage(_cursorImage!, Offset.zero, Paint());
       context.canvas.restore();
     }
+  }
+
+  // 限制移动范围
+  double _clampDelta(double value, bool isX) {
+    if (parent == null) return value;
+    
+    final parentBox = parent as RenderBox;
+    final parentSize = parentBox.size;
+    final currentPosition = isX ? _position.dx + value : _position.dy + value;
+    final maxPosition = isX ? parentSize.width - size.width : parentSize.height - size.height;
+    
+    // 确保不会超出父控件范围
+    if (currentPosition < 0) {
+      return -_position.dx;
+    } else if (currentPosition > maxPosition) {
+      return maxPosition - _position.dx;
+    }
+    return value;
   }
 }
