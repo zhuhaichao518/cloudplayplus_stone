@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloudplayplus/utils/widgets/on_screen_remote_mouse.dart';
 import 'dart:typed_data';
+import 'package:hardware_simulator/hardware_simulator.dart';
 
 void main() {
   runApp(const MyApp());
@@ -32,35 +33,44 @@ class _MyHomePageState extends State<MyHomePage> {
   Offset _position = const Offset(100, 100);
   double _deltax = 0;
   double _deltay = 0;
+  Uint8List? _cursorBuffer;
+  final Map<int, Uint8List> _cachedCursors = {};
 
-  // 创建一个测试用的光标buffer
-  final Uint8List _buffer = Uint8List.fromList([
-    9, // 光标数据类型
-    0, 0, 0, 32, // 宽度 32
-    0, 0, 0, 32, // 高度 32
-    0, 0, 0, 16, // 热点x 16
-    0, 0, 0, 16, // 热点y 16
-    0, 0, 0, 0, // hash值
-    // 32x32的BGRA图像数据 - 创建一个简单的箭头形状
-    ...List.generate(32 * 32 * 4, (index) {
-      final x = (index ~/ 4) % 32;
-      final y = (index ~/ 4) ~/ 32;
-      final channel = index % 4;
-      
-      // 创建一个简单的箭头形状
-      if (channel == 3) { // Alpha通道
-        if (x >= 16 && x <= 24 && y >= 8 && y <= 24) return 255; // 箭头主体
-        if (x >= 8 && x <= 32 && y >= 16 && y <= 20) return 255; // 箭头头部
-        return 0;
-      } else if (channel == 0) { // Blue通道
-        return 255;
-      } else if (channel == 1) { // Green通道
-        return 0;
-      } else { // Red通道
-        return 0;
-      }
-    }),
-  ]);
+  @override
+  void initState() {
+    super.initState();
+    _registerCursorChanged();
+  }
+
+  @override
+  void dispose() {
+    _unregisterCursorChanged();
+    super.dispose();
+  }
+
+  void _registerCursorChanged() {
+    HardwareSimulator.addCursorImageUpdated(
+      (int message, int messageInfo, Uint8List cursorImage) {
+        if (message == HardwareSimulator.CURSOR_UPDATED_IMAGE) {
+          _cachedCursors[messageInfo] = cursorImage;
+          setState(() {
+            _cursorBuffer = _cachedCursors[messageInfo];
+          });
+        } else if (message == HardwareSimulator.CURSOR_UPDATED_CACHED) {
+          if (_cachedCursors.containsKey(messageInfo)) {
+            setState(() {
+              _cursorBuffer = _cachedCursors[messageInfo];
+            });
+          }
+        }
+      },
+      1,
+    );
+  }
+
+  void _unregisterCursorChanged() {
+    HardwareSimulator.removeCursorImageUpdated(1);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -91,7 +101,7 @@ class _MyHomePageState extends State<MyHomePage> {
             top: 0,
             child: OnScreenRemoteMouse(
               position: _position,
-              cursorBuffer: _buffer,
+              cursorBuffer: _cursorBuffer,
               deltax: _deltax,
               deltay: _deltay,
               onPositionChanged: (percentage) {
