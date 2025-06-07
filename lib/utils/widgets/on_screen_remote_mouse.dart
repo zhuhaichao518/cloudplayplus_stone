@@ -2,41 +2,109 @@ import 'package:flutter/material.dart';
 import 'dart:ui' as ui;
 import 'dart:typed_data';
 
-class OnScreenRemoteMouse extends LeafRenderObjectWidget {
-  final Offset position;
-  final Uint8List? cursorBuffer;
-  final double deltax;
-  final double deltay;
+class OnScreenRemoteMouseController extends ChangeNotifier {
+  Offset _position = const Offset(100, 100);
+  Uint8List? _cursorBuffer;
+  double _deltax = 0;
+  double _deltay = 0;
+
+  Offset get position => _position;
+  Uint8List? get cursorBuffer => _cursorBuffer;
+  double get deltax => _deltax;
+  double get deltay => _deltay;
+
+  void setPosition(Offset position) {
+    if (_position != position) {
+      _position = position;
+      notifyListeners();
+    }
+  }
+
+  void setCursorBuffer(Uint8List? buffer) {
+    if (_cursorBuffer != buffer) {
+      _cursorBuffer = buffer;
+      notifyListeners();
+    }
+  }
+
+  void setDelta(double x, double y) {
+    if (_deltax != x || _deltay != y) {
+      _deltax = x;
+      _deltay = y;
+      notifyListeners();
+    }
+  }
+
+  void moveDelta(double dx, double dy) {
+    setDelta(_deltax + dx, _deltay + dy);
+  }
+}
+
+class OnScreenRemoteMouse extends StatefulWidget {
+  final OnScreenRemoteMouseController controller;
   final ValueChanged<Offset>? onPositionChanged;
 
   const OnScreenRemoteMouse({
     super.key,
-    this.position = const Offset(100, 100),
-    this.cursorBuffer,
-    this.deltax = 0,
-    this.deltay = 0,
+    required this.controller,
     this.onPositionChanged,
   });
 
   @override
-  RenderObject createRenderObject(BuildContext context) {
-    return RenderRemoteMouse(
-      position: position,
-      cursorBuffer: cursorBuffer,
-      deltax: deltax,
-      deltay: deltay,
-      onPositionChanged: onPositionChanged,
+  State<OnScreenRemoteMouse> createState() => _OnScreenRemoteMouseState();
+}
+
+class _OnScreenRemoteMouseState extends State<OnScreenRemoteMouse> {
+  late RenderRemoteMouse _renderObject;
+
+  @override
+  void initState() {
+    super.initState();
+    _renderObject = RenderRemoteMouse(
+      position: widget.controller.position,
+      cursorBuffer: widget.controller.cursorBuffer,
+      deltax: widget.controller.deltax,
+      deltay: widget.controller.deltay,
+      onPositionChanged: widget.onPositionChanged,
     );
+    widget.controller.addListener(_handleControllerChange);
   }
 
   @override
+  void dispose() {
+    widget.controller.removeListener(_handleControllerChange);
+    super.dispose();
+  }
+
+  void _handleControllerChange() {
+    _renderObject
+      ..position = widget.controller.position
+      ..cursorBuffer = widget.controller.cursorBuffer
+      ..deltax = widget.controller.deltax
+      ..deltay = widget.controller.deltay;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return _RemoteMouseRenderObjectWidget(
+      renderObject: _renderObject,
+    );
+  }
+}
+
+class _RemoteMouseRenderObjectWidget extends SingleChildRenderObjectWidget {
+  final RenderRemoteMouse renderObject;
+
+  const _RemoteMouseRenderObjectWidget({
+    required this.renderObject,
+  });
+
+  @override
+  RenderObject createRenderObject(BuildContext context) => renderObject;
+
+  @override
   void updateRenderObject(BuildContext context, RenderRemoteMouse renderObject) {
-    renderObject
-      ..position = position
-      ..cursorBuffer = cursorBuffer
-      ..deltax = deltax
-      ..deltay = deltay
-      ..onPositionChanged = onPositionChanged;
+    // 不需要更新，因为我们直接使用传入的 renderObject
   }
 }
 

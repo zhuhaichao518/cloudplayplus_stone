@@ -30,21 +30,20 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  Offset _position = const Offset(100, 100);
-  double _deltax = 0;
-  double _deltay = 0;
-  Uint8List? _cursorBuffer;
   final Map<int, Uint8List> _cachedCursors = {};
+  late final OnScreenRemoteMouseController _mouseController;
 
   @override
   void initState() {
     super.initState();
+    _mouseController = OnScreenRemoteMouseController();
     _registerCursorChanged();
   }
 
   @override
   void dispose() {
     _unregisterCursorChanged();
+    _mouseController.dispose();
     super.dispose();
   }
 
@@ -53,14 +52,10 @@ class _MyHomePageState extends State<MyHomePage> {
       (int message, int messageInfo, Uint8List cursorImage) {
         if (message == HardwareSimulator.CURSOR_UPDATED_IMAGE) {
           _cachedCursors[messageInfo] = cursorImage;
-          setState(() {
-            _cursorBuffer = _cachedCursors[messageInfo];
-          });
+          _mouseController.setCursorBuffer(_cachedCursors[messageInfo]);
         } else if (message == HardwareSimulator.CURSOR_UPDATED_CACHED) {
           if (_cachedCursors.containsKey(messageInfo)) {
-            setState(() {
-              _cursorBuffer = _cachedCursors[messageInfo];
-            });
+            _mouseController.setCursorBuffer(_cachedCursors[messageInfo]);
           }
         }
       },
@@ -100,10 +95,7 @@ class _MyHomePageState extends State<MyHomePage> {
             left: 0,
             top: 0,
             child: OnScreenRemoteMouse(
-              position: _position,
-              cursorBuffer: _cursorBuffer,
-              deltax: _deltax,
-              deltay: _deltay,
+              controller: _mouseController,
               onPositionChanged: (percentage) {
                 print('鼠标位置百分比: x=${percentage.dx.toStringAsFixed(2)}, y=${percentage.dy.toStringAsFixed(2)}');
               },
@@ -116,36 +108,28 @@ class _MyHomePageState extends State<MyHomePage> {
         children: [
           FloatingActionButton(
             onPressed: () {
-              setState(() {
-                _deltax += 10;
-              });
+              _mouseController.moveDelta(10, 0);
             },
             child: const Icon(Icons.arrow_right),
           ),
           const SizedBox(height: 8),
           FloatingActionButton(
             onPressed: () {
-              setState(() {
-                _deltax -= 10;
-              });
+              _mouseController.moveDelta(-10, 0);
             },
             child: const Icon(Icons.arrow_left),
           ),
           const SizedBox(height: 8),
           FloatingActionButton(
             onPressed: () {
-              setState(() {
-                _deltay -= 10;
-              });
+              _mouseController.moveDelta(0, -10);
             },
             child: const Icon(Icons.arrow_upward),
           ),
           const SizedBox(height: 8),
           FloatingActionButton(
             onPressed: () {
-              setState(() {
-                _deltay += 10;
-              });
+              _mouseController.moveDelta(0, 10);
             },
             child: const Icon(Icons.arrow_downward),
           ),
