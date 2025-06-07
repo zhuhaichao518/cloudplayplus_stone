@@ -610,7 +610,7 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
   void dispose() {
     aspectRatioNotifier.dispose(); // 销毁时清理 ValueNotifier
     ControlManager().removeEventListener(_handleControlEvent);
-    WakelockPlus.enable();
+    WakelockPlus.disable();
     super.dispose();
   }
 }
