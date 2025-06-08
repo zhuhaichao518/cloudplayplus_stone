@@ -322,8 +322,13 @@ class StreamingSession {
   void acceptRequest(StreamedSettings settings) async {
     await _lock.synchronized(() async {
       if (settings.hookCursorImage == true && AppPlatform.isDeskTop) {
-        HardwareSimulator.addCursorImageUpdated(
-            onLocalCursorImageMessage, cursorImageHookID);
+        if (controller.devicetype == 'IOS' || controller.devicetype == 'Android') {
+          HardwareSimulator.addCursorImageUpdated(
+              onLocalCursorImageMessage, cursorImageHookID, true);
+        } else {
+          HardwareSimulator.addCursorImageUpdated(
+              onLocalCursorImageMessage, cursorImageHookID, false);
+        }
       }
       if (connectionState != StreamingSessionConnectionState.free &&
           connectionState != StreamingSessionConnectionState.disconnected) {
