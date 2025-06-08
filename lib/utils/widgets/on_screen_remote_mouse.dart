@@ -262,6 +262,9 @@ class RenderRemoteMouse extends RenderBox {
       path.lineTo(size.width, size.height / 3);
       path.close();
 
+      _hotY = 0;
+      _hotX = 0;
+
       context.canvas.save();
       context.canvas.translate(
         offset.dx + _position.dx + _deltax,
