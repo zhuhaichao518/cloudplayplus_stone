@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'dart:ui' as ui;
 import 'dart:typed_data';
 
+import 'package:hardware_simulator/hardware_simulator.dart';
+
 class OnScreenRemoteMouseController extends ChangeNotifier {
   Offset _position = const Offset(100, 100);
   Uint8List? _cursorBuffer;
@@ -257,13 +259,29 @@ class RenderRemoteMouse extends RenderBox {
     }
   }
 
-  ui.Image? _cursorImage;
+  static Map<int, ui.Image> _cursorImages = {};
+
   int _width = 32;  // 默认值
   int _height = 32; // 默认值
   int _hotX = 16;   // 默认值
   int _hotY = 16;   // 默认值
+  int _hash = 0;
 
   void _decodeCursorBuffer() {
+    // cursor with cached
+    if (_cursorBuffer![0] == 10) {
+      ByteData byteData = ByteData.sublistView(_cursorBuffer!);
+        int message = byteData.getInt32(1);
+        int msgInfo = byteData.getInt32(5);
+        if (message == HardwareSimulator.CURSOR_UPDATED_CACHED) {
+          if (_cursorImages.containsKey(msgInfo)) {
+            _hash = msgInfo;
+            markNeedsPaint();
+          }
+        } 
+      return;
+    }
+
     if (_cursorBuffer == null || _cursorBuffer![0] != 9) return;
 
     // 解析宽度
@@ -295,6 +313,7 @@ class RenderRemoteMouse extends RenderBox {
     for (int i = 17; i < 21; i++) {
       hash = hash * 256 + _cursorBuffer![i];
     }
+    _hash = hash;
 
     // 获取图像数据
     final imageData = _cursorBuffer!.sublist(21);
@@ -306,7 +325,7 @@ class RenderRemoteMouse extends RenderBox {
       _height,
       ui.PixelFormat.bgra8888,
       (ui.Image image) {
-        _cursorImage = image;
+        _cursorImages[_hash] = image;
         markNeedsPaint();
       },
     );
@@ -319,7 +338,7 @@ class RenderRemoteMouse extends RenderBox {
 
   @override
   void paint(PaintingContext context, Offset offset) {
-    if (_cursorImage == null) {
+    if (!_cursorImages.containsKey(_hash)) {
       // 如果没有图像，绘制一个默认的箭头
       final paint = Paint()
         ..color = Colors.blue
@@ -347,7 +366,7 @@ class RenderRemoteMouse extends RenderBox {
 
       context.canvas.save();
       context.canvas.translate(finalX, finalY);
-      context.canvas.drawImage(_cursorImage!, Offset.zero, Paint());
+      context.canvas.drawImage(_cursorImages[_hash]!, Offset.zero, Paint());
       context.canvas.restore();
     }
   }

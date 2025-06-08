@@ -324,8 +324,6 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
                             ?.requestTouchButton(xPercent, yPercent,
                                 event.pointer % 9 + 1, true);
                       } else {
-                        // For IOS we use on_screen_remote_mouse_cursor.
-                        if (AppPlatform.isIOS) return;
                         WebrtcService.currentRenderingSession?.inputController
                             ?.requestMoveMouseAbsl(
                                 xPercent,
@@ -336,6 +334,8 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
                             ?.requestMouseClick(1, _leftButtonDown);
                       }
                     } else if (event.kind == PointerDeviceKind.mouse) {
+                      // For IOS we use on_screen_remote_mouse_cursor.
+                      if (AppPlatform.isIOS) return;
                       _syncMouseButtonState(event);
                     }
                   },
@@ -352,12 +352,13 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
                             ?.requestTouchButton(_lastxPercent, _lastyPercent,
                                 event.pointer % 9 + 1, false);
                       } else {
-                        if (AppPlatform.isIOS) return;
                         WebrtcService.currentRenderingSession?.inputController
                             ?.requestMouseClick(1, _leftButtonDown);
                       }
                     } else if (event.kind == PointerDeviceKind.mouse) {
+                      if (AppPlatform.isIOS) return;
                       if (AppPlatform.isIOS) {
+                        //legacy impl for mouse on IOS. Used when user does not want on screen cursor.
                         _syncMouseButtonStateUP(event);
                       } else {
                         _syncMouseButtonState(event);
