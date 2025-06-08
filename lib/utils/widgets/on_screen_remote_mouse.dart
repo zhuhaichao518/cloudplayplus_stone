@@ -287,13 +287,26 @@ class RenderRemoteMouse extends RenderBox {
     final parentBox = parent as RenderBox;
     final parentSize = parentBox.size;
     final currentPosition = isX ? _position.dx + value : _position.dy + value;
-    final maxPosition = isX ? parentSize.width - size.width : parentSize.height - size.height;
     
-    // 确保不会超出父控件范围
-    if (currentPosition < 0) {
-      return -_position.dx;
-    } else if (currentPosition > maxPosition) {
-      return maxPosition - _position.dx;
+    // 使用热点位置来限制移动范围
+    if (isX) {
+      // 确保热点不会超出左边界
+      if (currentPosition + _hotX < 0) {
+        return -_position.dx - _hotX;
+      }
+      // 确保热点不会超出右边界
+      if (currentPosition + _hotX > parentSize.width) {
+        return parentSize.width - _position.dx - _hotX;
+      }
+    } else {
+      // 确保热点不会超出上边界
+      if (currentPosition + _hotY < 0) {
+        return -_position.dy - _hotY;
+      }
+      // 确保热点不会超出下边界
+      if (currentPosition + _hotY > parentSize.height) {
+        return parentSize.height - _position.dy - _hotY;
+      }
     }
     return value;
   }
