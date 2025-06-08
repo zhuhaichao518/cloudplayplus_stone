@@ -21,6 +21,8 @@ class OnScreenRemoteMouseController extends ChangeNotifier {
   }
 
   void setCursorBuffer(Uint8List? buffer) {
+    _deltax = 0;
+    _deltay = 0;
     if (_cursorBuffer != buffer) {
       _cursorBuffer = buffer;
       notifyListeners();
@@ -28,15 +30,15 @@ class OnScreenRemoteMouseController extends ChangeNotifier {
   }
 
   void setDelta(double x, double y) {
-    if (_deltax != x || _deltay != y) {
+    //if (_deltax != x || _deltay != y) {
       _deltax = x;
       _deltay = y;
       notifyListeners();
-    }
+    //}
   }
 
   void moveDelta(double dx, double dy) {
-    setDelta(_deltax + dx, _deltay + dy);
+    setDelta(dx, dy);
   }
 }
 
@@ -80,8 +82,8 @@ class _OnScreenRemoteMouseState extends State<OnScreenRemoteMouse> {
     _renderObject
       ..position = widget.controller.position
       ..cursorBuffer = widget.controller.cursorBuffer
-      ..deltax = widget.controller.deltax
-      ..deltay = widget.controller.deltay;
+      ..deltax += widget.controller.deltax
+      ..deltay += widget.controller.deltay;
   }
 
   @override
