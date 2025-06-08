@@ -7,7 +7,7 @@ class OnScreenRemoteMouseController extends ChangeNotifier {
   Uint8List? _cursorBuffer;
   double _deltax = 0;
   double _deltay = 0;
-  double aspectRatio = 0.625;
+  double aspectRatio = 1.6;
 
   Offset get position => _position;
   Uint8List? get cursorBuffer => _cursorBuffer;
@@ -136,7 +136,7 @@ class RenderRemoteMouse extends RenderBox {
         _cursorBuffer = cursorBuffer,
         _deltax = deltax,
         _deltay = deltay,
-        _aspectRatio = 0.625,
+        _aspectRatio = 1.6,
         _onPositionChanged = onPositionChanged;
 
   Offset _position;
@@ -154,6 +154,7 @@ class RenderRemoteMouse extends RenderBox {
     if (_aspectRatio == value) return;
     _aspectRatio = value;
     markNeedsPaint();
+    _updateCachedValues();
   }
 
   Uint8List? _cursorBuffer;
@@ -192,18 +193,62 @@ class RenderRemoteMouse extends RenderBox {
   Offset _positionPercentage = Offset.zero;
   Offset get positionPercentage => _positionPercentage;
 
-  void _updatePositionPercentage() {
+  // 添加缓存变量
+  Size? _cachedParentSize;
+  Rect? _cachedDisplayRect;
+  double _cachedAspectRatio = 0;
+
+  void _updateCachedValues() {
     if (parent == null) return;
     
     final parentBox = parent as RenderBox;
+    if (!parentBox.hasSize) return;
     final parentSize = parentBox.size;
+    
+    // 如果父容器尺寸没变，不需要重新计算
+    if (_cachedParentSize == parentSize && _cachedAspectRatio == _aspectRatio) return;
+    
+    _cachedParentSize = parentSize;
+    _cachedAspectRatio = _aspectRatio;
+    
+    // 计算实际显示区域
+    double displayWidth = parentSize.width;
+    double displayHeight = parentSize.height;
+    
+    // 根据宽高比计算实际显示区域
+    if (displayWidth / displayHeight > _aspectRatio) {
+      // 如果父容器太宽，需要左右留白
+      displayWidth = displayHeight * _aspectRatio;
+    } else {
+      // 如果父容器太高，需要上下留白
+      displayHeight = displayWidth / _aspectRatio;
+    }
+    
+    // 确保显示区域不会超出父容器
+    final finalDisplayWidth = displayWidth.clamp(0.0, parentSize.width);
+    final finalDisplayHeight = displayHeight.clamp(0.0, parentSize.height);
+    
+    // 重新计算偏移量，确保完全居中
+    final finalOffsetX = (parentSize.width - finalDisplayWidth) / 2;
+    final finalOffsetY = (parentSize.height - finalDisplayHeight) / 2;
+
+    _cachedDisplayRect = Rect.fromLTWH(finalOffsetX, finalOffsetY, finalDisplayWidth, finalDisplayHeight);
+  }
+
+  void _updatePositionPercentage() {
+    if (parent == null) return;
+    
+    //_updateCachedValues();
+    if (_cachedDisplayRect == null) return;
     
     final currentX = _position.dx + _deltax;
     final currentY = _position.dy + _deltay;
     
+    // 将坐标转换为相对于显示区域的百分比
+    // currentX + _hotX才是指针实际位置
     final newPercentage = Offset(
-      currentX / parentSize.width,
-      currentY / parentSize.height,
+      (currentX + _hotX - _cachedDisplayRect!.left) / _cachedDisplayRect!.width,
+      (currentY + _hotY - _cachedDisplayRect!.top) / _cachedDisplayRect!.height,
     );
     
     if (_positionPercentage != newPercentage) {
@@ -289,50 +334,49 @@ class RenderRemoteMouse extends RenderBox {
       _hotY = 0;
       _hotX = 0;
 
+      final finalX = offset.dx + _position.dx + _deltax;
+      final finalY = offset.dy + _position.dy + _deltay;
+
       context.canvas.save();
-      context.canvas.translate(
-        offset.dx + _position.dx + _deltax,
-        offset.dy + _position.dy + _deltay,
-      );
+      context.canvas.translate(finalX, finalY);
       context.canvas.drawPath(path, paint);
       context.canvas.restore();
     } else {
+      final finalX = offset.dx + _position.dx + _deltax;
+      final finalY = offset.dy + _position.dy + _deltay;
+
       context.canvas.save();
-      context.canvas.translate(
-        offset.dx + _position.dx + _deltax,
-        offset.dy + _position.dy + _deltay,
-      );
+      context.canvas.translate(finalX, finalY);
       context.canvas.drawImage(_cursorImage!, Offset.zero, Paint());
       context.canvas.restore();
     }
   }
 
-  // 限制移动范围
   double _clampDelta(double value, bool isX) {
     if (parent == null) return value;
     
-    final parentBox = parent as RenderBox;
-    final parentSize = parentBox.size;
+    _updateCachedValues();
+    if (_cachedDisplayRect == null) return value;
+    
     final currentPosition = isX ? _position.dx + value : _position.dy + value;
     
-    // 使用热点位置来限制移动范围
     if (isX) {
       // 确保热点不会超出左边界
-      if (currentPosition + _hotX < 0) {
-        return -_position.dx - _hotX;
+      if (currentPosition + _hotX < _cachedDisplayRect!.left) {
+        return _cachedDisplayRect!.left - _position.dx - _hotX;
       }
       // 确保热点不会超出右边界
-      if (currentPosition + _hotX > parentSize.width) {
-        return parentSize.width - _position.dx - _hotX;
+      if (currentPosition + _hotX > _cachedDisplayRect!.right) {
+        return _cachedDisplayRect!.right - _position.dx - _hotX;
       }
     } else {
       // 确保热点不会超出上边界
-      if (currentPosition + _hotY < 0) {
-        return -_position.dy - _hotY;
+      if (currentPosition + _hotY < _cachedDisplayRect!.top) {
+        return _cachedDisplayRect!.top - _position.dy - _hotY;
       }
       // 确保热点不会超出下边界
-      if (currentPosition + _hotY > parentSize.height) {
-        return parentSize.height - _position.dy - _hotY;
+      if (currentPosition + _hotY > _cachedDisplayRect!.bottom) {
+        return _cachedDisplayRect!.bottom - _position.dy - _hotY;
       }
     }
     return value;
