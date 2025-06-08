@@ -17,12 +17,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
+import 'package:hardware_simulator/hardware_simulator.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 
 import '../../controller/hardware_input_controller.dart';
 import '../../controller/platform_key_map.dart';
 import '../../controller/screen_controller.dart';
 import 'cursor_change_widget.dart';
+import 'on_screen_remote_mouse.dart';
 import 'virtual_gamepad/control_event.dart';
 
 class GlobalRemoteScreenRenderer extends StatefulWidget {
@@ -66,7 +68,7 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
   }*/
 
   void onLockedCursorMoved(double dx, double dy) {
-    print("dx:{$dx}dy:{$dy}");
+    //print("dx:{$dx}dy:{$dy}");
     //有没有必要await？如果不保序的概率极低 感觉可以不await
     WebrtcService.currentRenderingSession?.inputController
         ?.requestMoveMouseRelative(
@@ -237,6 +239,8 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
     }
   }
 
+  static int initcount = 0;
+
   @override
   void initState() {
     super.initState();
@@ -248,7 +252,11 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
       }
     };
     ControlManager().addEventListener(_handleControlEvent);
+    if (AppPlatform.isIOS) {
+       HardwareSimulator.lockCursor();
+    }
     WakelockPlus.enable();
+    initcount++;
   }
 
   @override
@@ -266,6 +274,7 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
               children: [
                 Listener(
                   onPointerSignal: (PointerSignalEvent event) {
+                    if (AppPlatform.isIOS) return;
                     if (event is PointerScrollEvent) {
                       //this does not work on macos for touch bar, works for web.
                       if (event.scrollDelta.dx.abs() > 0 ||
@@ -315,6 +324,8 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
                             ?.requestTouchButton(xPercent, yPercent,
                                 event.pointer % 9 + 1, true);
                       } else {
+                        // For IOS we use on_screen_remote_mouse_cursor.
+                        if (AppPlatform.isIOS) return;
                         WebrtcService.currentRenderingSession?.inputController
                             ?.requestMoveMouseAbsl(
                                 xPercent,
@@ -341,6 +352,7 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
                             ?.requestTouchButton(_lastxPercent, _lastyPercent,
                                 event.pointer % 9 + 1, false);
                       } else {
+                        if (AppPlatform.isIOS) return;
                         WebrtcService.currentRenderingSession?.inputController
                             ?.requestMouseClick(1, _leftButtonDown);
                       }
@@ -375,6 +387,7 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
                             ?.requestTouchMove(
                                 xPercent, yPercent, event.pointer % 9 + 1);
                       } else {
+                        if (AppPlatform.isIOS) return;
                         WebrtcService.currentRenderingSession?.inputController
                             ?.requestMoveMouseAbsl(
                                 xPercent,
@@ -383,12 +396,14 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
                                     .currentRenderingSession!.screenId);
                       }
                     } else {
+                      if (AppPlatform.isIOS) return;
                       WebrtcService.currentRenderingSession?.inputController
                           ?.requestMoveMouseAbsl(xPercent, yPercent,
                               WebrtcService.currentRenderingSession!.screenId);
                     }
                   },
                   onPointerHover: (PointerHoverEvent event) {
+                    if (AppPlatform.isIOS) return;
                     if (InputController.isCursorLocked ||
                         renderBox == null ||
                         WebrtcService.currentRenderingSession == null) return;
@@ -493,7 +508,11 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
                                   context.findRenderObject() as RenderBox;
                               renderBox = newRenderBox;
                               widgetSize = newRenderBox.size;
-                            }),
+                            },
+                            setAspectRatio: (newAspectRatio) {
+                              InputController.mouseController.setAspectRatio(newAspectRatio);
+                            },
+                            ),
                     ),
                   ),
                 ),
@@ -501,6 +520,19 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
                   'You pressed: $_pressedKey',
                   style: TextStyle(fontSize: 24, color: Colors.red),
                 ),*/
+                if (AppPlatform.isIOS)
+                  OnScreenRemoteMouse(
+                  controller: InputController.mouseController,
+                  onPositionChanged: (percentage) {
+                    WebrtcService.currentRenderingSession?.inputController
+                      ?.requestMoveMouseAbsl(
+                          percentage.dx,
+                          percentage.dy,
+                          WebrtcService
+                              .currentRenderingSession!.screenId);
+                    //print('鼠标位置百分比: x=${percentage.dx.toStringAsFixed(2)}, y=${percentage.dy.toStringAsFixed(2)}');
+                  },
+                ),
                 BlocProvider(
                   create: (context) => MouseStyleBloc(),
                   child: const MouseStyleRegion(),
@@ -610,7 +642,17 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
   void dispose() {
     aspectRatioNotifier.dispose(); // 销毁时清理 ValueNotifier
     ControlManager().removeEventListener(_handleControlEvent);
-    WakelockPlus.disable();
+
+    initcount --;
+    //The globalRemoteScreenRenderer is inited twice in a session and the dispose
+    //of the first one is after the init of second one.
+    //So for singleton scenarios only do it when initcount == 0.
+    if (initcount == 0) {
+      WakelockPlus.disable();
+      if (AppPlatform.isIOS) {
+        HardwareSimulator.unlockCursor();
+      }
+    }
     super.dispose();
   }
 }

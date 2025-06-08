@@ -7,6 +7,7 @@ class OnScreenRemoteMouseController extends ChangeNotifier {
   Uint8List? _cursorBuffer;
   double _deltax = 0;
   double _deltay = 0;
+  double aspectRatio = 0.625;
 
   Offset get position => _position;
   Uint8List? get cursorBuffer => _cursorBuffer;
@@ -18,6 +19,11 @@ class OnScreenRemoteMouseController extends ChangeNotifier {
       _position = position;
       notifyListeners();
     }
+  }
+
+  void setAspectRatio(double ratio) {
+    aspectRatio = ratio;
+    notifyListeners();
   }
 
   void setCursorBuffer(Uint8List? buffer) {
@@ -83,11 +89,20 @@ class _OnScreenRemoteMouseState extends State<OnScreenRemoteMouse> {
       ..position = widget.controller.position
       ..cursorBuffer = widget.controller.cursorBuffer
       ..deltax += widget.controller.deltax
-      ..deltay += widget.controller.deltay;
+      ..deltay += widget.controller.deltay
+      ..aspectRatio = widget.controller.aspectRatio;
   }
 
   @override
   Widget build(BuildContext context) {
+    /*return Center(
+      child: AspectRatio(
+        aspectRatio: widget.controller.aspectRatio,
+        child: _RemoteMouseRenderObjectWidget(
+          renderObject: _renderObject,
+        ),
+      ),
+    );*/
     return _RemoteMouseRenderObjectWidget(
       renderObject: _renderObject,
     );
@@ -121,6 +136,7 @@ class RenderRemoteMouse extends RenderBox {
         _cursorBuffer = cursorBuffer,
         _deltax = deltax,
         _deltay = deltay,
+        _aspectRatio = 0.625,
         _onPositionChanged = onPositionChanged;
 
   Offset _position;
@@ -129,6 +145,14 @@ class RenderRemoteMouse extends RenderBox {
     if (_position == value) return;
     _position = value;
     _updatePositionPercentage();
+    markNeedsPaint();
+  }
+
+  double _aspectRatio;
+  double get aspectRatio => _aspectRatio;
+  set aspectRatio(double value) {
+    if (_aspectRatio == value) return;
+    _aspectRatio = value;
     markNeedsPaint();
   }
 

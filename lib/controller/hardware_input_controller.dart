@@ -8,6 +8,7 @@ import 'package:cloudplayplus/global_settings/streaming_settings.dart';
 import 'package:cloudplayplus/services/app_info_service.dart';
 import 'package:cloudplayplus/services/webrtc_service.dart';
 import 'package:cloudplayplus/utils/widgets/cursor_change_widget.dart';
+import 'package:cloudplayplus/utils/widgets/on_screen_remote_mouse.dart';
 import 'package:custom_mouse_cursor/custom_mouse_cursor.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
@@ -22,10 +23,16 @@ typedef CursorUpdatedCallback = void Function(MouseCursor newcursor);
 
 class InputController {
   static StreamSubscription<GamepadEvent>? _subscription;
+  static late final OnScreenRemoteMouseController mouseController;
 
   final Map<String, bool> buttonInputs = {};
-
   static void init() async {
+    if (AppPlatform.isIOS) {
+      mouseController = OnScreenRemoteMouseController();
+      HardwareSimulator.addCursorMoved(cursorMovedCallbackMobile);
+      HardwareSimulator.addCursorPressed(cursorPressedCallbackMobile);
+      HardwareSimulator.addCursorWheel(cursorWheelCallbackMobile);
+    }
     // We don't use Gamepads for windows.
     if (AppPlatform.isWindows) return;
     var gamepads = await Gamepads.list();
@@ -36,29 +43,6 @@ class InputController {
     CGamepadController.gamepads = gamepads;
     _subscription = Gamepads.events.listen((event) {
       CGamepadController.onEvent(event);
-      /* We can not implement by this way because the state is not updated yet when here is triggered.
-      event.gamepadId;
-      bool is_mapped = false;
-      int index = -1;
-      for (int i = 0; i< _gamepads.length; i++){
-        if (_gamepads[i].id == event.gamepadId){
-          is_mapped = true;
-          index = i;
-        }
-      }
-      if (!is_mapped){
-        _gamepads = await Gamepads.list();
-        for (int i = 0; i< _gamepads.length; i++){
-          if (_gamepads[i].id == event.gamepadId){
-            is_mapped = true;
-            index = i;
-          }
-        }
-      }
-      if (!is_mapped){
-        VLOG0("-----bug controller is not mapped! please debug.");
-      }
-      VLOG0(_gamepads[index].state.getStateString());*/
     });
   }
 
@@ -92,6 +76,7 @@ class InputController {
 
   void requestMoveMouseAbsl(double x, double y, int tempScreenId) async {
     // Cursor moved out of scope when tempScreenId = -1
+    // print("${x} ${y}");
     if (tempScreenId == -1) {
       x = lastx;
       y = lasty;
@@ -485,10 +470,29 @@ class InputController {
     }
   };
 
+  // Mobile callbacks
+  static CursorMovedCallback cursorMovedCallbackMobile = (deltax, deltay) {
+    mouseController.moveDelta(deltax, deltay);
+  };
+
+  static CursorPressedCallback cursorPressedCallbackMobile = (button, isDown) {
+    WebrtcService.currentRenderingSession?.inputController
+        ?.requestMouseClick(button, isDown);
+  };
+
+  static CursorWheelCallback cursorWheelCallbackMobile = (deltax, deltay) {
+    WebrtcService.currentRenderingSession?.inputController
+        ?.requestMouseScroll(deltax, deltay);
+  };
+
   static bool isCursorLocked = false;
 
   void handleCursorUpdate(RTCDataChannelMessage msg) async {
     Uint8List buffer = msg.binary;
+    if (AppPlatform.isIOS) {
+      mouseController.setCursorBuffer(buffer);
+      return;
+    }
     if (buffer[0] == LP_MOUSECURSOR_CHANGED_WITHBUFFER) {
       //cursor hash: 0 + size + hash + data
       int width = 0;
