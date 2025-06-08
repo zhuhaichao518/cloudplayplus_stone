@@ -317,18 +317,15 @@ class StreamingSession {
     close();
   }
 
+  bool image_hooked = false;
+
   //accept request and send offer to the peer. you should verify this is authorized before calling this funciton.
   //We are the 'controlled'.
   void acceptRequest(StreamedSettings settings) async {
     await _lock.synchronized(() async {
       if (settings.hookCursorImage == true && AppPlatform.isDeskTop) {
-        if (controller.devicetype == 'IOS' || controller.devicetype == 'Android') {
-          HardwareSimulator.addCursorImageUpdated(
-              onLocalCursorImageMessage, cursorImageHookID, true);
-        } else {
           HardwareSimulator.addCursorImageUpdated(
               onLocalCursorImageMessage, cursorImageHookID, false);
-        }
       }
       if (connectionState != StreamingSessionConnectionState.free &&
           connectionState != StreamingSessionConnectionState.disconnected) {
@@ -446,8 +443,25 @@ class StreamingSession {
           await pc!.createDataChannel('userInput', reliableDataChannelDict);
 
       channel?.onMessage = (RTCDataChannelMessage msg) {
+        if (!image_hooked) {
+          if (streamSettings!.hookCursorImage == true && controller.devicetype == 'IOS'/* || controller.devicetype == 'Android'*/) {
+              HardwareSimulator.addCursorImageUpdated(
+                  onLocalCursorImageMessage, cursorImageHookID, true);
+          }
+          image_hooked = true;
+        }
         processDataChannelMessageFromClient(msg);
       };
+  
+      //onDataChannelState 触发很慢 原因未知
+      /*channel?.onDataChannelState = (state) async {
+        if (state == RTCDataChannelState.RTCDataChannelOpen) {
+          if (streamSettings!.hookCursorImage == true && controller.devicetype == 'IOS'/* || controller.devicetype == 'Android'*/) {
+              HardwareSimulator.addCursorImageUpdated(
+                  onLocalCursorImageMessage, cursorImageHookID, true);
+          }
+        }
+      };*/
 
       if (useUnsafeDatachannel) {
         RTCDataChannelInit dataChannelDict = RTCDataChannelInit()

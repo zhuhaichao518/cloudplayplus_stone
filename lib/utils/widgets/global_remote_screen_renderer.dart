@@ -511,7 +511,9 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
                               widgetSize = newRenderBox.size;
                             },
                             setAspectRatio: (newAspectRatio) {
-                              InputController.mouseController.setAspectRatio(newAspectRatio);
+                              if (AppPlatform.isIOS) {
+                                InputController.mouseController.setAspectRatio(newAspectRatio);
+                              }
                             },
                             ),
                     ),
