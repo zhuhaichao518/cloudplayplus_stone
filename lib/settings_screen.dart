@@ -893,6 +893,7 @@ class _CursorSettingsScreenState extends State<CursorSettingsScreen> {
   bool _renderRemoteCursor = false;
   bool _switchCmdCtrl = false;
   bool _useTouchForTouch = true;
+  double _cursorScale = 50.0;
 
   @override
   void initState() {
@@ -907,6 +908,7 @@ class _CursorSettingsScreenState extends State<CursorSettingsScreen> {
         SharedPreferencesManager.getBool('renderRemoteCursor') ?? false;
     _switchCmdCtrl = StreamingSettings.switchCmdCtrl;
     _useTouchForTouch = StreamingSettings.useTouchForTouch;
+    _cursorScale = StreamingSettings.cursorScale;
   }
 
   @override
@@ -924,7 +926,6 @@ class _CursorSettingsScreenState extends State<CursorSettingsScreen> {
         bottom: false,
         child: SettingsList(
           applicationType: ApplicationType.cupertino,
-          //platform: DevicePlatform.iOS,
           sections: [
             SettingsSection(
               title: const Text('自动隐藏本地鼠标'),
@@ -992,6 +993,76 @@ class _CursorSettingsScreenState extends State<CursorSettingsScreen> {
                       StreamingSettings.useTouchForTouch = value;
                     });
                   },
+                ),
+                if (AppPlatform.isIOS)
+                CustomSettingsTile(
+                  child: Material(
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            '指针缩放倍率 (%)',
+                            style: TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                          const SizedBox(height: 8.0),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: TextField(
+                                  keyboardType: TextInputType.number,
+                                  decoration: InputDecoration(
+                                    hintText: '请输入缩放倍率 (10-1000)',
+                                    errorText: _cursorScale < 10 || _cursorScale > 1000
+                                        ? '请输入10-1000之间的数值'
+                                        : null,
+                                  ),
+                                  controller: TextEditingController(
+                                    text: _cursorScale.toString(),
+                                  ),
+                                  onChanged: (value) {
+                                    final newValue = double.tryParse(value);
+                                    if (newValue != null) {
+                                      setState(() {
+                                        _cursorScale = newValue;
+                                        SharedPreferencesManager.setDouble(
+                                            'cursorScale', newValue);
+                                        StreamingSettings.cursorScale = newValue;
+                                      });
+                                    }
+                                  },
+                                ),
+                              ),
+                              const SizedBox(width: 16.0),
+                              ElevatedButton(
+                                onPressed: () {
+                                  if (_cursorScale >= 10 && _cursorScale <= 1000) {
+                                    SharedPreferencesManager.setDouble('cursorScale', _cursorScale);
+                                    StreamingSettings.cursorScale = _cursorScale;
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text('保存成功'),
+                                        duration: Duration(seconds: 2),
+                                      ),
+                                    );
+                                  } else {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text('请输入10-1000之间的数值'),
+                                        duration: Duration(seconds: 2),
+                                      ),
+                                    );
+                                  }
+                                },
+                                child: const Text('保存'),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
                 ),
               ],
             ),

@@ -48,6 +48,9 @@ class StreamingSettings {
   //if input is touch, then simulate touch on target device.
   static bool useTouchForTouch = true;
 
+  // 指针缩放倍率
+  static double cursorScale = 50.0;
+
   static void init() {
     InputController.resendCount =
         SharedPreferencesManager.getInt('ControlMsgResendCount') ?? 3;
@@ -109,6 +112,8 @@ class StreamingSettings {
 
     useTouchForTouch =
         SharedPreferencesManager.getBool('useTouchForTouch') ?? true;
+
+    cursorScale = SharedPreferencesManager.getDouble('cursorScale') ?? 50.0;
 
     if (AppPlatform.isDeskTop) {
       useClipBoard = SharedPreferencesManager.getBool('useClipBoard') ?? true;

@@ -3,6 +3,7 @@ import 'dart:ui' as ui;
 import 'dart:typed_data';
 
 import 'package:hardware_simulator/hardware_simulator.dart';
+import 'package:cloudplayplus/global_settings/streaming_settings.dart';
 
 class OnScreenRemoteMouseController extends ChangeNotifier {
   Offset _position = const Offset(100, 100);
@@ -370,7 +371,15 @@ class RenderRemoteMouse extends RenderBox {
 
       context.canvas.save();
       context.canvas.translate(finalX, finalY);
-      context.canvas.drawImage(_cursorImages[_hash]!, _cursorOffset[_hash]!, Paint());
+      // 应用缩放
+      final scale = StreamingSettings.cursorScale / 100.0;
+      context.canvas.scale(scale, scale);
+      // 缩放后的offset需要除以scale来保持相对位置
+      final scaledOffset = Offset(
+        _cursorOffset[_hash]!.dx / scale,
+        _cursorOffset[_hash]!.dy / scale
+      );
+      context.canvas.drawImage(_cursorImages[_hash]!, scaledOffset, Paint());
       context.canvas.restore();
     }
   }
