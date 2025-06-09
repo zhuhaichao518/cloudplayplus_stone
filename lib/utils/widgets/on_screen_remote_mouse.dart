@@ -31,10 +31,8 @@ class OnScreenRemoteMouseController extends ChangeNotifier {
   void setCursorBuffer(Uint8List? buffer) {
     _deltax = 0;
     _deltay = 0;
-    if (_cursorBuffer != buffer) {
-      _cursorBuffer = buffer;
-      notifyListeners();
-    }
+    _cursorBuffer = buffer;
+    notifyListeners();
   }
 
   void setDelta(double x, double y) {
@@ -249,8 +247,8 @@ class RenderRemoteMouse extends RenderBox {
     // 将坐标转换为相对于显示区域的百分比
     // currentX + _hotX才是指针实际位置
     final newPercentage = Offset(
-      (currentX + _hotX - _cachedDisplayRect!.left) / _cachedDisplayRect!.width,
-      (currentY + _hotY - _cachedDisplayRect!.top) / _cachedDisplayRect!.height,
+      (currentX/* + _hotX*/ - _cachedDisplayRect!.left) / _cachedDisplayRect!.width,
+      (currentY/* + _hotY*/ - _cachedDisplayRect!.top) / _cachedDisplayRect!.height,
     );
     
     if (_positionPercentage != newPercentage) {
@@ -258,7 +256,8 @@ class RenderRemoteMouse extends RenderBox {
       _onPositionChanged?.call(_positionPercentage);
     }
   }
-
+  
+  static Map<int, Offset> _cursorOffset = {};
   static Map<int, ui.Image> _cursorImages = {};
 
   int _width = 32;  // 默认值
@@ -268,7 +267,6 @@ class RenderRemoteMouse extends RenderBox {
   int _hash = 0;
 
   void _decodeCursorBuffer() {
-    // cursor with cached
     if (_cursorBuffer![0] == 10) {
       ByteData byteData = ByteData.sublistView(_cursorBuffer!);
         int message = byteData.getInt32(1);
@@ -318,6 +316,11 @@ class RenderRemoteMouse extends RenderBox {
     // 获取图像数据
     final imageData = _cursorBuffer!.sublist(21);
     
+    // 保存当前值
+    final currentHash = _hash;
+    final currentHotX = _hotX;
+    final currentHotY = _hotY;
+    
     // 将图像数据转换为ui.Image
     ui.decodeImageFromPixels(
       imageData,
@@ -325,7 +328,8 @@ class RenderRemoteMouse extends RenderBox {
       _height,
       ui.PixelFormat.bgra8888,
       (ui.Image image) {
-        _cursorImages[_hash] = image;
+        _cursorOffset[currentHash] = Offset(-currentHotX.toDouble(), -currentHotY.toDouble());
+        _cursorImages[currentHash] = image;
         markNeedsPaint();
       },
     );
@@ -366,7 +370,7 @@ class RenderRemoteMouse extends RenderBox {
 
       context.canvas.save();
       context.canvas.translate(finalX, finalY);
-      context.canvas.drawImage(_cursorImages[_hash]!, Offset.zero, Paint());
+      context.canvas.drawImage(_cursorImages[_hash]!, _cursorOffset[_hash]!, Paint());
       context.canvas.restore();
     }
   }
@@ -381,21 +385,21 @@ class RenderRemoteMouse extends RenderBox {
     
     if (isX) {
       // 确保热点不会超出左边界
-      if (currentPosition + _hotX < _cachedDisplayRect!.left) {
-        return _cachedDisplayRect!.left - _position.dx - _hotX;
+      if (currentPosition < _cachedDisplayRect!.left) {
+        return _cachedDisplayRect!.left - _position.dx;
       }
       // 确保热点不会超出右边界
-      if (currentPosition + _hotX > _cachedDisplayRect!.right) {
-        return _cachedDisplayRect!.right - _position.dx - _hotX;
+      if (currentPosition > _cachedDisplayRect!.right) {
+        return _cachedDisplayRect!.right - _position.dx;
       }
     } else {
       // 确保热点不会超出上边界
-      if (currentPosition + _hotY < _cachedDisplayRect!.top) {
-        return _cachedDisplayRect!.top - _position.dy - _hotY;
+      if (currentPosition < _cachedDisplayRect!.top) {
+        return _cachedDisplayRect!.top - _position.dy;
       }
       // 确保热点不会超出下边界
-      if (currentPosition + _hotY > _cachedDisplayRect!.bottom) {
-        return _cachedDisplayRect!.bottom - _position.dy - _hotY;
+      if (currentPosition> _cachedDisplayRect!.bottom) {
+        return _cachedDisplayRect!.bottom - _position.dy;
       }
     }
     return value;
