@@ -133,7 +133,7 @@ class _ReconnectScreenState extends State<ReconnectScreen> {
             const SizedBox(height: 30),
             Text(
               '网络连接失败: $_secondsRemaining 秒后重连 (第 $_retryCount 次尝试)',
-              style: const TextStyle(fontSize: 16),
+              style: const TextStyle(fontSize: 16, color: Colors.white),
             ),
             const SizedBox(height: 20),
             ElevatedButton(
