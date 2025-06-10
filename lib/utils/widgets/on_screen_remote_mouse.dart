@@ -374,12 +374,12 @@ class RenderRemoteMouse extends RenderBox {
       // 应用缩放
       final scale = StreamingSettings.cursorScale / 100.0;
       context.canvas.scale(scale, scale);
-      // 缩放后的offset需要除以scale来保持相对位置
-      final scaledOffset = Offset(
+      // offset不需要缩放
+      /*final scaledOffset = Offset(
         _cursorOffset[_hash]!.dx / scale,
         _cursorOffset[_hash]!.dy / scale
-      );
-      context.canvas.drawImage(_cursorImages[_hash]!, scaledOffset, Paint());
+      );*/
+      context.canvas.drawImage(_cursorImages[_hash]!, _cursorOffset[_hash]!, Paint());
       context.canvas.restore();
     }
   }

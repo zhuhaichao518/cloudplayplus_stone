@@ -348,6 +348,9 @@ class _StreamingSettingsScreen extends State<StreamingSettingsScreen> {
   int _audioBitrate = 32;
   int _frameRate = 60;
   String _codec = 'default';
+  double _cursorScale = 100.0;
+  final List<double> _scaleValues = [12.5, 25, 50, 75, 100, 125, 150, 200, 250, 300, 400, 500];
+
   final Map<int, String> bitrates = {
     2500: '2500',
     5000: '5000',
@@ -372,6 +375,25 @@ class _StreamingSettingsScreen extends State<StreamingSettingsScreen> {
     45: '45',
     60: '60',
   };
+
+  // 将实际值映射到滑块位置（0-1之间）
+  double _mapValueToPosition(double value) {
+    int index = _scaleValues.indexOf(value);
+    if (index == -1) {
+      // 如果值不在列表中，找到最接近的值
+      index = _scaleValues.indexWhere((v) => v > value) - 1;
+      if (index < 0) index = 0;
+      if (index >= _scaleValues.length - 1) index = _scaleValues.length - 2;
+    }
+    return index / (_scaleValues.length - 1);
+  }
+
+  // 将滑块位置（0-1之间）映射回实际值
+  double _mapPositionToValue(double position) {
+    int index = (position * (_scaleValues.length - 1)).round();
+    return _scaleValues[index];
+  }
+
   @override
   void initState() {
     super.initState();
@@ -389,6 +411,11 @@ class _StreamingSettingsScreen extends State<StreamingSettingsScreen> {
     } else {
       _useClipBoard = SharedPreferencesManager.getBool('useClipBoard') ?? false;
     }
+    // 加载保存的缩放值，默认值为50
+    double savedValue = SharedPreferencesManager.getDouble('cursorScale') ?? 50.0;
+    // 找到最接近的预设值
+    _cursorScale = _scaleValues.reduce((a, b) => 
+      (a - savedValue).abs() < (b - savedValue).abs() ? a : b);
     setState(() {});
   }
 
@@ -894,6 +921,25 @@ class _CursorSettingsScreenState extends State<CursorSettingsScreen> {
   bool _switchCmdCtrl = false;
   bool _useTouchForTouch = true;
   double _cursorScale = 50.0;
+  final List<double> _scaleValues = [12.5, 25, 50, 75, 100, 125, 150, 200, 250, 300, 400, 500];
+
+  // 将实际值映射到滑块位置（0-1之间）
+  double _mapValueToPosition(double value) {
+    int index = _scaleValues.indexOf(value);
+    if (index == -1) {
+      // 如果值不在列表中，找到最接近的值
+      index = _scaleValues.indexWhere((v) => v > value) - 1;
+      if (index < 0) index = 0;
+      if (index >= _scaleValues.length - 1) index = _scaleValues.length - 2;
+    }
+    return index / (_scaleValues.length - 1);
+  }
+
+  // 将滑块位置（0-1之间）映射回实际值
+  double _mapPositionToValue(double position) {
+    int index = (position * (_scaleValues.length - 1)).round();
+    return _scaleValues[index];
+  }
 
   @override
   void initState() {
@@ -908,7 +954,12 @@ class _CursorSettingsScreenState extends State<CursorSettingsScreen> {
         SharedPreferencesManager.getBool('renderRemoteCursor') ?? false;
     _switchCmdCtrl = StreamingSettings.switchCmdCtrl;
     _useTouchForTouch = StreamingSettings.useTouchForTouch;
-    _cursorScale = StreamingSettings.cursorScale;
+    // 加载保存的缩放值，默认值为100
+    double savedValue = StreamingSettings.cursorScale;
+    // 找到最接近的预设值
+    _cursorScale = _scaleValues.reduce((a, b) => 
+      (a - savedValue).abs() < (b - savedValue).abs() ? a : b);
+    setState(() {});
   }
 
   @override
@@ -1002,62 +1053,44 @@ class _CursorSettingsScreenState extends State<CursorSettingsScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(
-                            '指针缩放倍率 (%)',
-                            style: TextStyle(fontWeight: FontWeight.bold),
-                          ),
-                          const SizedBox(height: 8.0),
                           Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Expanded(
-                                child: TextField(
-                                  keyboardType: TextInputType.number,
-                                  decoration: InputDecoration(
-                                    hintText: '请输入缩放倍率 (10-1000)',
-                                    errorText: _cursorScale < 10 || _cursorScale > 1000
-                                        ? '请输入10-1000之间的数值'
-                                        : null,
-                                  ),
-                                  controller: TextEditingController(
-                                    text: _cursorScale.toString(),
-                                  ),
-                                  onChanged: (value) {
-                                    final newValue = double.tryParse(value);
-                                    if (newValue != null) {
-                                      setState(() {
-                                        _cursorScale = newValue;
-                                        SharedPreferencesManager.setDouble(
-                                            'cursorScale', newValue);
-                                        StreamingSettings.cursorScale = newValue;
-                                      });
-                                    }
-                                  },
+                              const Text(
+                                '指针缩放倍率',
+                                style: TextStyle(fontWeight: FontWeight.bold),
+                              ),
+                              Text(
+                                '${_cursorScale.toStringAsFixed(1)}%',
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.blue,
                                 ),
                               ),
-                              const SizedBox(width: 16.0),
-                              ElevatedButton(
-                                onPressed: () {
-                                  if (_cursorScale >= 10 && _cursorScale <= 1000) {
-                                    SharedPreferencesManager.setDouble('cursorScale', _cursorScale);
-                                    StreamingSettings.cursorScale = _cursorScale;
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                        content: Text('保存成功'),
-                                        duration: Duration(seconds: 2),
-                                      ),
-                                    );
-                                  } else {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                        content: Text('请输入10-1000之间的数值'),
-                                        duration: Duration(seconds: 2),
-                                      ),
-                                    );
-                                  }
-                                },
-                                child: const Text('保存'),
-                              ),
                             ],
+                          ),
+                          const SizedBox(height: 8.0),
+                          CupertinoSlider(
+                            value: _mapValueToPosition(_cursorScale),
+                            min: 0.0,
+                            max: 1.0,
+                            divisions: _scaleValues.length - 1,
+                            onChanged: (position) {
+                              double newValue = _mapPositionToValue(position);
+                              setState(() {
+                                _cursorScale = newValue;
+                                SharedPreferencesManager.setDouble(
+                                    'cursorScale', newValue);
+                                StreamingSettings.cursorScale = newValue;
+                              });
+                            },
+                          ),
+                          const Text(
+                            '拖动滑块调整缩放倍率',
+                            style: TextStyle(
+                              color: Colors.grey,
+                              fontSize: 12,
+                            ),
                           ),
                         ],
                       ),
