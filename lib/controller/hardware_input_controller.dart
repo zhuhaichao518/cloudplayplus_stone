@@ -481,6 +481,12 @@ class InputController {
   };
 
   static CursorWheelCallback cursorWheelCallbackMobile = (deltax, deltay) {
+    // 蓝牙鼠标的上报很怪 滚一下只有0.01几 两下只有1.几 3下5.几 多滚才有几十
+    if (deltax == 0 && deltay == 0) return;
+    if (deltax < 0 && deltax > -20) deltax = -20;
+    if (deltax > 0 && deltax < 20) deltax = 20;
+    if (deltay < 0 && deltay > -20) deltay = -20;
+    if (deltay > 0 && deltay < 20) deltay = 20;
     WebrtcService.currentRenderingSession?.inputController
         ?.requestMouseScroll(deltax, deltay);
   };
