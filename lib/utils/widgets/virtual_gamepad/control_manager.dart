@@ -159,6 +159,26 @@ class ControlManager {
     );
   }
 
+  // 创建并添加鼠标模式切换按钮
+  void createMouseModeButton({
+    required List<MouseMode> enabledModes,
+    double centerX = 0.8,
+    double centerY = 0.8,
+    double size = 0.1,
+    Color color = Colors.blue,
+  }) {
+    addControl(
+      MouseModeButtonControl(
+        id: _getNextId().toString(),
+        centerX: centerX,
+        centerY: centerY,
+        size: size,
+        enabledModes: enabledModes,
+        color: color,
+      ),
+    );
+  }
+
   int _getNextId() {
     final id = _nextId;
     _nextId++;

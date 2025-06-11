@@ -29,6 +29,8 @@ abstract class ControlBase {
         return JoystickControl.fromMap(map);
       case 'button':
         return ButtonControl.fromMap(map);
+      case 'mouseModeButton':
+        return MouseModeButtonControl.fromMap(map);
       default:
         throw Exception('Unknown control type: $type');
     }
@@ -44,4 +46,113 @@ abstract class ControlBase {
 
   // 处理控件事件
   void handleEvent(ControlEvent event);
+}
+
+class MouseModeButtonControl extends ControlBase {
+  final List<MouseMode> enabledModes;
+  final Color color;
+  MouseMode _currentMode;
+
+  MouseModeButtonControl({
+    required super.id,
+    required super.centerX,
+    required super.centerY,
+    required super.size,
+    required this.enabledModes,
+    this.color = Colors.blue,
+  }) : _currentMode = enabledModes.first,
+       super(type: 'mouseModeButton');
+
+  @override
+  void handleEvent(ControlEvent event) {
+    // 鼠标模式按钮不需要处理外部事件
+  }
+
+  @override
+  Widget buildWidget(
+    BuildContext context, {
+    required double screenWidth,
+    required double screenHeight,
+    required Function(ControlEvent) onEvent,
+  }) {
+    return Positioned(
+      left: centerX * screenWidth - (size * screenWidth) / 2,
+      top: centerY * screenHeight - (size * screenHeight) / 2,
+      child: GestureDetector(
+        onTap: () {
+          final currentIndex = enabledModes.indexOf(_currentMode);
+          final nextIndex = (currentIndex + 1) % enabledModes.length;
+          _currentMode = enabledModes[nextIndex];
+          // 触发界面重建
+          if (context.mounted) {
+            (context as Element).markNeedsBuild();
+          }
+          onEvent(ControlEvent(
+            eventType: ControlEventType.mouse,
+            data: MouseModeEvent(
+              enabledModes: enabledModes,
+              currentMode: _currentMode,
+            ),
+          ));
+        },
+        child: Container(
+          width: size * screenWidth,
+          height: size * screenHeight,
+          decoration: BoxDecoration(
+            color: color.withOpacity(0.5),
+            shape: BoxShape.circle,
+          ),
+          child: Center(
+            child: Text(
+              _getModeLabel(_currentMode),
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: size * screenWidth * 0.3,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  String _getModeLabel(MouseMode mode) {
+    switch (mode) {
+      case MouseMode.leftClick:
+        return '左';
+      case MouseMode.rightClick:
+        return '右';
+      case MouseMode.move:
+        return '移';
+    }
+  }
+
+  @override
+  Map<String, dynamic> toMap() {
+    return {
+      'type': 'mouseModeButton',
+      'id': id,
+      'centerX': centerX,
+      'centerY': centerY,
+      'size': size,
+      'enabledModes': enabledModes.map((m) => m.toString()).toList(),
+      'color': color.value,
+    };
+  }
+
+  factory MouseModeButtonControl.fromMap(Map<String, dynamic> map) {
+    return MouseModeButtonControl(
+      id: map['id'] as String,
+      centerX: map['centerX'] as double,
+      centerY: map['centerY'] as double,
+      size: map['size'] as double,
+      enabledModes: (map['enabledModes'] as List)
+          .map((m) => MouseMode.values.firstWhere(
+              (e) => e.toString() == m,
+              orElse: () => MouseMode.leftClick))
+          .toList(),
+      color: Color(map['color'] as int),
+    );
+  }
 }

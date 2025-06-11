@@ -7,6 +7,7 @@ import 'package:vk/vk.dart';
 import 'package:flutter/services.dart';
 import 'virtual_gamepad.dart';
 import 'gamepad_keys.dart';
+import 'control_event.dart';
 
 //import 'plugins/virtual.keyboard.dart/lib/vk.dart';
 
@@ -159,6 +160,14 @@ class _ControlManagementScreenState extends State<ControlManagementScreen> {
               onTap: () {
                 Navigator.pop(context);
                 _addButton();
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.mouse),
+              title: const Text('鼠标模式切换按钮'),
+              onTap: () {
+                Navigator.pop(context);
+                _addMouseModeButton();
               },
             ),
           ],
@@ -481,6 +490,143 @@ class _ControlManagementScreenState extends State<ControlManagementScreen> {
                     keyboardType: TextInputType.number,
                   ),
                   const SizedBox(height: 8),
+                  TextField(
+                    controller: sizeController,
+                    decoration: const InputDecoration(
+                      labelText: '大小 (0.0-1.0)',
+                      hintText: '相对于屏幕宽度',
+                      border: OutlineInputBorder(),
+                    ),
+                    keyboardType: TextInputType.number,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _addMouseModeButton() {
+    final centerXController = TextEditingController(text: '0.8');
+    final centerYController = TextEditingController(text: '0.8');
+    final sizeController = TextEditingController(text: '0.1');
+    List<MouseMode> selectedModes = [MouseMode.leftClick, MouseMode.rightClick, MouseMode.move];
+
+    showDialog(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDialogState) => Dialog.fullscreen(
+          child: Scaffold(
+            appBar: AppBar(
+              title: const Text('添加鼠标模式切换按钮'),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('取消'),
+                ),
+                TextButton(
+                  onPressed: () {
+                    if (selectedModes.isEmpty) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('请至少选择一个模式')),
+                      );
+                      return;
+                    }
+
+                    widget.controlManager.createMouseModeButton(
+                      enabledModes: selectedModes,
+                      centerX: double.tryParse(centerXController.text) ?? 0.8,
+                      centerY: double.tryParse(centerYController.text) ?? 0.8,
+                      size: double.tryParse(sizeController.text) ?? 0.1,
+                    );
+                    widget.onControlsUpdated();
+                    Navigator.pop(context);
+                    setState(() {});
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('鼠标模式切换按钮已添加')),
+                    );
+                  },
+                  child: const Text('添加'),
+                ),
+              ],
+            ),
+            body: SingleChildScrollView(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    '选择可用模式:',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 16),
+                  CheckboxListTile(
+                    title: const Text('左键点击'),
+                    value: selectedModes.contains(MouseMode.leftClick),
+                    onChanged: (bool? value) {
+                      setDialogState(() {
+                        if (value == true) {
+                          selectedModes.add(MouseMode.leftClick);
+                        } else {
+                          selectedModes.remove(MouseMode.leftClick);
+                        }
+                      });
+                    },
+                  ),
+                  CheckboxListTile(
+                    title: const Text('右键点击'),
+                    value: selectedModes.contains(MouseMode.rightClick),
+                    onChanged: (bool? value) {
+                      setDialogState(() {
+                        if (value == true) {
+                          selectedModes.add(MouseMode.rightClick);
+                        } else {
+                          selectedModes.remove(MouseMode.rightClick);
+                        }
+                      });
+                    },
+                  ),
+                  CheckboxListTile(
+                    title: const Text('移动模式'),
+                    value: selectedModes.contains(MouseMode.move),
+                    onChanged: (bool? value) {
+                      setDialogState(() {
+                        if (value == true) {
+                          selectedModes.add(MouseMode.move);
+                        } else {
+                          selectedModes.remove(MouseMode.move);
+                        }
+                      });
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                  const Text(
+                    '按钮位置和大小:',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: centerXController,
+                    decoration: const InputDecoration(
+                      labelText: '中心X (0.0-1.0)',
+                      hintText: '0.0是左边，1.0是右边',
+                      border: OutlineInputBorder(),
+                    ),
+                    keyboardType: TextInputType.number,
+                  ),
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: centerYController,
+                    decoration: const InputDecoration(
+                      labelText: '中心Y (0.0-1.0)',
+                      hintText: '0.0是底部，1.0是顶部',
+                      border: OutlineInputBorder(),
+                    ),
+                    keyboardType: TextInputType.number,
+                  ),
+                  const SizedBox(height: 16),
                   TextField(
                     controller: sizeController,
                     decoration: const InputDecoration(

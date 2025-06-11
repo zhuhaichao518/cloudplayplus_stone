@@ -86,7 +86,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
               SettingsTile.navigation(
                 leading: const Icon(Icons.gamepad),
-                title: const Text('屏幕手柄设置'),
+                title: const Text('屏幕按键设置'),
                 onPressed: (context) {
                   Navigation.navigateTo(
                     context: context,
