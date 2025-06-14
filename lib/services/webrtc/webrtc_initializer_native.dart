@@ -31,15 +31,14 @@ class WebRTCInitializerPlatForm implements WebRTCInitializer {
         androidAudioFocusMode: AndroidAudioFocusMode.gain,
         androidAudioStreamType: AndroidAudioStreamType.music,
         androidAudioAttributesUsageType: AndroidAudioAttributesUsageType.media,
-        androidAudioAttributesContentType:
-            AndroidAudioAttributesContentType.speech,
+        androidAudioAttributesContentType: AndroidAudioAttributesContentType.speech,
       );
-
       WebRTC.initialize(
         options: {
           'androidAudioConfiguration': androidConfig.toMap(),
         },
       );
+      await Helper.setAndroidAudioConfiguration(androidConfig);
     } else if (Platform.isIOS) {
       final appleConfig = AppleAudioConfiguration(
         appleAudioCategory: AppleAudioCategory.playback,
