@@ -95,7 +95,7 @@ class StreamingSettings {
 
     codec = SharedPreferencesManager.getString('codec') ?? 'default';
 
-    hookCursorImage ??= (AppPlatform.isWeb || AppPlatform.isDeskTop || AppPlatform.isIOS);
+    hookCursorImage ??= (AppPlatform.isWeb || AppPlatform.isDeskTop || AppPlatform.isMobile);
 
     connectPasswordHash =
         SharedPreferencesManager.getString('connectPasswordHash') ?? "";

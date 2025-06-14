@@ -322,7 +322,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               title: const Text('1.0.5'),
               leading: const Icon(Icons.sunny),
             ),
-            if (AppPlatform.isAndroid || AppPlatform.isIOS)
+            if (AppPlatform.isMobile)
               SettingsTile(
                 title: const Text('苏ICP备2024135000号-2A'),
                 leading: const Icon(Icons.numbers),
@@ -1045,7 +1045,7 @@ class _CursorSettingsScreenState extends State<CursorSettingsScreen> {
                     });
                   },
                 ),
-                if (AppPlatform.isIOS)
+                if (AppPlatform.isMobile)
                 CustomSettingsTile(
                   child: Material(
                     child: Padding(
@@ -1057,7 +1057,7 @@ class _CursorSettingsScreenState extends State<CursorSettingsScreen> {
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               const Text(
-                                '指针缩放倍率',
+                                '本地指针缩放倍率',
                                 style: TextStyle(fontWeight: FontWeight.bold),
                               ),
                               Text(

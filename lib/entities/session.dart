@@ -323,7 +323,8 @@ class StreamingSession {
   //We are the 'controlled'.
   void acceptRequest(StreamedSettings settings) async {
     await _lock.synchronized(() async {
-      if (settings.hookCursorImage == true && AppPlatform.isDeskTop) {
+      // 对于移动平台 需要hookAll,且在channel建立之后hook
+      if (settings.hookCursorImage == true && AppPlatform.isDeskTop && !(controller.devicetype == 'IOS' || controller.devicetype == 'Android')) {
           HardwareSimulator.addCursorImageUpdated(
               onLocalCursorImageMessage, cursorImageHookID, false);
       }
@@ -444,7 +445,7 @@ class StreamingSession {
 
       channel?.onMessage = (RTCDataChannelMessage msg) {
         if (!image_hooked) {
-          if (streamSettings!.hookCursorImage == true && controller.devicetype == 'IOS'/* || controller.devicetype == 'Android'*/) {
+          if (streamSettings!.hookCursorImage == true && controller.devicetype == 'IOS' || controller.devicetype == 'Android') {
               HardwareSimulator.addCursorImageUpdated(
                   onLocalCursorImageMessage, cursorImageHookID, true);
           }

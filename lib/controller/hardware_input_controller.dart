@@ -27,7 +27,7 @@ class InputController {
 
   final Map<String, bool> buttonInputs = {};
   static void init() async {
-    if (AppPlatform.isIOS) {
+    if (AppPlatform.isMobile) {
       mouseController = OnScreenRemoteMouseController();
       HardwareSimulator.addCursorMoved(cursorMovedCallbackMobile);
       HardwareSimulator.addCursorPressed(cursorPressedCallbackMobile);
@@ -495,7 +495,7 @@ class InputController {
 
   void handleCursorUpdate(RTCDataChannelMessage msg) async {
     Uint8List buffer = msg.binary;
-    if (AppPlatform.isIOS) {
+    if (AppPlatform.isMobile) {
       mouseController.setCursorBuffer(buffer);
       return;
     }

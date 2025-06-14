@@ -259,7 +259,7 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
       }
     };
     ControlManager().addEventListener(_handleControlEvent);
-    if (AppPlatform.isIOS) {
+    if (AppPlatform.isMobile) {
        HardwareSimulator.lockCursor();
     }
     WakelockPlus.enable();
@@ -281,7 +281,7 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
               children: [
                 Listener(
                   onPointerSignal: (PointerSignalEvent event) {
-                    if (AppPlatform.isIOS) return;
+                    if (AppPlatform.isMobile) return;
                     if (event is PointerScrollEvent) {
                       //this does not work on macos for touch bar, works for web.
                       if (event.scrollDelta.dx.abs() > 0 ||
@@ -348,7 +348,7 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
                       }
                     } else if (event.kind == PointerDeviceKind.mouse) {
                       // For IOS we use on_screen_remote_mouse_cursor.
-                      if (AppPlatform.isIOS) return;
+                      if (AppPlatform.isMobile) return;
                       _syncMouseButtonState(event);
                     }
                   },
@@ -375,8 +375,8 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
                         }
                       }
                     } else if (event.kind == PointerDeviceKind.mouse) {
-                      if (AppPlatform.isIOS) return;
-                      if (AppPlatform.isIOS) {
+                      if (AppPlatform.isMobile) return;
+                      if (AppPlatform.isMobile) {
                         //legacy impl for mouse on IOS. Used when user does not want on screen cursor.
                         _syncMouseButtonStateUP(event);
                       } else {
@@ -418,14 +418,14 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
                                     .currentRenderingSession!.screenId);
                       }
                     } else {
-                      if (AppPlatform.isIOS) return;
+                      if (AppPlatform.isMobile) return;
                       WebrtcService.currentRenderingSession?.inputController
                           ?.requestMoveMouseAbsl(xPercent, yPercent,
                               WebrtcService.currentRenderingSession!.screenId);
                     }
                   },
                   onPointerHover: (PointerHoverEvent event) {
-                    if (AppPlatform.isIOS) return;
+                    if (AppPlatform.isMobile) return;
                     if (InputController.isCursorLocked ||
                         renderBox == null ||
                         WebrtcService.currentRenderingSession == null) return;
@@ -532,7 +532,7 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
                               widgetSize = newRenderBox.size;
                             },
                             setAspectRatio: (newAspectRatio) {
-                              if (AppPlatform.isIOS) {
+                              if (AppPlatform.isMobile) {
                                 InputController.mouseController.setAspectRatio(newAspectRatio);
                               }
                             },
@@ -672,7 +672,7 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
     //So for singleton scenarios only do it when initcount == 0.
     if (initcount == 0) {
       WakelockPlus.disable();
-      if (AppPlatform.isIOS) {
+      if (AppPlatform.isMobile) {
         HardwareSimulator.unlockCursor();
       }
     }
