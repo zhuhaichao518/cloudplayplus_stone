@@ -81,6 +81,8 @@ class AppStateService {
   static String? websocketSessionid;
   static ControlState controlState = ControlState.normal;
   static HostState hostState = HostState.normal;
+  // Only used for mobile to render native cursor.
+  static bool isMouseConnected = false;
   //static bool visible = true;
 }
 

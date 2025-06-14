@@ -544,7 +544,7 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
                   'You pressed: $_pressedKey',
                   style: TextStyle(fontSize: 24, color: Colors.red),
                 ),*/
-                if (AppPlatform.isIOS)
+                if (AppPlatform.isMobile && AppStateService.isMouseConnected)
                   OnScreenRemoteMouse(
                   controller: InputController.mouseController,
                   onPositionChanged: (percentage) {
@@ -554,7 +554,6 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
                           percentage.dy,
                           WebrtcService
                               .currentRenderingSession!.screenId);
-                    //print('鼠标位置百分比: x=${percentage.dx.toStringAsFixed(2)}, y=${percentage.dy.toStringAsFixed(2)}');
                   },
                 ),
                 BlocProvider(

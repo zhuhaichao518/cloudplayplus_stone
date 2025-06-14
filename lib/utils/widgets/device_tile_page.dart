@@ -650,6 +650,9 @@ class _DeviceDetailPageState extends State<DeviceDetailPage> {
     // 连接设备的逻辑
     // String? password = await _showPasswordDialog(context);
     // if (password == null) return;
+    if (AppPlatform.isMobile) {
+      AppStateService.isMouseConnected = (await HardwareSimulator.getIsMouseConnected())!;
+    }
     StreamingSettings.updateScreenId(_selectedMonitorId - 1);
     StreamingSettings.connectPassword = _passwordController.text;
     StreamingManager.startStreaming(widget.device);
