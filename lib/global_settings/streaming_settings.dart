@@ -105,7 +105,7 @@ class StreamingSettings {
 
     autoHideLocalCursor =
         SharedPreferencesManager.getBool('autoHideLocalCursor') ??
-            (AppPlatform.isDeskTop || AppPlatform.isWeb);
+            (AppPlatform.isDeskTop || AppPlatform.isWeb || AppPlatform.isMobile);
 
     switchCmdCtrl = SharedPreferencesManager.getBool('switchCmdCtrl') ??
         AppPlatform.isMacos;

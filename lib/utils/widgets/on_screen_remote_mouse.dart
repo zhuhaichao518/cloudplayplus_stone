@@ -11,11 +11,13 @@ class OnScreenRemoteMouseController extends ChangeNotifier {
   double _deltax = 0;
   double _deltay = 0;
   double aspectRatio = 1.6;
+  bool _showCursor = true;
 
   Offset get position => _position;
   Uint8List? get cursorBuffer => _cursorBuffer;
   double get deltax => _deltax;
   double get deltay => _deltay;
+  bool get showCursor => _showCursor;
 
   void setPosition(Offset position) {
     if (_position != position) {
@@ -33,6 +35,11 @@ class OnScreenRemoteMouseController extends ChangeNotifier {
     _deltax = 0;
     _deltay = 0;
     _cursorBuffer = buffer;
+    notifyListeners();
+  }
+
+  void setShowCursor(bool value) {
+    _showCursor = value;
     notifyListeners();
   }
 
@@ -91,7 +98,8 @@ class _OnScreenRemoteMouseState extends State<OnScreenRemoteMouse> {
       ..cursorBuffer = widget.controller.cursorBuffer
       ..deltax += widget.controller.deltax
       ..deltay += widget.controller.deltay
-      ..aspectRatio = widget.controller.aspectRatio;
+      ..aspectRatio = widget.controller.aspectRatio
+      ..showCursor = widget.controller.showCursor;
   }
 
   @override
@@ -137,6 +145,7 @@ class RenderRemoteMouse extends RenderBox {
         _cursorBuffer = cursorBuffer,
         _deltax = deltax,
         _deltay = deltay,
+        _showCursor = true,
         _aspectRatio = 1.6,
         _onPositionChanged = onPositionChanged;
 
@@ -156,6 +165,14 @@ class RenderRemoteMouse extends RenderBox {
     _aspectRatio = value;
     markNeedsPaint();
     _updateCachedValues();
+  }
+
+  bool _showCursor;
+  bool get showCursor => _showCursor;
+  set showCursor(bool value) {
+    if (_showCursor == value) return;
+    _showCursor = value;
+    markNeedsPaint();
   }
 
   Uint8List? _cursorBuffer;
@@ -343,6 +360,7 @@ class RenderRemoteMouse extends RenderBox {
 
   @override
   void paint(PaintingContext context, Offset offset) {
+    if (!_showCursor) return;
     if (!_cursorImages.containsKey(_hash)) {
       // 如果没有图像，绘制一个默认的箭头
       final paint = Paint()

@@ -472,7 +472,18 @@ class InputController {
 
   // Mobile callbacks
   static CursorMovedCallback cursorMovedCallbackMobile = (deltax, deltay) {
-    mouseController.moveDelta(deltax, deltay);
+    if (isCursorLocked) {
+      WebrtcService.currentRenderingSession?.inputController
+          ?.requestMoveMouseRelative(deltax, deltay, 0);
+      if (sendEmptyPacket) {
+        for (int i = 0; i < resendCount / 2; i++) {
+          WebrtcService.currentRenderingSession?.inputController?.channel
+              .send(emptyMessage);
+        }
+      }
+    } else {
+      mouseController.moveDelta(deltax, deltay);
+    }
   };
 
   static CursorPressedCallback cursorPressedCallbackMobile = (button, isDown) {
@@ -496,7 +507,19 @@ class InputController {
   void handleCursorUpdate(RTCDataChannelMessage msg) async {
     Uint8List buffer = msg.binary;
     if (AppPlatform.isMobile) {
-      mouseController.setCursorBuffer(buffer);
+      ByteData byteData = ByteData.sublistView(buffer);
+      int message = byteData.getInt32(1);
+      if (message == HardwareSimulator.CURSOR_INVISIBLE &&
+          StreamingSettings.autoHideLocalCursor) {
+          mouseController.setShowCursor(false);
+          isCursorLocked = true;
+      }else if (message == HardwareSimulator.CURSOR_VISIBLE &&
+          StreamingSettings.autoHideLocalCursor){
+          mouseController.setShowCursor(true);
+          isCursorLocked = false;
+      }else {
+          mouseController.setCursorBuffer(buffer);
+      }
       return;
     }
     if (buffer[0] == LP_MOUSECURSOR_CHANGED_WITHBUFFER) {
