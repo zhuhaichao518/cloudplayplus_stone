@@ -32,6 +32,9 @@ class InputController {
       HardwareSimulator.addCursorMoved(cursorMovedCallbackMobile);
       HardwareSimulator.addCursorPressed(cursorPressedCallbackMobile);
       HardwareSimulator.addCursorWheel(cursorWheelCallbackMobile);
+      if (AppPlatform.isAndroid) {
+        HardwareSimulator.addKeyboardPressed(keyboardPressedCallbackAndroid);
+      }
     }
     // We don't use Gamepads for windows.
     if (AppPlatform.isWindows) return;
@@ -175,6 +178,13 @@ class InputController {
 
     // 发送消息
     channel.send(RTCDataChannelMessage.fromBinary(buffer));
+  
+    if (sendEmptyPacket) {
+      for (int i = 0; i < resendCount / 2; i++) {
+        WebrtcService.currentRenderingSession?.inputController?.channel
+            .send(emptyMessage);
+      }
+    }
   }
 
   void handleMoveMouseRelative(RTCDataChannelMessage message) {
@@ -475,12 +485,6 @@ class InputController {
     if (isCursorLocked) {
       WebrtcService.currentRenderingSession?.inputController
           ?.requestMoveMouseRelative(deltax, deltay, 0);
-      if (sendEmptyPacket) {
-        for (int i = 0; i < resendCount / 2; i++) {
-          WebrtcService.currentRenderingSession?.inputController?.channel
-              .send(emptyMessage);
-        }
-      }
     } else {
       mouseController.moveDelta(deltax, deltay);
     }
@@ -500,6 +504,12 @@ class InputController {
     if (deltay > 0 && deltay < 20) deltay = 20;
     WebrtcService.currentRenderingSession?.inputController
         ?.requestMouseScroll(deltax, deltay);
+  };
+
+  static KeyboardPressedCallback keyboardPressedCallbackAndroid = (keycode, isDown) {
+    // 蓝牙鼠标的上报很怪 滚一下只有0.01几 两下只有1.几 3下5.几 多滚才有几十
+    WebrtcService.currentRenderingSession?.inputController
+        ?.requestKeyEvent(keycode, isDown);
   };
 
   static bool isCursorLocked = false;

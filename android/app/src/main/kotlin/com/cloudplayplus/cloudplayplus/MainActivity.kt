@@ -12,13 +12,21 @@ class MainActivity: FlutterActivity(), GamepadsCompatibleActivity {
     // Add gamepad implementation
     var keyListener: ((KeyEvent) -> Boolean)? = null
     var motionListener: ((MotionEvent) -> Boolean)? = null
+    var lockedkeyListener: ((KeyEvent) -> Boolean)? = null
 
     override fun dispatchGenericMotionEvent(motionEvent: MotionEvent): Boolean {
         return motionListener?.invoke(motionEvent) ?: super.dispatchGenericMotionEvent(motionEvent)
     }
 
     override fun dispatchKeyEvent(keyEvent: KeyEvent): Boolean {
-        return keyListener?.invoke(keyEvent) ?: super.dispatchKeyEvent(keyEvent)
+        //return keyListener?.invoke(keyEvent) ?: super.dispatchKeyEvent(keyEvent)
+        if (keyListener?.invoke(keyEvent) == true) {
+            return true;
+        }
+        if (lockedkeyListener?.invoke(keyEvent) == true) {
+            return true;
+        }
+        return super.dispatchKeyEvent(keyEvent);
     }
 
     override fun registerInputDeviceListener(
@@ -31,6 +39,10 @@ class MainActivity: FlutterActivity(), GamepadsCompatibleActivity {
 
     override fun registerKeyEventHandler(handler: (KeyEvent) -> Boolean) {
         keyListener = handler
+    }
+
+    override fun registerLockedKeyEventHandler(handler: (KeyEvent) -> Boolean) {
+        lockedkeyListener = handler
     }
 
     override fun registerMotionEventHandler(handler: (MotionEvent) -> Boolean) {
