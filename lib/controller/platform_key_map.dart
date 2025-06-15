@@ -298,3 +298,150 @@ Map<int, int> macToWindowsKeyMap = {
   0x6E: 0x5D, // Apps
   0x7F: 0x5F, // Sleep
 };
+
+Map<int, int> androidToWindowsKeyMap = {
+  // 字母键
+  29: 0x41, // A
+  30: 0x42, // B
+  31: 0x43, // C
+  32: 0x44, // D
+  33: 0x45, // E
+  34: 0x46, // F
+  35: 0x47, // G
+  36: 0x48, // H
+  37: 0x49, // I
+  38: 0x4A, // J
+  39: 0x4B, // K
+  40: 0x4C, // L
+  41: 0x4D, // M
+  42: 0x4E, // N
+  43: 0x4F, // O
+  44: 0x50, // P
+  45: 0x51, // Q
+  46: 0x52, // R
+  47: 0x53, // S
+  48: 0x54, // T
+  49: 0x55, // U
+  50: 0x56, // V
+  51: 0x57, // W
+  52: 0x58, // X
+  53: 0x59, // Y
+  54: 0x5A, // Z
+
+  // 数字键
+  7: 0x30,  // 0
+  8: 0x31,  // 1
+  9: 0x32,  // 2
+  10: 0x33, // 3
+  11: 0x34, // 4
+  12: 0x35, // 5
+  13: 0x36, // 6
+  14: 0x37, // 7
+  15: 0x38, // 8
+  16: 0x39, // 9
+
+  // 功能键
+  131: 0x70, // F1
+  132: 0x71, // F2
+  133: 0x72, // F3
+  134: 0x73, // F4
+  135: 0x74, // F5
+  136: 0x75, // F6
+  137: 0x76, // F7
+  138: 0x77, // F8
+  139: 0x78, // F9
+  140: 0x79, // F10
+  141: 0x7A, // F11
+  142: 0x7B, // F12
+
+  // 控制键
+  111: 0x1B, // ESC
+  66: 0x0D,  // ENTER
+  67: 0x08,  // BACKSPACE
+  61: 0x09,  // TAB
+  62: 0x20,  // SPACE
+  115: 0x14, // CAPS LOCK
+  59: 0xA0,  // LEFT SHIFT
+  60: 0xA1,  // RIGHT SHIFT
+  113: 0xA2, // LEFT CONTROL
+  114: 0xA3, // RIGHT CONTROL
+  57: 0xA4,  // LEFT ALT
+  58: 0xA5,  // RIGHT ALT
+
+  // 方向键
+  19: 0x26, // UP
+  20: 0x28, // DOWN
+  21: 0x25, // LEFT
+  22: 0x27, // RIGHT
+
+  // 导航键
+  92: 0x21, // PAGE UP
+  93: 0x22, // PAGE DOWN
+  3: 0x24,  // HOME
+  123: 0x23, // END
+  124: 0x2D, // INSERT
+  112: 0x2E, // DELETE
+
+  // 锁定键
+  143: 0x90, // NUM LOCK
+  116: 0x91, // SCROLL LOCK
+
+  // 数字键盘
+  144: 0x60, // NUMPAD 0
+  145: 0x61, // NUMPAD 1
+  146: 0x62, // NUMPAD 2
+  147: 0x63, // NUMPAD 3
+  148: 0x64, // NUMPAD 4
+  149: 0x65, // NUMPAD 5
+  150: 0x66, // NUMPAD 6
+  151: 0x67, // NUMPAD 7
+  152: 0x68, // NUMPAD 8
+  153: 0x69, // NUMPAD 9
+  157: 0x6B, // NUMPAD ADD
+  156: 0x6D, // NUMPAD SUBTRACT
+  155: 0x6A, // NUMPAD MULTIPLY
+  154: 0x6F, // NUMPAD DIVIDE
+  160: 0x0D, // NUMPAD ENTER
+  158: 0x6E, // NUMPAD DECIMAL
+
+  // 标点符号
+  69: 0xBD, // MINUS
+  70: 0xBB, // EQUALS
+  71: 0xDB, // LEFT BRACKET
+  72: 0xDD, // RIGHT BRACKET
+  73: 0xDC, // BACKSLASH
+  74: 0xBA, // SEMICOLON
+  75: 0xDE, // APOSTROPHE
+  55: 0xBC, // COMMA
+  56: 0xBE, // PERIOD
+  76: 0xBF, // SLASH
+  68: 0xC0, // BACKQUOTE
+
+  // 特殊键
+  120: 0x2C, // PRINT SCREEN
+  121: 0x13, // PAUSE
+  259: 0x2F, // HELP
+
+  // Windows键
+  117: 0x5B, // LEFT WINDOWS
+  118: 0x5C, // RIGHT WINDOWS
+  82: 0x5D,  // APPS
+
+  // 媒体键
+  85: 0xB3, // MEDIA PLAY PAUSE
+  86: 0xB2, // MEDIA STOP
+  87: 0xB0, // MEDIA NEXT
+  88: 0xB1, // MEDIA PREVIOUS
+  65: 0xB4, // LAUNCH MAIL
+  64: 0xB6, // LAUNCH APP1
+  187: 0xB7, // LAUNCH APP2
+
+  // 浏览器键
+  4: 0xA6,   // BROWSER BACK
+  125: 0xA7, // BROWSER FORWARD
+  285: 0xA8, // BROWSER REFRESH
+  83: 0xA9,  // BROWSER STOP
+  84: 0xAA,  // BROWSER SEARCH
+  174: 0xAB, // BROWSER FAVORITES
+  170: 0xAC, // BROWSER HOME
+};

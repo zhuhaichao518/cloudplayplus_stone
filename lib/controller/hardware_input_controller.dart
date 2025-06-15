@@ -4,6 +4,7 @@ import 'dart:typed_data';
 
 import 'package:cloudplayplus/base/logging.dart';
 import 'package:cloudplayplus/controller/gamepad_controller.dart';
+import 'package:cloudplayplus/controller/platform_key_map.dart';
 import 'package:cloudplayplus/global_settings/streaming_settings.dart';
 import 'package:cloudplayplus/services/app_info_service.dart';
 import 'package:cloudplayplus/services/webrtc_service.dart';
@@ -264,6 +265,7 @@ class InputController {
 
   void requestTouchButton(double x, double y, int touchId, bool isDown) async {
     // 创建一个ByteData足够存储 LP_MOUSE, screenId, dx, dy
+    //print("touch button ${touchId} ${x},${y},${isDown}");
     ByteData byteData = ByteData(15);
     byteData.setUint8(0, LP_TOUCH_BUTTON);
     //set screen id to 0
@@ -303,6 +305,7 @@ class InputController {
   }
 
   void requestTouchMove(double x, double y, int touchId) async {
+    //print("touch move ${touchId} ${x},${y}");
     ByteData byteData = ByteData(13);
     byteData.setUint8(0, LP_TOUCH_MOVE_ABSL);
     byteData.setFloat32(1, x, Endian.little);
@@ -507,9 +510,10 @@ class InputController {
   };
 
   static KeyboardPressedCallback keyboardPressedCallbackAndroid = (keycode, isDown) {
-    // 蓝牙鼠标的上报很怪 滚一下只有0.01几 两下只有1.几 3下5.几 多滚才有几十
-    WebrtcService.currentRenderingSession?.inputController
-        ?.requestKeyEvent(keycode, isDown);
+    if (androidToWindowsKeyMap.containsKey(keycode)) {
+      WebrtcService.currentRenderingSession?.inputController
+        ?.requestKeyEvent(androidToWindowsKeyMap[keycode], isDown);
+    }
   };
 
   static bool isCursorLocked = false;
