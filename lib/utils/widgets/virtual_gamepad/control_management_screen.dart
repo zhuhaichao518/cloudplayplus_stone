@@ -97,19 +97,21 @@ class _ControlManagementScreenState extends State<ControlManagementScreen> {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
                 content: Text(
-                    '${control.type == 'joystick' ? '摇杆' : (control.type == 'mouseModeButton' ? '鼠标模式切换按钮' : (control is ButtonControl && control.isGamepadButton ? '手柄按钮' : '键盘按键'))}已删除')),
+                    '${control.type == 'joystick' ? '摇杆' : (control.type == 'mouseModeButton' ? '鼠标模式切换按钮' : (control is ButtonControl && control.isGamepadButton ? '手柄按钮' : (control is ButtonControl && control.isMouseButton ? '鼠标按钮' : '键盘按键')))}已删除')),
           );
         },
         child: ListTile(
           leading: Icon(
-              control.type == 'joystick' ? Icons.gamepad : (control.type == 'mouseModeButton' ? Icons.mouse : Icons.touch_app)),
+              control.type == 'joystick' ? Icons.gamepad : (control.type == 'mouseModeButton' ? Icons.mouse : (control is ButtonControl && control.isMouseButton ? Icons.mouse : Icons.touch_app))),
           title: Text(control.type == 'joystick'
               ? '${(control as JoystickControl).joystickType == 'left' ? '左' : '右'}摇杆'
               : control.type == 'mouseModeButton'
                   ? '鼠标模式切换按钮'
                   : (control is ButtonControl && control.isGamepadButton
                       ? '手柄按钮：${GamepadKeys.getKeyName(control.keyCode)}'
-                      : '键盘按键：${control is ButtonControl ? control.label : ''}')),
+                      : control is ButtonControl && control.isMouseButton
+                          ? '鼠标按钮：${_getMouseButtonName(control.keyCode)}'
+                          : '键盘按键：${control is ButtonControl ? control.label : ''}')),
           subtitle: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -158,7 +160,7 @@ class _ControlManagementScreenState extends State<ControlManagementScreen> {
             ),
             ListTile(
               leading: const Icon(Icons.touch_app),
-              title: const Text('键盘/手柄按钮'),
+              title: const Text('键盘/手柄/鼠标按钮'),
               onTap: () {
                 Navigator.pop(context);
                 _addButton();
@@ -280,6 +282,7 @@ class _ControlManagementScreenState extends State<ControlManagementScreen> {
     final sizeController = TextEditingController(text: '0.1');
     int? selectedKeyCode;
     bool isGamepadButton = false;
+    bool isMouseButton = false;
     bool hasSelectedKey = false;
 
     showDialog(
@@ -307,13 +310,16 @@ class _ControlManagementScreenState extends State<ControlManagementScreen> {
                       label: labelController.text.isEmpty
                           ? (isGamepadButton
                               ? _getDefaultGamepadButtonLabel(selectedKeyCode!)
-                              : '按钮')
+                              : isMouseButton
+                                  ? _getMouseButtonName(selectedKeyCode!)
+                                  : '按钮')
                           : labelController.text,
                       keyCode: selectedKeyCode!,
                       centerX: double.tryParse(centerXController.text) ?? 0.8,
                       centerY: double.tryParse(centerYController.text) ?? 0.8,
                       size: double.tryParse(sizeController.text) ?? 0.1,
                       isGamepadButton: isGamepadButton,
+                      isMouseButton: isMouseButton,
                     );
                     widget.onControlsUpdated();
                     Navigator.pop(context);
@@ -321,7 +327,7 @@ class _ControlManagementScreenState extends State<ControlManagementScreen> {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
                           content:
-                              Text('${isGamepadButton ? "手柄按钮" : "键盘按键"}已添加')),
+                              Text('${isGamepadButton ? "手柄按钮" : (isMouseButton ? "鼠标按钮" : "键盘按键")}已添加')),
                     );
                   },
                   child: const Text('添加'),
@@ -337,15 +343,17 @@ class _ControlManagementScreenState extends State<ControlManagementScreen> {
                     children: [
                       const Text('按钮类型:', style: TextStyle(fontSize: 16)),
                       const SizedBox(width: 16),
-                      DropdownButton<bool>(
-                        value: isGamepadButton,
+                      DropdownButton<String>(
+                        value: isMouseButton ? 'mouse' : (isGamepadButton ? 'gamepad' : 'keyboard'),
                         items: const [
-                          DropdownMenuItem(value: false, child: Text('键盘按键')),
-                          DropdownMenuItem(value: true, child: Text('手柄按钮')),
+                          DropdownMenuItem(value: 'keyboard', child: Text('键盘按键')),
+                          DropdownMenuItem(value: 'gamepad', child: Text('手柄按钮')),
+                          DropdownMenuItem(value: 'mouse', child: Text('鼠标按钮')),
                         ],
                         onChanged: (value) {
                           if (value != null) {
-                            isGamepadButton = value;
+                            isGamepadButton = value == 'gamepad';
+                            isMouseButton = value == 'mouse';
                             selectedKeyCode = null;
                             hasSelectedKey = false;
                             setDialogState(() {});
@@ -359,7 +367,7 @@ class _ControlManagementScreenState extends State<ControlManagementScreen> {
                     controller: labelController,
                     decoration: InputDecoration(
                       labelText: '按钮标签',
-                      hintText: isGamepadButton ? 'A, B, X, Y, etc.' : '按钮名称',
+                      hintText: isGamepadButton ? 'A, B, X, Y, etc.' : (isMouseButton ? 'Left Click, Right Click, Move' : '按钮名称'),
                       border: const OutlineInputBorder(),
                     ),
                   ),
@@ -392,42 +400,62 @@ class _ControlManagementScreenState extends State<ControlManagementScreen> {
                       ),
                     ),
                     const SizedBox(height: 64),
-                  ] else ...[
+                  ] else if (isMouseButton) ...[
                     const Text(
-                      '在虚拟键盘上按下一个键:',
-                      style:
-                          TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                      '请选择鼠标按钮:',
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 16),
-                    Center(
-                      child: LayoutBuilder(
-                        builder: (context, constraints) {
-                          // 计算键盘高度，使其宽度不超过屏幕宽度的90%
-                          final maxWidth = constraints.maxWidth;
-                          final height = maxWidth / 2.6;
-                          return Container(
-                            width: maxWidth,
-                            child: VirtualKeyboard(
-                              keyBackgroundColor: Colors.grey.withOpacity(0.5),
-                              height: height,
-                              type: VirtualKeyboardType.Hardware,
-                              keyPressedCallback: (keyCode, isDown) {
-                                if (isDown) {
-                                  selectedKeyCode = keyCode;
-                                  hasSelectedKey = true;
-                                  setDialogState(() {});
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text(
-                                          '已选择按键: 0x${keyCode.toRadixString(16)}'),
-                                    ),
-                                  );
-                                }
-                              },
-                            ),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: [
+                        _buildMouseButtonOption(1, '左键', selectedKeyCode == 1, (keyCode) {
+                          selectedKeyCode = keyCode;
+                          labelController.text = '左键';
+                          hasSelectedKey = true;
+                          setDialogState(() {});
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('已选择鼠标左键')),
                           );
-                        },
-                      ),
+                        }),
+                        _buildMouseButtonOption(2, '中键', selectedKeyCode == 2, (keyCode) {
+                          selectedKeyCode = keyCode;
+                          labelController.text = '中键';
+                          hasSelectedKey = true;
+                          setDialogState(() {});
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('已选择鼠标中键')),
+                          );
+                        }),
+                        _buildMouseButtonOption(3, '右键', selectedKeyCode == 3, (keyCode) {
+                          selectedKeyCode = keyCode;
+                          labelController.text = '右键';
+                          hasSelectedKey = true;
+                          setDialogState(() {});
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('已选择鼠标右键')),
+                          );
+                        }),
+                        _buildMouseButtonOption(4, '侧键1', selectedKeyCode == 4, (keyCode) {
+                          selectedKeyCode = keyCode;
+                          labelController.text = '侧键1';
+                          hasSelectedKey = true;
+                          setDialogState(() {});
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('已选择鼠标侧键1')),
+                          );
+                        }),
+                        _buildMouseButtonOption(5, '侧键2', selectedKeyCode == 5, (keyCode) {
+                          selectedKeyCode = keyCode;
+                          labelController.text = '侧键2';
+                          hasSelectedKey = true;
+                          setDialogState(() {});
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('已选择鼠标侧键2')),
+                          );
+                        }),
+                      ],
                     ),
                     const SizedBox(height: 64),
                   ],
@@ -446,7 +474,7 @@ class _ControlManagementScreenState extends State<ControlManagementScreen> {
                             Text(
                               isGamepadButton
                                   ? GamepadKeys.getKeyName(selectedKeyCode!)
-                                  : '0x${selectedKeyCode!.toRadixString(16)}',
+                                  : (isMouseButton ? _getMouseButtonName(selectedKeyCode!) : '0x${selectedKeyCode!.toRadixString(16)}'),
                               style: const TextStyle(fontSize: 16),
                             ),
                             const Spacer(),
@@ -699,10 +727,11 @@ class _ControlManagementScreenState extends State<ControlManagementScreen> {
     bool showKeyboard = false;
     String selectedType =
         control is JoystickControl ? control.joystickType : 'left';
-    bool isButtonSelected = control is ButtonControl && control.isGamepadButton;
-    bool hasSelectedKey = false;
     bool isGamepadButton =
         control is ButtonControl ? control.isGamepadButton : false;
+    bool isMouseButton =
+        control is ButtonControl ? control.isMouseButton : false;
+    bool hasSelectedKey = false;
     
     // 为 MouseModeButtonControl 添加变量
     List<MouseMode> selectedModes = control.type == 'mouseModeButton' 
@@ -746,6 +775,7 @@ class _ControlManagementScreenState extends State<ControlManagementScreen> {
                         label: labelController.text,
                         keyCode: selectedKeyCode,
                         isGamepadButton: isGamepadButton,
+                        isMouseButton: isMouseButton,
                       );
                     } else if (control is JoystickControl) {
                       widget.controlManager.updateControl(
@@ -772,7 +802,7 @@ class _ControlManagementScreenState extends State<ControlManagementScreen> {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
                           content: Text(
-                              '${control.type == 'joystick' ? '摇杆' : (control.type == 'mouseModeButton' ? '鼠标模式切换按钮' : (isGamepadButton ? '手柄按钮' : '键盘按键'))}已更新')),
+                              '${control.type == 'joystick' ? '摇杆' : (control.type == 'mouseModeButton' ? '鼠标模式切换按钮' : (isGamepadButton ? '手柄按钮' : (isMouseButton ? '鼠标按钮' : '键盘按键')))}已更新')),
                     );
                   },
                   child: const Text('保存'),
@@ -789,16 +819,19 @@ class _ControlManagementScreenState extends State<ControlManagementScreen> {
                       children: [
                         const Text('按钮类型:', style: TextStyle(fontSize: 16)),
                         const SizedBox(width: 16),
-                        DropdownButton<bool>(
-                          value: isGamepadButton,
+                        DropdownButton<String>(
+                          value: isMouseButton ? 'mouse' : (isGamepadButton ? 'gamepad' : 'keyboard'),
                           items: const [
-                            DropdownMenuItem(value: false, child: Text('键盘按键')),
-                            DropdownMenuItem(value: true, child: Text('手柄按钮')),
+                            DropdownMenuItem(value: 'keyboard', child: Text('键盘按键')),
+                            DropdownMenuItem(value: 'gamepad', child: Text('手柄按钮')),
+                            DropdownMenuItem(value: 'mouse', child: Text('鼠标按钮')),
                           ],
                           onChanged: (value) {
                             if (value != null) {
-                              isGamepadButton = value;
+                              isGamepadButton = value == 'gamepad';
+                              isMouseButton = value == 'mouse';
                               selectedKeyCode = null;
+                              hasSelectedKey = false;
                               setDialogState(() {});
                             }
                           },
@@ -810,7 +843,7 @@ class _ControlManagementScreenState extends State<ControlManagementScreen> {
                       controller: labelController,
                       decoration: InputDecoration(
                         labelText: '按钮标签',
-                        hintText: isGamepadButton ? 'A, B, X, Y, etc.' : '按钮名称',
+                        hintText: isGamepadButton ? 'A, B, X, Y, etc.' : (isMouseButton ? 'Left Click, Right Click, Move' : '按钮名称'),
                         border: const OutlineInputBorder(),
                       ),
                     ),
@@ -840,43 +873,62 @@ class _ControlManagementScreenState extends State<ControlManagementScreen> {
                         ),
                       ),
                       const SizedBox(height: 64),
-                    ] else ...[
+                    ] else if (isMouseButton) ...[
                       const Text(
-                        '在虚拟键盘上按下一个键:',
-                        style: TextStyle(
-                            fontSize: 16, fontWeight: FontWeight.bold),
+                        '请选择鼠标按钮:',
+                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                       ),
                       const SizedBox(height: 16),
-                      Center(
-                        child: LayoutBuilder(
-                          builder: (context, constraints) {
-                            // 计算键盘高度，使其宽度不超过屏幕宽度的90%
-                            final maxWidth = constraints.maxWidth;
-                            final height = maxWidth / 2.6;
-                            return Container(
-                              width: maxWidth,
-                              child: VirtualKeyboard(
-                                keyBackgroundColor:
-                                    Colors.grey.withOpacity(0.5),
-                                height: height,
-                                type: VirtualKeyboardType.Hardware,
-                                keyPressedCallback: (keyCode, isDown) {
-                                  if (isDown) {
-                                    selectedKeyCode = keyCode;
-                                    hasSelectedKey = true;
-                                    setDialogState(() {});
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(
-                                        content: Text(
-                                            '已选择按键: 0x${keyCode.toRadixString(16)}'),
-                                      ),
-                                    );
-                                  }
-                                },
-                              ),
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: [
+                          _buildMouseButtonOption(1, '左键', selectedKeyCode == 1, (keyCode) {
+                            selectedKeyCode = keyCode;
+                            labelController.text = '左键';
+                            hasSelectedKey = true;
+                            setDialogState(() {});
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('已选择鼠标左键')),
                             );
-                          },
-                        ),
+                          }),
+                          _buildMouseButtonOption(2, '中键', selectedKeyCode == 2, (keyCode) {
+                            selectedKeyCode = keyCode;
+                            labelController.text = '中键';
+                            hasSelectedKey = true;
+                            setDialogState(() {});
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('已选择鼠标中键')),
+                            );
+                          }),
+                          _buildMouseButtonOption(3, '右键', selectedKeyCode == 3, (keyCode) {
+                            selectedKeyCode = keyCode;
+                            labelController.text = '右键';
+                            hasSelectedKey = true;
+                            setDialogState(() {});
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('已选择鼠标右键')),
+                            );
+                          }),
+                          _buildMouseButtonOption(4, '侧键1', selectedKeyCode == 4, (keyCode) {
+                            selectedKeyCode = keyCode;
+                            labelController.text = '侧键1';
+                            hasSelectedKey = true;
+                            setDialogState(() {});
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('已选择鼠标侧键1')),
+                            );
+                          }),
+                          _buildMouseButtonOption(5, '侧键2', selectedKeyCode == 5, (keyCode) {
+                            selectedKeyCode = keyCode;
+                            labelController.text = '侧键2';
+                            hasSelectedKey = true;
+                            setDialogState(() {});
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('已选择鼠标侧键2')),
+                            );
+                          }),
+                        ],
                       ),
                       const SizedBox(height: 64),
                     ],
@@ -895,7 +947,7 @@ class _ControlManagementScreenState extends State<ControlManagementScreen> {
                               Text(
                                 isGamepadButton
                                     ? GamepadKeys.getKeyName(selectedKeyCode!)
-                                    : '0x${selectedKeyCode!.toRadixString(16)}',
+                                    : (isMouseButton ? _getMouseButtonName(selectedKeyCode!) : '0x${selectedKeyCode!.toRadixString(16)}'),
                                 style: const TextStyle(fontSize: 16),
                               ),
                               const Spacer(),
@@ -1120,5 +1172,34 @@ class _ControlManagementScreenState extends State<ControlManagementScreen> {
 
   String _getButtonName(int keyCode) {
     return GamepadKeys.getKeyName(keyCode);
+  }
+
+  String _getMouseButtonName(int keyCode) {
+    switch (keyCode) {
+      case 1:
+        return '左键';
+      case 2:
+        return '中键';
+      case 3:
+        return '右键';
+      case 4:
+        return '侧键1';
+      case 5:
+        return '侧键2';
+      default:
+        return '按钮$keyCode';
+    }
+  }
+
+  Widget _buildMouseButtonOption(int keyCode, String label, bool isSelected, Function(int) onPressed) {
+    return ElevatedButton(
+      onPressed: () => onPressed(keyCode),
+      style: ElevatedButton.styleFrom(
+        backgroundColor: isSelected ? Colors.blue : Colors.grey[300],
+        foregroundColor: isSelected ? Colors.white : Colors.black,
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      ),
+      child: Text(label),
+    );
   }
 }

@@ -255,6 +255,12 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
           }
         }
       }
+    } else if (event.eventType == ControlEventType.mouseButton) {
+      if (event.data is MouseButtonEvent) {
+        final mouseButtonEvent = event.data as MouseButtonEvent;
+        WebrtcService.currentRenderingSession?.inputController
+            ?.requestMouseClick(mouseButtonEvent.buttonId, mouseButtonEvent.isDown);
+      }
     }
   }
 

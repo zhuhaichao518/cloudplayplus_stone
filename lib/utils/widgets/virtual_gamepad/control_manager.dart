@@ -144,6 +144,7 @@ class ControlManager {
     double? size,
     Color color = Colors.blue,
     bool isGamepadButton = false,
+    bool isMouseButton = false,
   }) {
     addControl(
       ButtonControl(
@@ -155,6 +156,7 @@ class ControlManager {
         keyCode: keyCode,
         color: color,
         isGamepadButton: isGamepadButton,
+        isMouseButton: isMouseButton,
       ),
     );
   }
@@ -205,6 +207,7 @@ class ControlManager {
     int? keyCode,
     String? joystickType,
     bool? isGamepadButton,
+    bool? isMouseButton,
     List<MouseMode>? enabledModes,
   }) {
     final index = _controls.indexWhere((c) => c.id == id);
@@ -228,6 +231,7 @@ class ControlManager {
           keyCode: keyCode ?? control.keyCode,
           color: control.color,
           isGamepadButton: isGamepadButton ?? control.isGamepadButton,
+          isMouseButton: isMouseButton ?? control.isMouseButton,
         );
       } else if (control.type == 'mouseModeButton') {
         _controls[index] = MouseModeButtonControl(
@@ -348,6 +352,7 @@ class ControlManager {
             keyCode: control.keyCode,
             color: control.color,
             isGamepadButton: control.isGamepadButton,
+            isMouseButton: control.isMouseButton,
           ));
         } else if (control.type == 'mouseModeButton') {
           _controls.add(MouseModeButtonControl(

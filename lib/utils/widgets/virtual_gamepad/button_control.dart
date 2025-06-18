@@ -8,6 +8,7 @@ class ButtonControl extends ControlBase {
   final Color color;
   final int keyCode; // 按键码
   final bool isGamepadButton; // 是否是手柄按钮
+  final bool isMouseButton; // 是否是鼠标按钮
 
   ButtonControl({
     required super.id,
@@ -18,6 +19,7 @@ class ButtonControl extends ControlBase {
     required this.keyCode,
     this.color = Colors.blue,
     this.isGamepadButton = false, // 默认为键盘按钮
+    this.isMouseButton = false, // 默认为非鼠标按钮
   }) : super(
           type: 'button',
         );
@@ -32,6 +34,7 @@ class ButtonControl extends ControlBase {
       keyCode: map['keyCode'] ?? 0,
       color: Color(map['color'] ?? Colors.blue.value),
       isGamepadButton: map['isGamepadButton'] ?? false,
+      isMouseButton: map['isMouseButton'] ?? false,
     );
   }
 
@@ -47,6 +50,7 @@ class ButtonControl extends ControlBase {
       'keyCode': keyCode,
       'color': color.value,
       'isGamepadButton': isGamepadButton,
+      'isMouseButton': isMouseButton,
     };
   }
 
@@ -63,6 +67,7 @@ class ButtonControl extends ControlBase {
       screenHeight: screenHeight,
       onEvent: onEvent,
       isGamepadButton: isGamepadButton,
+      isMouseButton: isMouseButton,
     );
   }
 
@@ -78,6 +83,7 @@ class _ButtonWidget extends StatefulWidget {
   final double screenHeight;
   final Function(ControlEvent) onEvent;
   final bool isGamepadButton;
+  final bool isMouseButton;
 
   const _ButtonWidget({
     required this.control,
@@ -85,6 +91,7 @@ class _ButtonWidget extends StatefulWidget {
     required this.screenHeight,
     required this.onEvent,
     required this.isGamepadButton,
+    required this.isMouseButton,
   });
 
   @override
@@ -104,54 +111,87 @@ class _ButtonWidgetState extends State<_ButtonWidget> {
       child: GestureDetector(
         onTapDown: (_) {
           setState(() => _isPressed = true);
-          widget.onEvent(ControlEvent(
-            eventType: widget.isGamepadButton
-                ? ControlEventType.gamepad
-                : ControlEventType.keyboard,
-            data: widget.isGamepadButton
-                ? GamepadButtonEvent(
-                    keyCode: widget.control.keyCode,
-                    isDown: true,
-                  )
-                : KeyboardEvent(
-                    keyCode: widget.control.keyCode,
-                    isDown: true,
-                  ),
-          ));
+          if (widget.isMouseButton) {
+            widget.onEvent(ControlEvent(
+              eventType: ControlEventType.mouseButton,
+              data: MouseButtonEvent(
+                buttonId: widget.control.keyCode,
+                isDown: true,
+              ),
+            ));
+          } else if (widget.isGamepadButton) {
+            widget.onEvent(ControlEvent(
+              eventType: ControlEventType.gamepad,
+              data: GamepadButtonEvent(
+                keyCode: widget.control.keyCode,
+                isDown: true,
+              ),
+            ));
+          } else {
+            widget.onEvent(ControlEvent(
+              eventType: ControlEventType.keyboard,
+              data: KeyboardEvent(
+                keyCode: widget.control.keyCode,
+                isDown: true,
+              ),
+            ));
+          }
         },
         onTapUp: (_) {
           setState(() => _isPressed = false);
-          widget.onEvent(ControlEvent(
-            eventType: widget.isGamepadButton
-                ? ControlEventType.gamepad
-                : ControlEventType.keyboard,
-            data: widget.isGamepadButton
-                ? GamepadButtonEvent(
-                    keyCode: widget.control.keyCode,
-                    isDown: false,
-                  )
-                : KeyboardEvent(
-                    keyCode: widget.control.keyCode,
-                    isDown: false,
-                  ),
-          ));
+          if (widget.isMouseButton) {
+            widget.onEvent(ControlEvent(
+              eventType: ControlEventType.mouseButton,
+              data: MouseButtonEvent(
+                buttonId: widget.control.keyCode,
+                isDown: false,
+              ),
+            ));
+          } else if (widget.isGamepadButton) {
+            widget.onEvent(ControlEvent(
+              eventType: ControlEventType.gamepad,
+              data: GamepadButtonEvent(
+                keyCode: widget.control.keyCode,
+                isDown: false,
+              ),
+            ));
+          } else {
+            widget.onEvent(ControlEvent(
+              eventType: ControlEventType.keyboard,
+              data: KeyboardEvent(
+                keyCode: widget.control.keyCode,
+                isDown: false,
+              ),
+            ));
+          }
         },
         onTapCancel: () {
           setState(() => _isPressed = false);
-          widget.onEvent(ControlEvent(
-            eventType: widget.isGamepadButton
-                ? ControlEventType.gamepad
-                : ControlEventType.keyboard,
-            data: widget.isGamepadButton
-                ? GamepadButtonEvent(
-                    keyCode: widget.control.keyCode,
-                    isDown: false,
-                  )
-                : KeyboardEvent(
-                    keyCode: widget.control.keyCode,
-                    isDown: false,
-                  ),
-          ));
+          if (widget.isMouseButton) {
+            widget.onEvent(ControlEvent(
+              eventType: ControlEventType.mouseButton,
+              data: MouseButtonEvent(
+                buttonId: widget.control.keyCode,
+                isDown: false,
+              ),
+            ));
+          } else if (widget.isGamepadButton) {
+            widget.onEvent(ControlEvent(
+              eventType: ControlEventType.gamepad,
+              data: GamepadButtonEvent(
+                keyCode: widget.control.keyCode,
+                isDown: false,
+              ),
+            ));
+          } else {
+            widget.onEvent(ControlEvent(
+              eventType: ControlEventType.keyboard,
+              data: KeyboardEvent(
+                keyCode: widget.control.keyCode,
+                isDown: false,
+              ),
+            ));
+          }
         },
         child: Container(
           width: diameter,

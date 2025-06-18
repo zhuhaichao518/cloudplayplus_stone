@@ -53,6 +53,8 @@ class _VirtualGamepadSettingsPageState
         }
       } else if (event.eventType == ControlEventType.mouseMode) {
         eventText = '按键模式切换';
+      } else if (event.eventType == ControlEventType.mouseButton) {
+        eventText = '鼠标按键';
       }
 
       _eventLog.insert(0, eventText);

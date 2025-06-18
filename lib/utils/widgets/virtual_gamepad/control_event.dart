@@ -2,6 +2,7 @@ enum ControlEventType {
   gamepad,
   keyboard,
   mouseMode,
+  mouseButton,
 }
 
 enum GamepadEventType {
@@ -74,4 +75,14 @@ enum MouseMode {
   leftClick,
   rightClick,
   move,
+}
+
+class MouseButtonEvent {
+  final int buttonId; // 1=左键, 2=中键, 3=右键
+  final bool isDown;
+
+  MouseButtonEvent({
+    required this.buttonId,
+    required this.isDown,
+  });
 }
