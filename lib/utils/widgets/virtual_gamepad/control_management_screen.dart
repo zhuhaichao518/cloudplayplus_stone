@@ -560,7 +560,7 @@ class _ControlManagementScreenState extends State<ControlManagementScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
-                    '选择可用模式:',
+                    '选择可用模式(如果仅选择一项，则在按下时临时切换):',
                     style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 16),
@@ -932,7 +932,7 @@ class _ControlManagementScreenState extends State<ControlManagementScreen> {
                     ),
                   ] else if (control.type == 'mouseModeButton') ...[
                     const Text(
-                      '选择可用模式:',
+                      '选择可用模式(如果仅选择一项，则在按下时临时切换):',
                       style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 16),

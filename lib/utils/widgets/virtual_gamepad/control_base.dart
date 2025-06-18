@@ -102,6 +102,9 @@ class MouseModeButtonControl extends ControlBase {
         },
         onTapUp:(TapUpDetails details) {
           _isPressed = false; // 重置按下状态
+          if (context.mounted) {
+            (context as Element).markNeedsBuild();
+          }
           if (enabledModes.length == 1) {
             onEvent(ControlEvent(
               eventType: ControlEventType.mouseMode,
@@ -116,6 +119,9 @@ class MouseModeButtonControl extends ControlBase {
         },
         onTapCancel: () {
           _isPressed = false; // 重置按下状态
+          if (context.mounted) {
+            (context as Element).markNeedsBuild();
+          }
           if (enabledModes.length == 1) {
             onEvent(ControlEvent(
               eventType: ControlEventType.mouseMode,
