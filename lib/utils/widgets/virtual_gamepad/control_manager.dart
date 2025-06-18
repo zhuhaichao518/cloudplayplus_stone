@@ -205,6 +205,7 @@ class ControlManager {
     int? keyCode,
     String? joystickType,
     bool? isGamepadButton,
+    List<MouseMode>? enabledModes,
   }) {
     final index = _controls.indexWhere((c) => c.id == id);
     if (index != -1) {
@@ -227,6 +228,15 @@ class ControlManager {
           keyCode: keyCode ?? control.keyCode,
           color: control.color,
           isGamepadButton: isGamepadButton ?? control.isGamepadButton,
+        );
+      } else if (control.type == 'mouseModeButton') {
+        _controls[index] = MouseModeButtonControl(
+          id: control.id,
+          centerX: centerX ?? control.centerX,
+          centerY: centerY ?? control.centerY,
+          size: size ?? control.size,
+          enabledModes: enabledModes ?? (control as dynamic).enabledModes,
+          color: (control as dynamic).color,
         );
       }
       _saveControls();
@@ -338,6 +348,15 @@ class ControlManager {
             keyCode: control.keyCode,
             color: control.color,
             isGamepadButton: control.isGamepadButton,
+          ));
+        } else if (control.type == 'mouseModeButton') {
+          _controls.add(MouseModeButtonControl(
+            id: _getNextId().toString(),
+            centerX: control.centerX,
+            centerY: control.centerY,
+            size: control.size,
+            enabledModes: (control as dynamic).enabledModes,
+            color: (control as dynamic).color,
           ));
         }
       }

@@ -49,6 +49,7 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
   RenderBox? renderBox;
   RenderBox? parentBox;
   MouseMode _mouseTouchMode = MouseMode.leftClick;
+  MouseMode _lastTouchMode = MouseMode.leftClick;
   bool _leftButtonDown = false;
   bool _rightButtonDown = false;
   bool _middleButtonDown = false;
@@ -238,10 +239,21 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
         WebrtcService.currentRenderingSession?.inputController
             ?.requestGamePadEvent("0", gamepadState.getStateString());
       }
-    } else if (event.eventType == ControlEventType.mouse) {
+    } else if (event.eventType == ControlEventType.mouseMode) {
       if (event.data is MouseModeEvent) {
         final mouseModeEvent = event.data as MouseModeEvent;
-        _mouseTouchMode = mouseModeEvent.currentMode;
+        if (mouseModeEvent.isUnique) {
+          if (mouseModeEvent.isDown) {
+            _lastTouchMode = _mouseTouchMode;
+            _mouseTouchMode = mouseModeEvent.currentMode;
+          } else {
+            _mouseTouchMode = _lastTouchMode;
+          }
+        } else {
+          if (mouseModeEvent.isDown) {
+            _mouseTouchMode = mouseModeEvent.currentMode;
+          }
+        }
       }
     }
   }
@@ -313,7 +325,6 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
                     if (renderBox == null ||
                         WebrtcService.currentRenderingSession == null) return;
                     if (event.kind == PointerDeviceKind.touch) {
-                      _leftButtonDown = true;
                       final Offset localPosition =
                           renderBox!.globalToLocal(event.position);
                       final double xPercent =
@@ -325,6 +336,7 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
                           WebrtcService.currentRenderingSession?.controlled
                                   .devicetype ==
                               'Windows') {
+                        _leftButtonDown = true;
                         _lastxPercent = xPercent;
                         _lastyPercent = yPercent;
                         WebrtcService.currentRenderingSession?.inputController
@@ -338,6 +350,7 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
                                 WebrtcService
                                     .currentRenderingSession!.screenId);
                         if (_mouseTouchMode == MouseMode.leftClick) {
+                          _leftButtonDown = true;
                           WebrtcService.currentRenderingSession?.inputController
                             ?.requestMouseClick(1, _leftButtonDown);
                         } else if (_mouseTouchMode == MouseMode.rightClick) {
@@ -356,16 +369,17 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
                     if (renderBox == null ||
                         WebrtcService.currentRenderingSession == null) return;
                     if (event.kind == PointerDeviceKind.touch) {
-                      _leftButtonDown = false;
                       if (StreamingSettings.useTouchForTouch &&
                           WebrtcService.currentRenderingSession?.controlled
                                   .devicetype ==
                               'Windows') {
+                        _leftButtonDown = false;
                         WebrtcService.currentRenderingSession?.inputController
                             ?.requestTouchButton(_lastxPercent, _lastyPercent,
                                 event.pointer % 9 + 1, false);
                       } else {
                         if (_mouseTouchMode == MouseMode.leftClick) {
+                          _leftButtonDown = false;
                           WebrtcService.currentRenderingSession?.inputController
                               ?.requestMouseClick(1, _leftButtonDown);
                         } else if (_mouseTouchMode == MouseMode.rightClick) {

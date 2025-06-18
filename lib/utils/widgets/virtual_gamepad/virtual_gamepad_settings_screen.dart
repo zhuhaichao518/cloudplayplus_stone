@@ -51,6 +51,8 @@ class _VirtualGamepadSettingsPageState
           eventText =
               '手柄按钮: ${GamepadKeys.getKeyName(buttonEvent.keyCode)} ${buttonEvent.isDown ? "按下" : "松开"}';
         }
+      } else if (event.eventType == ControlEventType.mouseMode) {
+        eventText = '按键模式切换';
       }
 
       _eventLog.insert(0, eventText);

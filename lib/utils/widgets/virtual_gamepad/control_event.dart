@@ -1,7 +1,7 @@
 enum ControlEventType {
   gamepad,
   keyboard,
-  mouse,
+  mouseMode,
 }
 
 enum GamepadEventType {
@@ -57,12 +57,16 @@ class KeyboardEvent {
 }
 
 class MouseModeEvent {
-  final List<MouseMode> enabledModes;
+  //final List<MouseMode> enabledModes;
   final MouseMode currentMode;
+  bool isUnique;
+  bool isDown;
 
   MouseModeEvent({
-    required this.enabledModes,
+    //required this.enabledModes,
     required this.currentMode,
+    required this.isUnique,
+    required this.isDown
   });
 }
 

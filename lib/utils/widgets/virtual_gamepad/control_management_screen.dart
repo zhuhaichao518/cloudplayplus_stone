@@ -97,17 +97,19 @@ class _ControlManagementScreenState extends State<ControlManagementScreen> {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
                 content: Text(
-                    '${control.type == 'joystick' ? '摇杆' : (control is ButtonControl && GamepadKeys.isButton(control.keyCode) ? '手柄按钮' : '键盘按键')}已删除')),
+                    '${control.type == 'joystick' ? '摇杆' : (control.type == 'mouseModeButton' ? '鼠标模式切换按钮' : (control is ButtonControl && control.isGamepadButton ? '手柄按钮' : '键盘按键'))}已删除')),
           );
         },
         child: ListTile(
           leading: Icon(
-              control.type == 'joystick' ? Icons.gamepad : Icons.touch_app),
+              control.type == 'joystick' ? Icons.gamepad : (control.type == 'mouseModeButton' ? Icons.mouse : Icons.touch_app)),
           title: Text(control.type == 'joystick'
               ? '${(control as JoystickControl).joystickType == 'left' ? '左' : '右'}摇杆'
-              : (control is ButtonControl && control.isGamepadButton
-                  ? '手柄按钮：${GamepadKeys.getKeyName(control.keyCode)}'
-                  : '键盘按键：${control is ButtonControl ? control.label : ''}')),
+              : control.type == 'mouseModeButton'
+                  ? '鼠标模式切换按钮'
+                  : (control is ButtonControl && control.isGamepadButton
+                      ? '手柄按钮：${GamepadKeys.getKeyName(control.keyCode)}'
+                      : '键盘按键：${control is ButtonControl ? control.label : ''}')),
           subtitle: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -520,7 +522,7 @@ class _ControlManagementScreenState extends State<ControlManagementScreen> {
         builder: (context, setDialogState) => Dialog.fullscreen(
           child: Scaffold(
             appBar: AppBar(
-              title: const Text('添加鼠标模式切换按钮'),
+              title: const Text('添加鼠标模式切换按钮(使用触摸模式时无效)'),
               actions: [
                 TextButton(
                   onPressed: () => Navigator.pop(context),
@@ -701,6 +703,11 @@ class _ControlManagementScreenState extends State<ControlManagementScreen> {
     bool hasSelectedKey = false;
     bool isGamepadButton =
         control is ButtonControl ? control.isGamepadButton : false;
+    
+    // 为 MouseModeButtonControl 添加变量
+    List<MouseMode> selectedModes = control.type == 'mouseModeButton' 
+        ? (control as dynamic).enabledModes.cast<MouseMode>().toList()
+        : [MouseMode.leftClick, MouseMode.rightClick, MouseMode.move];
 
     showDialog(
       context: context,
@@ -709,7 +716,7 @@ class _ControlManagementScreenState extends State<ControlManagementScreen> {
           child: Scaffold(
             appBar: AppBar(
               title: Text(
-                  '编辑${control.type == 'joystick' ? '摇杆' : (isGamepadButton ? '手柄按钮' : '键盘按键')}'),
+                  '编辑${control.type == 'joystick' ? '摇杆' : (control.type == 'mouseModeButton' ? '鼠标模式切换按钮' : (isGamepadButton ? '手柄按钮' : '键盘按键'))}'),
               actions: [
                 TextButton(
                   onPressed: () => Navigator.pop(context),
@@ -748,6 +755,15 @@ class _ControlManagementScreenState extends State<ControlManagementScreen> {
                         size: size,
                         joystickType: selectedType,
                       );
+                    } else if (control.type == 'mouseModeButton') {
+                      // 对于鼠标模式按钮，使用 updateControl 方法
+                      widget.controlManager.updateControl(
+                        control.id,
+                        centerX: centerX,
+                        centerY: centerY,
+                        size: size,
+                        enabledModes: selectedModes,
+                      );
                     }
 
                     widget.onControlsUpdated();
@@ -756,7 +772,7 @@ class _ControlManagementScreenState extends State<ControlManagementScreen> {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
                           content: Text(
-                              '${control.type == 'joystick' ? '摇杆' : (isGamepadButton ? '手柄按钮' : '键盘按键')}已更新')),
+                              '${control.type == 'joystick' ? '摇杆' : (control.type == 'mouseModeButton' ? '鼠标模式切换按钮' : (isGamepadButton ? '手柄按钮' : '键盘按键'))}已更新')),
                     );
                   },
                   child: const Text('保存'),
@@ -912,6 +928,51 @@ class _ControlManagementScreenState extends State<ControlManagementScreen> {
                           selectedType = value;
                           setDialogState(() {});
                         }
+                      },
+                    ),
+                  ] else if (control.type == 'mouseModeButton') ...[
+                    const Text(
+                      '选择可用模式:',
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 16),
+                    CheckboxListTile(
+                      title: const Text('左键点击'),
+                      value: selectedModes.contains(MouseMode.leftClick),
+                      onChanged: (bool? value) {
+                        setDialogState(() {
+                          if (value == true) {
+                            selectedModes.add(MouseMode.leftClick);
+                          } else {
+                            selectedModes.remove(MouseMode.leftClick);
+                          }
+                        });
+                      },
+                    ),
+                    CheckboxListTile(
+                      title: const Text('右键点击'),
+                      value: selectedModes.contains(MouseMode.rightClick),
+                      onChanged: (bool? value) {
+                        setDialogState(() {
+                          if (value == true) {
+                            selectedModes.add(MouseMode.rightClick);
+                          } else {
+                            selectedModes.remove(MouseMode.rightClick);
+                          }
+                        });
+                      },
+                    ),
+                    CheckboxListTile(
+                      title: const Text('仅移动'),
+                      value: selectedModes.contains(MouseMode.move),
+                      onChanged: (bool? value) {
+                        setDialogState(() {
+                          if (value == true) {
+                            selectedModes.add(MouseMode.move);
+                          } else {
+                            selectedModes.remove(MouseMode.move);
+                          }
+                        });
                       },
                     ),
                   ],

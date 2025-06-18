@@ -52,6 +52,7 @@ class MouseModeButtonControl extends ControlBase {
   final List<MouseMode> enabledModes;
   final Color color;
   MouseMode _currentMode;
+  bool _isPressed = false; // 添加按下状态跟踪
 
   MouseModeButtonControl({
     required super.id,
@@ -79,27 +80,59 @@ class MouseModeButtonControl extends ControlBase {
       left: centerX * screenWidth - (size * screenWidth) / 2,
       top: centerY * screenHeight - (size * screenHeight) / 2,
       child: GestureDetector(
-        onTap: () {
+        onTapDown: (TapDownDetails details) {
+          _isPressed = true; // 设置按下状态
           final currentIndex = enabledModes.indexOf(_currentMode);
           final nextIndex = (currentIndex + 1) % enabledModes.length;
           _currentMode = enabledModes[nextIndex];
+          
           // 触发界面重建
           if (context.mounted) {
             (context as Element).markNeedsBuild();
           }
           onEvent(ControlEvent(
-            eventType: ControlEventType.mouse,
+            eventType: ControlEventType.mouseMode,
             data: MouseModeEvent(
-              enabledModes: enabledModes,
+              //enabledModes: enabledModes,
               currentMode: _currentMode,
+              isUnique: (enabledModes.length == 1),
+              isDown: true
             ),
           ));
+        },
+        onTapUp:(TapUpDetails details) {
+          _isPressed = false; // 重置按下状态
+          if (enabledModes.length == 1) {
+            onEvent(ControlEvent(
+              eventType: ControlEventType.mouseMode,
+              data: MouseModeEvent(
+                //enabledModes: enabledModes,
+                currentMode: _currentMode,
+                isUnique: true,
+                isDown: false
+              ),
+            ));
+          }
+        },
+        onTapCancel: () {
+          _isPressed = false; // 重置按下状态
+          if (enabledModes.length == 1) {
+            onEvent(ControlEvent(
+              eventType: ControlEventType.mouseMode,
+              data: MouseModeEvent(
+                //enabledModes: enabledModes,
+                currentMode: _currentMode,
+                isUnique: true,
+                isDown: false
+              ),
+            ));
+          }
         },
         child: Container(
           width: size * screenWidth,
           height: size * screenHeight,
           decoration: BoxDecoration(
-            color: color.withOpacity(0.5),
+            color: _isPressed ? color.withOpacity(0.8) : color.withOpacity(0.5),
             shape: BoxShape.circle,
           ),
           child: Center(
