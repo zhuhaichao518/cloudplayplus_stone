@@ -458,6 +458,41 @@ class _ControlManagementScreenState extends State<ControlManagementScreen> {
                       ],
                     ),
                     const SizedBox(height: 64),
+                  ] else ...[
+                    const Text(
+                      '在虚拟键盘上按下一个键:',
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 16),
+                    Center(
+                      child: LayoutBuilder(
+                        builder: (context, constraints) {
+                          final maxWidth = constraints.maxWidth;
+                          final height = maxWidth / 2.6;
+                          return Container(
+                            width: maxWidth,
+                            child: VirtualKeyboard(
+                              type: VirtualKeyboardType.Hardware,
+                              keyPressedCallback: (keyCode, isDown) {
+                                if (isDown) {
+                                  selectedKeyCode = keyCode;
+                                  hasSelectedKey = true;
+                                  setDialogState(() {});
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text('已选择按键: 0x${keyCode.toRadixString(16)}'),
+                                    ),
+                                  );
+                                }
+                              },
+                              height: height,
+                              keyBackgroundColor: Colors.grey.withOpacity(0.5),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                    const SizedBox(height: 64),
                   ],
                   if (hasSelectedKey && selectedKeyCode != null) ...[
                     const SizedBox(height: 16),
@@ -929,6 +964,41 @@ class _ControlManagementScreenState extends State<ControlManagementScreen> {
                             );
                           }),
                         ],
+                      ),
+                      const SizedBox(height: 64),
+                    ] else ...[
+                      const Text(
+                        '在虚拟键盘上按下一个键:',
+                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 16),
+                      Center(
+                        child: LayoutBuilder(
+                          builder: (context, constraints) {
+                            final maxWidth = constraints.maxWidth;
+                            final height = maxWidth / 2.6;
+                            return Container(
+                              width: maxWidth,
+                              child: VirtualKeyboard(
+                                type: VirtualKeyboardType.Hardware,
+                                keyPressedCallback: (keyCode, isDown) {
+                                  if (isDown) {
+                                    selectedKeyCode = keyCode;
+                                    hasSelectedKey = true;
+                                    setDialogState(() {});
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text('已选择按键: 0x'+keyCode.toRadixString(16)),
+                                      ),
+                                    );
+                                  }
+                                },
+                                height: height,
+                                keyBackgroundColor: Colors.grey.withOpacity(0.5),
+                              ),
+                            );
+                          },
+                        ),
                       ),
                       const SizedBox(height: 64),
                     ],
