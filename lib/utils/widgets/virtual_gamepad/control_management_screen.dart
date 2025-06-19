@@ -27,43 +27,386 @@ class ControlManagementScreen extends StatefulWidget {
 }
 
 class _ControlManagementScreenState extends State<ControlManagementScreen> {
+  bool _isEditMode = true;
+  String? _draggingControlId;
+  Offset? _dragStartPosition;
+  Offset? _dragStartControlPosition;
+  Map<String, Offset> _dragPositions = {}; // 存储拖拽时的实时位置
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('管理屏幕按键'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.sync),
-            onPressed: _showImportExportDialog,
-          ),
-          IconButton(
-            icon: const Icon(Icons.add),
-            onPressed: _showAddControlDialog,
-          ),
-        ],
-      ),
-      body: widget.controlManager.controls.isEmpty
-          ? Center(
-              child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
+  
+      body: _isEditMode 
+          ? _buildEditModeView()
+          : _buildNormalView(),
+    );
+  }
+  
+  // Deprecated. use new model.
+  Widget _buildNormalView() {
+    return widget.controlManager.controls.isEmpty
+        ? Center(
+            child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Text('单击右上角+添加按键或者点击同步按键导入/导出虚拟按键列表'),
+              const SizedBox(height: 20), // 添加间距
+              ElevatedButton(
+                onPressed: _importDefaultControls,
+                child: const Text('导入手机默认虚拟手柄'),
+              ),
+            ],
+          ))
+        : ListView.builder(
+            itemCount: widget.controlManager.controls.length,
+            itemBuilder: (context, index) {
+              final control = widget.controlManager.controls[index];
+              return _buildControlItem(control);
+            },
+          );
+  }
+
+  Widget _buildEditModeView() {
+    if (widget.controlManager.controls.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.edit, size: 64, color: Colors.grey),
+            const SizedBox(height: 16),
+            const Text(
+              '编辑模式',
+              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 8),
+            const Text('没有可编辑的控件'),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: _importDefaultControls,
+              child: const Text('导入默认控件开始编辑'),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return Stack(
+      children: [
+        // 背景网格
+        _buildGridBackground(),
+        
+        // 可拖动的控件
+        ...widget.controlManager.controls.map((control) => 
+          _buildDraggableControl(control)
+        ),
+        
+        // 编辑模式提示
+        Positioned(
+          top: 16,
+          left: 16,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            decoration: BoxDecoration(
+              color: Colors.blue.withOpacity(0.9),
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
               children: [
-                const Text('单击右上角+添加按键或者点击同步按键导入/导出虚拟按键列表'),
-                const SizedBox(height: 20), // 添加间距
-                ElevatedButton(
-                  onPressed: _importDefaultControls,
-                  child: const Text('导入手机默认虚拟手柄'),
+                const Icon(Icons.edit, color: Colors.white, size: 16),
+                const SizedBox(width: 8),
+                const Text(
+                  '编辑模式 - 拖动控件调整位置',
+                  style: TextStyle(color: Colors.white, fontSize: 14),
+                ),
+                const SizedBox(width: 8),
+                GestureDetector(
+                  onTap: _showEditModeHelp,
+                  child: const Icon(
+                    Icons.help_outline,
+                    color: Colors.white,
+                    size: 16,
+                  ),
                 ),
               ],
-            ))
-          : ListView.builder(
-              itemCount: widget.controlManager.controls.length,
-              itemBuilder: (context, index) {
-                final control = widget.controlManager.controls[index];
-                return _buildControlItem(control);
-              },
             ),
+          ),
+        ),
+
+        // 控制面板
+        Positioned(
+          bottom: 16,
+          right: 16,
+          child: _buildControlPanel(),
+        ),
+
+        // 控件信息面板
+        if (_draggingControlId != null)
+          Positioned(
+            top: 16,
+            right: 16,
+            child: _buildControlInfoPanel(),
+          ),
+      ],
     );
+  }
+
+  Widget _buildGridBackground() {
+    return CustomPaint(
+      size: Size.infinite,
+      painter: GridPainter(),
+    );
+  }
+
+  Widget _buildDraggableControl(ControlBase control) {
+    final screenSize = MediaQuery.of(context).size;
+    final controlSize = control.size * screenSize.width;
+    
+    // 使用拖拽时的实时位置，如果没有则使用控件原始位置
+    final dragPosition = _dragPositions[control.id];
+    final centerX = dragPosition?.dx ?? control.centerX;
+    final centerY = dragPosition?.dy ?? control.centerY;
+    
+    final pixelCenterX = centerX * screenSize.width;
+    final pixelCenterY = centerY * screenSize.height;
+    final isDragging = _draggingControlId == control.id;
+    
+    return Positioned(
+      left: pixelCenterX - controlSize / 2,
+      top: pixelCenterY - controlSize / 2,
+      child: GestureDetector(
+        onPanStart: (details) {
+          if (_isEditMode) {
+            setState(() {
+              _draggingControlId = control.id;
+              _dragStartPosition = details.globalPosition;
+              _dragStartControlPosition = Offset(control.centerX, control.centerY);
+              // 初始化拖拽位置
+              _dragPositions[control.id] = Offset(control.centerX, control.centerY);
+            });
+            // 添加触觉反馈
+            HapticFeedback.lightImpact();
+          }
+        },
+        onPanUpdate: (details) {
+          if (_isEditMode && _draggingControlId == control.id && 
+              _dragStartPosition != null && _dragStartControlPosition != null) {
+            
+            // 计算拖拽的总距离
+            final dragDelta = details.globalPosition - _dragStartPosition!;
+            
+            // 转换为屏幕比例
+            final deltaX = dragDelta.dx / screenSize.width;
+            final deltaY = dragDelta.dy / screenSize.height;
+            
+            // 计算新位置
+            final newCenterX = _dragStartControlPosition!.dx + deltaX;
+            final newCenterY = _dragStartControlPosition!.dy + deltaY;
+            
+            // 限制在屏幕范围内
+            final clampedX = newCenterX.clamp(control.size / 2, 1.0 - control.size / 2);
+            final clampedY = newCenterY.clamp(control.size / 2, 1.0 - control.size / 2);
+            
+            // 更新拖拽时的实时位置
+            setState(() {
+              _dragPositions[control.id] = Offset(clampedX, clampedY);
+            });
+          }
+        },
+        onPanEnd: (details) {
+          if (_isEditMode && _draggingControlId == control.id) {
+            // 拖拽结束时，将最终位置保存到ControlManager
+            final finalPosition = _dragPositions[control.id];
+            if (finalPosition != null) {
+              widget.controlManager.updateControl(
+                control.id,
+                centerX: finalPosition.dx,
+                centerY: finalPosition.dy,
+              );
+              widget.onControlsUpdated();
+            }
+            
+            setState(() {
+              _draggingControlId = null;
+              _dragStartPosition = null;
+              _dragStartControlPosition = null;
+              _dragPositions.remove(control.id);
+            });
+            // 添加触觉反馈
+            HapticFeedback.selectionClick();
+          }
+        },
+        onTap: () {
+          if (_isEditMode) {
+            setState(() {
+              if (_draggingControlId == control.id) {
+                _draggingControlId = null;
+              } else {
+                _draggingControlId = control.id;
+              }
+            });
+          }
+        },
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          width: controlSize,
+          height: controlSize,
+          decoration: BoxDecoration(
+            color: isDragging 
+                ? Colors.blue.withOpacity(0.2)
+                : (_draggingControlId == control.id 
+                    ? Colors.blue.withOpacity(0.1)
+                    : Colors.transparent),
+            border: Border.all(
+              color: isDragging 
+                  ? Colors.blue 
+                  : (_draggingControlId == control.id 
+                      ? Colors.blue.withOpacity(0.7)
+                      : Colors.grey.withOpacity(0.3)),
+              width: isDragging ? 3 : (_draggingControlId == control.id ? 2 : 1),
+            ),
+            borderRadius: BorderRadius.circular(8),
+            boxShadow: isDragging ? [
+              BoxShadow(
+                color: Colors.blue.withOpacity(0.3),
+                blurRadius: 8,
+                offset: const Offset(0, 4),
+              ),
+            ] : null,
+          ),
+          child: Stack(
+            children: [
+              // 控件预览
+              _buildControlPreview(control),
+              
+              // 编辑模式指示器
+              if (_isEditMode)
+                Positioned(
+                  top: 4,
+                  right: 4,
+                  child: Container(
+                    padding: const EdgeInsets.all(4),
+                    decoration: BoxDecoration(
+                      color: isDragging ? Colors.blue : Colors.grey.withOpacity(0.7),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Icon(
+                      isDragging ? Icons.drag_handle : Icons.drag_indicator,
+                      color: Colors.white,
+                      size: 16,
+                    ),
+                  ),
+                ),
+
+              // 选中指示器
+              if (_draggingControlId == control.id && !isDragging)
+                Positioned(
+                  top: 4,
+                  left: 4,
+                  child: Container(
+                    padding: const EdgeInsets.all(4),
+                    decoration: BoxDecoration(
+                      color: Colors.green,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Icon(
+                      Icons.check,
+                      color: Colors.white,
+                      size: 16,
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildControlPreview(ControlBase control) {
+    final screenSize = MediaQuery.of(context).size;
+    final controlSize = control.size * screenSize.width;
+    
+    // 根据控件类型显示不同的预览
+    Widget preview;
+    
+    if (control is JoystickControl) {
+      preview = Container(
+        decoration: BoxDecoration(
+          color: Colors.blue.withOpacity(0.6),
+          shape: BoxShape.circle,
+        ),
+        child: Center(
+          child: Icon(
+            Icons.gamepad,
+            color: Colors.white,
+            size: controlSize * 0.4,
+          ),
+        ),
+      );
+    } else if (control is ButtonControl) {
+      preview = Container(
+        decoration: BoxDecoration(
+          color: control.color.withOpacity(0.6),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Center(
+          child: Text(
+            control.label,
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: controlSize * 0.3,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
+      );
+    } else if (control.type == 'eightDirectionJoystick') {
+      preview = Container(
+        decoration: BoxDecoration(
+          color: Colors.orange.withOpacity(0.6),
+          shape: BoxShape.circle,
+        ),
+        child: Center(
+          child: Icon(
+            Icons.navigation,
+            color: Colors.white,
+            size: controlSize * 0.4,
+          ),
+        ),
+      );
+    } else if (control.type == 'mouseModeButton') {
+      preview = Container(
+        decoration: BoxDecoration(
+          color: Colors.purple.withOpacity(0.6),
+          shape: BoxShape.circle,
+        ),
+        child: Center(
+          child: Icon(
+            Icons.mouse,
+            color: Colors.white,
+            size: controlSize * 0.4,
+          ),
+        ),
+      );
+    } else {
+      preview = Container(
+        decoration: BoxDecoration(
+          color: Colors.grey.withOpacity(0.6),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Center(
+          child: Icon(
+            Icons.touch_app,
+            color: Colors.white,
+            size: controlSize * 0.4,
+          ),
+        ),
+      );
+    }
+    
+    return preview;
   }
 
   Widget _buildControlItem(ControlBase control) {
@@ -1357,10 +1700,6 @@ class _ControlManagementScreenState extends State<ControlManagementScreen> {
     );
   }
 
-  String _getButtonName(int keyCode) {
-    return GamepadKeys.getKeyName(keyCode);
-  }
-
   String _getMouseButtonName(int keyCode) {
     switch (keyCode) {
       case 1:
@@ -1389,4 +1728,242 @@ class _ControlManagementScreenState extends State<ControlManagementScreen> {
       child: Text(label),
     );
   }
+
+  Widget _buildControlPanel() {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.9),
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          IconButton(
+            icon: const Icon(Icons.add),
+            onPressed: _showAddControlDialog,
+            tooltip: '添加控件',
+          ),
+          const SizedBox(height: 8),
+          IconButton(
+            icon: const Icon(Icons.save),
+            onPressed: () {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('控件位置已保存')),
+              );
+            },
+            tooltip: '保存位置',
+          ),
+          const SizedBox(height: 8),
+          IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+            tooltip: '返回',
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildControlInfoPanel() {
+    final control = widget.controlManager.controls.firstWhere(
+      (c) => c.id == _draggingControlId,
+      orElse: () => throw Exception('Control not found'),
+    );
+
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.95),
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                _getControlIcon(control),
+                size: 20,
+                color: Colors.blue,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                _getControlTypeName(control),
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text('位置: (${control.centerX.toStringAsFixed(3)}, ${control.centerY.toStringAsFixed(3)})'),
+          Text('大小: ${control.size.toStringAsFixed(3)}'),
+          if (control is ButtonControl) ...[
+            Text('标签: ${control.label}'),
+            Text('类型: ${control.isGamepadButton ? "手柄" : (control.isMouseButton ? "鼠标" : "键盘")}'),
+          ],
+          const SizedBox(height: 8),
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              IconButton(
+                icon: const Icon(Icons.edit, size: 16),
+                onPressed: () => _showEditDialog(control),
+                tooltip: '编辑',
+              ),
+              IconButton(
+                icon: const Icon(Icons.delete, size: 16),
+                onPressed: () {
+                  widget.controlManager.removeControl(control.id);
+                  widget.onControlsUpdated();
+                  setState(() {
+                    _draggingControlId = null;
+                  });
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('${_getControlTypeName(control)}已删除')),
+                  );
+                },
+                tooltip: '删除',
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  IconData _getControlIcon(ControlBase control) {
+    if (control is JoystickControl) {
+      return Icons.gamepad;
+    } else if (control is ButtonControl) {
+      return control.isMouseButton ? Icons.mouse : Icons.touch_app;
+    } else if (control.type == 'eightDirectionJoystick') {
+      return Icons.navigation;
+    } else if (control.type == 'mouseModeButton') {
+      return Icons.mouse;
+    }
+    return Icons.touch_app;
+  }
+
+  String _getControlTypeName(ControlBase control) {
+    if (control is JoystickControl) {
+      return '${control.joystickType == 'left' ? '左' : '右'}摇杆';
+    } else if (control is ButtonControl) {
+      if (control.isGamepadButton) {
+        return '手柄按钮';
+      } else if (control.isMouseButton) {
+        return '鼠标按钮';
+      } else {
+        return '键盘按键';
+      }
+    } else if (control.type == 'eightDirectionJoystick') {
+      return '角落跳转摇杆';
+    } else if (control.type == 'mouseModeButton') {
+      return '鼠标模式切换按钮';
+    }
+    return '控件';
+  }
+
+  void _showEditModeHelp() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Row(
+          children: [
+            Icon(Icons.help_outline, color: Colors.blue),
+            SizedBox(width: 8),
+            Text('编辑模式使用说明'),
+          ],
+        ),
+        content: const Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              '编辑模式功能说明：',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+            SizedBox(height: 8),
+            Text('• 拖动控件：长按并拖拽控件到新位置'),
+            Text('• 选中控件：点击控件查看详细信息'),
+            Text('• 编辑控件：在信息面板中点击编辑按钮'),
+            Text('• 删除控件：在信息面板中点击删除按钮'),
+            Text('• 添加控件：使用右下角的添加按钮'),
+            SizedBox(height: 8),
+            Text(
+              '操作提示：',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+            SizedBox(height: 8),
+            Text('• 控件会自动限制在屏幕范围内'),
+            Text('• 位置以屏幕比例保存 (0.0-1.0)'),
+            Text('• 拖拽时会有触觉反馈'),
+            Text('• 蓝色网格帮助您精确定位'),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('知道了'),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// 背景网格绘制器
+class GridPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = Colors.grey.withOpacity(0.3)
+      ..strokeWidth = 1.0;
+
+    // 绘制垂直线
+    for (int i = 0; i <= 10; i++) {
+      final x = size.width * i / 10;
+      canvas.drawLine(Offset(x, 0), Offset(x, size.height), paint);
+    }
+
+    // 绘制水平线
+    for (int i = 0; i <= 10; i++) {
+      final y = size.height * i / 10;
+      canvas.drawLine(Offset(0, y), Offset(size.width, y), paint);
+    }
+
+    // 绘制中心十字线
+    final centerPaint = Paint()
+      ..color = Colors.blue.withOpacity(0.5)
+      ..strokeWidth = 2.0;
+
+    final centerX = size.width / 2;
+    final centerY = size.height / 2;
+    
+    canvas.drawLine(Offset(centerX, 0), Offset(centerX, size.height), centerPaint);
+    canvas.drawLine(Offset(0, centerY), Offset(size.width, centerY), centerPaint);
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
