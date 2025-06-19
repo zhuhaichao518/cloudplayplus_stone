@@ -27,6 +27,8 @@ abstract class ControlBase {
     switch (type) {
       case 'joystick':
         return JoystickControl.fromMap(map);
+      case 'eightDirectionJoystick':
+        return EightDirectionJoystickControl.fromMap(map);
       case 'button':
         return ButtonControl.fromMap(map);
       case 'mouseModeButton':

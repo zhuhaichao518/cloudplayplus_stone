@@ -135,6 +135,22 @@ class ControlManager {
     );
   }
 
+  // 创建并添加八方向摇杆
+  void createEightDirectionJoystick({
+    double centerX = 0.2,
+    double centerY = 0.8,
+    double size = 0.1,
+  }) {
+    addControl(
+      EightDirectionJoystickControl(
+        id: _getNextId().toString(),
+        centerX: centerX,
+        centerY: centerY,
+        size: size,
+      ),
+    );
+  }
+
   // 创建并添加按钮
   void createButton({
     required String label,
@@ -220,6 +236,13 @@ class ControlManager {
           centerY: centerY ?? control.centerY,
           size: size ?? control.size,
           joystickType: joystickType ?? control.joystickType,
+        );
+      } else if (control is EightDirectionJoystickControl) {
+        _controls[index] = EightDirectionJoystickControl(
+          id: control.id,
+          centerX: centerX ?? control.centerX,
+          centerY: centerY ?? control.centerY,
+          size: size ?? control.size,
         );
       } else if (control is ButtonControl) {
         _controls[index] = ButtonControl(
@@ -341,6 +364,13 @@ class ControlManager {
             centerY: control.centerY,
             size: control.size,
             joystickType: control.joystickType,
+          ));
+        } else if (control is EightDirectionJoystickControl) {
+          _controls.add(EightDirectionJoystickControl(
+            id: _getNextId().toString(),
+            centerX: control.centerX,
+            centerY: control.centerY,
+            size: control.size,
           ));
         } else if (control is ButtonControl) {
           _controls.add(ButtonControl(

@@ -55,6 +55,9 @@ class _VirtualGamepadSettingsPageState
         eventText = '按键模式切换';
       } else if (event.eventType == ControlEventType.mouseButton) {
         eventText = '鼠标按键';
+      } else if (event.eventType == ControlEventType.mouseMove) {
+        final mouseMoveEvent = event.data as MouseMoveEvent;
+        eventText = '鼠标移动到角落: ${mouseMoveEvent.deltaX} ${mouseMoveEvent.deltaY}';
       }
 
       _eventLog.insert(0, eventText);

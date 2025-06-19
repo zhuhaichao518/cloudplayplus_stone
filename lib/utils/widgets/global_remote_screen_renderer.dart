@@ -261,6 +261,19 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
         WebrtcService.currentRenderingSession?.inputController
             ?.requestMouseClick(mouseButtonEvent.buttonId, mouseButtonEvent.isDown);
       }
+    } else if (event.eventType == ControlEventType.mouseMove) {
+      if (event.data is MouseMoveEvent) {
+        final mouseMoveEvent = event.data as MouseMoveEvent;
+        if (mouseMoveEvent.isAbsolute) {
+          // 绝对位置跳转
+          WebrtcService.currentRenderingSession?.inputController
+              ?.requestMoveMouseAbsl(mouseMoveEvent.deltaX, mouseMoveEvent.deltaY, WebrtcService.currentRenderingSession!.screenId);
+        } else {
+          // 相对移动
+          WebrtcService.currentRenderingSession?.inputController
+              ?.requestMoveMouseRelative(mouseMoveEvent.deltaX, mouseMoveEvent.deltaY, WebrtcService.currentRenderingSession!.screenId);
+        }
+      }
     }
   }
 

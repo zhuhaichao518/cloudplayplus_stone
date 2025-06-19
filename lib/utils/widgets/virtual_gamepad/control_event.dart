@@ -3,6 +3,7 @@ enum ControlEventType {
   keyboard,
   mouseMode,
   mouseButton,
+  mouseMove,
 }
 
 enum GamepadEventType {
@@ -84,5 +85,17 @@ class MouseButtonEvent {
   MouseButtonEvent({
     required this.buttonId,
     required this.isDown,
+  });
+}
+
+class MouseMoveEvent {
+  final double deltaX; // 相对移动距离或绝对X位置
+  final double deltaY; // 相对移动距离或绝对Y位置
+  final bool isAbsolute; // 是否为绝对位置跳转
+
+  MouseMoveEvent({
+    required this.deltaX,
+    required this.deltaY,
+    this.isAbsolute = false, // 默认为相对移动
   });
 }

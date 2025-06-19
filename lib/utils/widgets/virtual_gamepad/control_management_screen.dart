@@ -97,21 +97,23 @@ class _ControlManagementScreenState extends State<ControlManagementScreen> {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
                 content: Text(
-                    '${control.type == 'joystick' ? '摇杆' : (control.type == 'mouseModeButton' ? '鼠标模式切换按钮' : (control is ButtonControl && control.isGamepadButton ? '手柄按钮' : (control is ButtonControl && control.isMouseButton ? '鼠标按钮' : '键盘按键')))}已删除')),
+                    '${control.type == 'joystick' ? '摇杆' : (control.type == 'eightDirectionJoystick' ? '角落跳转摇杆' : (control.type == 'mouseModeButton' ? '鼠标模式切换按钮' : (control is ButtonControl && control.isGamepadButton ? '手柄按钮' : (control is ButtonControl && control.isMouseButton ? '鼠标按钮' : '键盘按键'))))}已删除')),
           );
         },
         child: ListTile(
           leading: Icon(
-              control.type == 'joystick' ? Icons.gamepad : (control.type == 'mouseModeButton' ? Icons.mouse : (control is ButtonControl && control.isMouseButton ? Icons.mouse : Icons.touch_app))),
+              control.type == 'joystick' ? Icons.gamepad : (control.type == 'eightDirectionJoystick' ? Icons.navigation : (control.type == 'mouseModeButton' ? Icons.mouse : (control is ButtonControl && control.isMouseButton ? Icons.mouse : Icons.touch_app)))),
           title: Text(control.type == 'joystick'
               ? '${(control as JoystickControl).joystickType == 'left' ? '左' : '右'}摇杆'
-              : control.type == 'mouseModeButton'
-                  ? '鼠标模式切换按钮'
-                  : (control is ButtonControl && control.isGamepadButton
-                      ? '手柄按钮：${GamepadKeys.getKeyName(control.keyCode)}'
-                      : control is ButtonControl && control.isMouseButton
-                          ? '鼠标按钮：${_getMouseButtonName(control.keyCode)}'
-                          : '键盘按键：${control is ButtonControl ? control.label : ''}')),
+              : control.type == 'eightDirectionJoystick'
+                  ? '角落跳转摇杆'
+                  : control.type == 'mouseModeButton'
+                      ? '鼠标模式切换按钮'
+                      : (control is ButtonControl && control.isGamepadButton
+                          ? '手柄按钮：${GamepadKeys.getKeyName(control.keyCode)}'
+                          : control is ButtonControl && control.isMouseButton
+                              ? '鼠标按钮：${_getMouseButtonName(control.keyCode)}'
+                              : '键盘按键：${control is ButtonControl ? control.label : ''}')),
           subtitle: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -156,6 +158,14 @@ class _ControlManagementScreenState extends State<ControlManagementScreen> {
               onTap: () {
                 Navigator.pop(context);
                 _addJoystick();
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.navigation),
+              title: const Text('角落跳转摇杆'),
+              onTap: () {
+                Navigator.pop(context);
+                _addEightDirectionJoystick();
               },
             ),
             ListTile(
@@ -236,6 +246,94 @@ class _ControlManagementScreenState extends State<ControlManagementScreen> {
                       selectedType = value;
                     }
                   },
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: centerXController,
+                  decoration: const InputDecoration(
+                    labelText: '中心X (0.0-1.0)',
+                    hintText: '0.0是左边，1.0是右边',
+                    border: OutlineInputBorder(),
+                  ),
+                  keyboardType: TextInputType.number,
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: centerYController,
+                  decoration: const InputDecoration(
+                    labelText: '中心Y (0.0-1.0)',
+                    hintText: '0.0是底部，1.0是顶部',
+                    border: OutlineInputBorder(),
+                  ),
+                  keyboardType: TextInputType.number,
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: sizeController,
+                  decoration: const InputDecoration(
+                    labelText: '大小 (0.0-1.0)',
+                    hintText: '相对于屏幕宽度',
+                    border: OutlineInputBorder(),
+                  ),
+                  keyboardType: TextInputType.number,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _addEightDirectionJoystick() {
+    final centerXController = TextEditingController(text: '0.2');
+    final centerYController = TextEditingController(text: '0.8');
+    final sizeController = TextEditingController(text: '0.1');
+
+    showDialog(
+      context: context,
+      builder: (context) => Dialog.fullscreen(
+        child: Scaffold(
+          appBar: AppBar(
+            title: const Text('添加角落跳转摇杆'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('取消'),
+              ),
+              TextButton(
+                onPressed: () {
+                  widget.controlManager.createEightDirectionJoystick(
+                    centerX: double.tryParse(centerXController.text) ?? 0.2,
+                    centerY: double.tryParse(centerYController.text) ?? 0.8,
+                    size: double.tryParse(sizeController.text) ?? 0.1,
+                  );
+                  widget.onControlsUpdated();
+                  Navigator.pop(context);
+                  setState(() {});
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('角落跳转摇杆已添加')),
+                  );
+                },
+                child: const Text('添加'),
+              ),
+            ],
+          ),
+          body: SingleChildScrollView(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  '角落跳转摇杆说明:',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 8),
+                const Text(
+                  '• 用于MOBA游戏小地图拖动\n'
+                  '• 拖动摇杆超过红色圆圈阈值时，鼠标会瞬间跳转到对应角落\n'
+                  '• 松开摇杆后可以重新使用',
+                  style: TextStyle(fontSize: 14),
                 ),
                 const SizedBox(height: 16),
                 TextField(
@@ -780,7 +878,7 @@ class _ControlManagementScreenState extends State<ControlManagementScreen> {
           child: Scaffold(
             appBar: AppBar(
               title: Text(
-                  '编辑${control.type == 'joystick' ? '摇杆' : (control.type == 'mouseModeButton' ? '鼠标模式切换按钮' : (isGamepadButton ? '手柄按钮' : '键盘按键'))}'),
+                  '编辑${control.type == 'joystick' ? '摇杆' : (control.type == 'eightDirectionJoystick' ? '角落跳转摇杆' : (control.type == 'mouseModeButton' ? '鼠标模式切换按钮' : (isGamepadButton ? '手柄按钮' : '键盘按键')))}'),
               actions: [
                 TextButton(
                   onPressed: () => Navigator.pop(context),
@@ -820,6 +918,13 @@ class _ControlManagementScreenState extends State<ControlManagementScreen> {
                         size: size,
                         joystickType: selectedType,
                       );
+                    } else if (control.type == 'eightDirectionJoystick') {
+                      widget.controlManager.updateControl(
+                        control.id,
+                        centerX: centerX,
+                        centerY: centerY,
+                        size: size,
+                      );
                     } else if (control.type == 'mouseModeButton') {
                       // 对于鼠标模式按钮，使用 updateControl 方法
                       widget.controlManager.updateControl(
@@ -837,7 +942,7 @@ class _ControlManagementScreenState extends State<ControlManagementScreen> {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
                           content: Text(
-                              '${control.type == 'joystick' ? '摇杆' : (control.type == 'mouseModeButton' ? '鼠标模式切换按钮' : (isGamepadButton ? '手柄按钮' : (isMouseButton ? '鼠标按钮' : '键盘按键')))}已更新')),
+                              '${control.type == 'joystick' ? '摇杆' : (control.type == 'eightDirectionJoystick' ? '角落跳转摇杆' : (control.type == 'mouseModeButton' ? '鼠标模式切换按钮' : (isGamepadButton ? '手柄按钮' : (isMouseButton ? '鼠标按钮' : '键盘按键'))))}已更新')),
                     );
                   },
                   child: const Text('保存'),
@@ -1051,6 +1156,18 @@ class _ControlManagementScreenState extends State<ControlManagementScreen> {
                           setDialogState(() {});
                         }
                       },
+                    ),
+                  ] else if (control.type == 'eightDirectionJoystick') ...[
+                    const Text(
+                      '角落跳转摇杆说明:',
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 8),
+                    const Text(
+                      '• 用于MOBA游戏小地图拖动\n'
+                      '• 拖动摇杆超过红色圆圈阈值时，鼠标会瞬间跳转到对应角落\n'
+                      '• 松开摇杆后可以重新使用',
+                      style: TextStyle(fontSize: 14),
                     ),
                   ] else if (control.type == 'mouseModeButton') ...[
                     const Text(
