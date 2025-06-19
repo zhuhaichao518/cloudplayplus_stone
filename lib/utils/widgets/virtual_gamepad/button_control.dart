@@ -3,12 +3,18 @@ import 'control_base.dart';
 import 'control_event.dart';
 import 'gamepad_keys.dart';
 
+enum ButtonShape {
+  circle,
+  square,
+}
+
 class ButtonControl extends ControlBase {
   final String label;
   final Color color;
   final int keyCode; // 按键码
   final bool isGamepadButton; // 是否是手柄按钮
   final bool isMouseButton; // 是否是鼠标按钮
+  final ButtonShape shape; // 按钮形状
 
   ButtonControl({
     required super.id,
@@ -20,6 +26,7 @@ class ButtonControl extends ControlBase {
     this.color = Colors.blue,
     this.isGamepadButton = false, // 默认为键盘按钮
     this.isMouseButton = false, // 默认为非鼠标按钮
+    this.shape = ButtonShape.circle, // 默认为圆形
   }) : super(
           type: 'button',
         );
@@ -35,6 +42,7 @@ class ButtonControl extends ControlBase {
       color: Color(map['color'] ?? Colors.blue.value),
       isGamepadButton: map['isGamepadButton'] ?? false,
       isMouseButton: map['isMouseButton'] ?? false,
+      shape: map['shape'] == 'square' ? ButtonShape.square : ButtonShape.circle,
     );
   }
 
@@ -51,6 +59,7 @@ class ButtonControl extends ControlBase {
       'color': color.value,
       'isGamepadButton': isGamepadButton,
       'isMouseButton': isMouseButton,
+      'shape': shape == ButtonShape.square ? 'square' : 'circle',
     };
   }
 
@@ -198,7 +207,9 @@ class _ButtonWidgetState extends State<_ButtonWidget> {
           height: diameter,
           decoration: BoxDecoration(
             color: widget.control.color.withOpacity(_isPressed ? 0.7 : 0.4),
-            borderRadius: BorderRadius.circular(diameter / 2),
+            borderRadius: widget.control.shape == ButtonShape.circle 
+                ? BorderRadius.circular(diameter / 2)
+                : BorderRadius.circular(diameter * 0.1), // 方形时使用较小的圆角
           ),
           child: Center(
             child: Text(

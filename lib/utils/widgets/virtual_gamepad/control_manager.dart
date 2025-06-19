@@ -155,24 +155,26 @@ class ControlManager {
   void createButton({
     required String label,
     required int keyCode,
-    double? centerX,
-    double? centerY,
-    double? size,
+    double centerX = 0.8,
+    double centerY = 0.8,
+    double size = 0.1,
     Color color = Colors.blue,
     bool isGamepadButton = false,
     bool isMouseButton = false,
+    ButtonShape shape = ButtonShape.circle,
   }) {
     addControl(
       ButtonControl(
         id: _getNextId().toString(),
-        centerX: centerX ?? 0.8,
-        centerY: centerY ?? 0.8,
-        size: size ?? 0.1,
+        centerX: centerX,
+        centerY: centerY,
+        size: size,
         label: label,
         keyCode: keyCode,
         color: color,
         isGamepadButton: isGamepadButton,
         isMouseButton: isMouseButton,
+        shape: shape,
       ),
     );
   }
@@ -214,6 +216,11 @@ class ControlManager {
     _saveControls();
   }
 
+  void clearControls() {
+    _controls.clear();
+    _saveControls();
+  }
+
   void updateControl(
     String id, {
     double? centerX,
@@ -225,6 +232,7 @@ class ControlManager {
     bool? isGamepadButton,
     bool? isMouseButton,
     List<MouseMode>? enabledModes,
+    ButtonShape? shape,
   }) {
     final index = _controls.indexWhere((c) => c.id == id);
     if (index != -1) {
@@ -255,6 +263,7 @@ class ControlManager {
           color: control.color,
           isGamepadButton: isGamepadButton ?? control.isGamepadButton,
           isMouseButton: isMouseButton ?? control.isMouseButton,
+          shape: shape ?? control.shape,
         );
       } else if (control.type == 'mouseModeButton') {
         _controls[index] = MouseModeButtonControl(
@@ -383,6 +392,7 @@ class ControlManager {
             color: control.color,
             isGamepadButton: control.isGamepadButton,
             isMouseButton: control.isMouseButton,
+            shape: control.shape,
           ));
         } else if (control.type == 'mouseModeButton') {
           _controls.add(MouseModeButtonControl(

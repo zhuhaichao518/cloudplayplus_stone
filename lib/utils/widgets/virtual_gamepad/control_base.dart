@@ -80,7 +80,7 @@ class MouseModeButtonControl extends ControlBase {
   }) {
     return Positioned(
       left: centerX * screenWidth - (size * screenWidth) / 2,
-      top: centerY * screenHeight - (size * screenHeight) / 2,
+      top: centerY * screenHeight - (size * screenWidth) / 2,
       child: GestureDetector(
         onTapDown: (TapDownDetails details) {
           _isPressed = true; // 设置按下状态
@@ -138,7 +138,7 @@ class MouseModeButtonControl extends ControlBase {
         },
         child: Container(
           width: size * screenWidth,
-          height: size * screenHeight,
+          height: size * screenWidth,
           decoration: BoxDecoration(
             color: _isPressed ? color.withOpacity(0.8) : color.withOpacity(0.5),
             shape: BoxShape.circle,

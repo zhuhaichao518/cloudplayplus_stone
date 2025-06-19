@@ -68,29 +68,6 @@ class _ControlManagementScreenState extends State<ControlManagementScreen> {
   }
 
   Widget _buildEditModeView() {
-    if (widget.controlManager.controls.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.edit, size: 64, color: Colors.grey),
-            const SizedBox(height: 16),
-            const Text(
-              '编辑模式',
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 8),
-            const Text('没有可编辑的控件'),
-            const SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: _importDefaultControls,
-              child: const Text('导入默认控件开始编辑'),
-            ),
-          ],
-        ),
-      );
-    }
-
     return Stack(
       children: [
         // 背景网格
@@ -100,6 +77,29 @@ class _ControlManagementScreenState extends State<ControlManagementScreen> {
         ...widget.controlManager.controls.map((control) => 
           _buildDraggableControl(control)
         ),
+        
+        // 空状态提示（当没有控件时显示）
+        if (widget.controlManager.controls.isEmpty)
+          Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.edit, size: 64, color: Colors.grey),
+                const SizedBox(height: 16),
+                const Text(
+                  '编辑模式',
+                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 8),
+                const Text('没有可编辑的控件'),
+                const SizedBox(height: 16),
+                ElevatedButton(
+                  onPressed: _importDefaultControls,
+                  child: const Text('导入默认手柄控件开始编辑'),
+                ),
+              ],
+            ),
+          ),
         
         // 编辑模式提示
         Positioned(
@@ -349,7 +349,9 @@ class _ControlManagementScreenState extends State<ControlManagementScreen> {
       preview = Container(
         decoration: BoxDecoration(
           color: control.color.withOpacity(0.6),
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: control.shape == ButtonShape.circle 
+              ? BorderRadius.circular(controlSize / 2)
+              : BorderRadius.circular(controlSize * 0.1),
         ),
         child: Center(
           child: Text(
@@ -365,7 +367,7 @@ class _ControlManagementScreenState extends State<ControlManagementScreen> {
     } else if (control.type == 'eightDirectionJoystick') {
       preview = Container(
         decoration: BoxDecoration(
-          color: Colors.orange.withOpacity(0.6),
+          color: Colors.blue.withOpacity(0.6),
           shape: BoxShape.circle,
         ),
         child: Center(
@@ -379,7 +381,7 @@ class _ControlManagementScreenState extends State<ControlManagementScreen> {
     } else if (control.type == 'mouseModeButton') {
       preview = Container(
         decoration: BoxDecoration(
-          color: Colors.purple.withOpacity(0.6),
+          color: Colors.blue.withOpacity(0.6),
           shape: BoxShape.circle,
         ),
         child: Center(
@@ -674,7 +676,7 @@ class _ControlManagementScreenState extends State<ControlManagementScreen> {
                 const SizedBox(height: 8),
                 const Text(
                   '• 用于MOBA游戏小地图拖动\n'
-                  '• 拖动摇杆超过红色圆圈阈值时，鼠标会瞬间跳转到对应角落\n'
+                  '• 拖动摇杆超过圆圈阈值时，鼠标会瞬间跳转到对应角落\n'
                   '• 松开摇杆后可以重新使用',
                   style: TextStyle(fontSize: 14),
                 ),
@@ -725,6 +727,7 @@ class _ControlManagementScreenState extends State<ControlManagementScreen> {
     bool isGamepadButton = false;
     bool isMouseButton = false;
     bool hasSelectedKey = false;
+    ButtonShape selectedShape = ButtonShape.circle;
 
     showDialog(
       context: context,
@@ -761,6 +764,7 @@ class _ControlManagementScreenState extends State<ControlManagementScreen> {
                       size: double.tryParse(sizeController.text) ?? 0.1,
                       isGamepadButton: isGamepadButton,
                       isMouseButton: isMouseButton,
+                      shape: selectedShape,
                     );
                     widget.onControlsUpdated();
                     Navigator.pop(context);
@@ -797,6 +801,26 @@ class _ControlManagementScreenState extends State<ControlManagementScreen> {
                             isMouseButton = value == 'mouse';
                             selectedKeyCode = null;
                             hasSelectedKey = false;
+                            setDialogState(() {});
+                          }
+                        },
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      const Text('按钮形状:', style: TextStyle(fontSize: 16)),
+                      const SizedBox(width: 16),
+                      DropdownButton<ButtonShape>(
+                        value: selectedShape,
+                        items: const [
+                          DropdownMenuItem(value: ButtonShape.circle, child: Text('圆形')),
+                          DropdownMenuItem(value: ButtonShape.square, child: Text('方形')),
+                        ],
+                        onChanged: (value) {
+                          if (value != null) {
+                            selectedShape = value;
                             setDialogState(() {});
                           }
                         },
@@ -1208,6 +1232,7 @@ class _ControlManagementScreenState extends State<ControlManagementScreen> {
     bool isMouseButton =
         control is ButtonControl ? control.isMouseButton : false;
     bool hasSelectedKey = false;
+    ButtonShape selectedShape = control is ButtonControl ? control.shape : ButtonShape.circle;
     
     // 为 MouseModeButtonControl 添加变量
     List<MouseMode> selectedModes = control.type == 'mouseModeButton' 
@@ -1252,6 +1277,7 @@ class _ControlManagementScreenState extends State<ControlManagementScreen> {
                         keyCode: selectedKeyCode,
                         isGamepadButton: isGamepadButton,
                         isMouseButton: isMouseButton,
+                        shape: selectedShape,
                       );
                     } else if (control is JoystickControl) {
                       widget.controlManager.updateControl(
@@ -1329,6 +1355,26 @@ class _ControlManagementScreenState extends State<ControlManagementScreen> {
                         hintText: isGamepadButton ? 'A, B, X, Y, etc.' : (isMouseButton ? 'Left Click, Right Click, Move' : '按钮名称'),
                         border: const OutlineInputBorder(),
                       ),
+                    ),
+                    const SizedBox(height: 16),
+                    Row(
+                      children: [
+                        const Text('按钮形状:', style: TextStyle(fontSize: 16)),
+                        const SizedBox(width: 16),
+                        DropdownButton<ButtonShape>(
+                          value: selectedShape,
+                          items: const [
+                            DropdownMenuItem(value: ButtonShape.circle, child: Text('圆形')),
+                            DropdownMenuItem(value: ButtonShape.square, child: Text('方形')),
+                          ],
+                          onChanged: (value) {
+                            if (value != null) {
+                              selectedShape = value;
+                              setDialogState(() {});
+                            }
+                          },
+                        ),
+                      ],
                     ),
                     const SizedBox(height: 16),
                     if (isGamepadButton) ...[
@@ -1508,7 +1554,7 @@ class _ControlManagementScreenState extends State<ControlManagementScreen> {
                     const SizedBox(height: 8),
                     const Text(
                       '• 用于MOBA游戏小地图拖动\n'
-                      '• 拖动摇杆超过红色圆圈阈值时，鼠标会瞬间跳转到对应角落\n'
+                      '• 拖动摇杆超过圆圈阈值时，鼠标会瞬间跳转到对应角落\n'
                       '• 松开摇杆后可以重新使用',
                       style: TextStyle(fontSize: 14),
                     ),
@@ -1730,10 +1776,14 @@ class _ControlManagementScreenState extends State<ControlManagementScreen> {
   }
 
   Widget _buildControlPanel() {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.9),
+        color: isDarkMode 
+            ? Colors.black.withOpacity(0.9)
+            : Colors.white.withOpacity(0.9),
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
@@ -1753,13 +1803,9 @@ class _ControlManagementScreenState extends State<ControlManagementScreen> {
           ),
           const SizedBox(height: 8),
           IconButton(
-            icon: const Icon(Icons.save),
-            onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('控件位置已保存')),
-              );
-            },
-            tooltip: '保存位置',
+            icon: const Icon(Icons.sync),
+            onPressed: _showImportExportDialog,
+            tooltip: '同步按钮配置',
           ),
           const SizedBox(height: 8),
           IconButton(
@@ -1779,11 +1825,15 @@ class _ControlManagementScreenState extends State<ControlManagementScreen> {
       (c) => c.id == _draggingControlId,
       orElse: () => throw Exception('Control not found'),
     );
+    
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.95),
+        color: isDarkMode 
+            ? Colors.black.withOpacity(0.95)
+            : Colors.white.withOpacity(0.95),
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
@@ -1821,6 +1871,7 @@ class _ControlManagementScreenState extends State<ControlManagementScreen> {
           if (control is ButtonControl) ...[
             Text('标签: ${control.label}'),
             Text('类型: ${control.isGamepadButton ? "手柄" : (control.isMouseButton ? "鼠标" : "键盘")}'),
+            Text('形状: ${control.shape == ButtonShape.circle ? "圆形" : "方形"}'),
           ],
           const SizedBox(height: 8),
           Row(
@@ -1895,31 +1946,33 @@ class _ControlManagementScreenState extends State<ControlManagementScreen> {
             Text('编辑模式使用说明'),
           ],
         ),
-        content: const Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              '编辑模式功能说明：',
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
-            SizedBox(height: 8),
-            Text('• 拖动控件：长按并拖拽控件到新位置'),
-            Text('• 选中控件：点击控件查看详细信息'),
-            Text('• 编辑控件：在信息面板中点击编辑按钮'),
-            Text('• 删除控件：在信息面板中点击删除按钮'),
-            Text('• 添加控件：使用右下角的添加按钮'),
-            SizedBox(height: 8),
-            Text(
-              '操作提示：',
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
-            SizedBox(height: 8),
-            Text('• 控件会自动限制在屏幕范围内'),
-            Text('• 位置以屏幕比例保存 (0.0-1.0)'),
-            Text('• 拖拽时会有触觉反馈'),
-            Text('• 蓝色网格帮助您精确定位'),
-          ],
+        content: SingleChildScrollView(
+          child: const Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                '编辑模式功能说明：',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              SizedBox(height: 8),
+              Text('• 拖动控件：长按并拖拽控件到新位置'),
+              Text('• 选中控件：点击控件查看详细信息'),
+              Text('• 编辑控件：在信息面板中点击编辑按钮'),
+              Text('• 删除控件：在信息面板中点击删除按钮'),
+              Text('• 添加控件：使用右下角的添加按钮'),
+              SizedBox(height: 8),
+              Text(
+                '操作提示：',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              SizedBox(height: 8),
+              Text('• 控件会自动限制在屏幕范围内'),
+              Text('• 位置以屏幕比例保存 (0.0-1.0)'),
+              Text('• 拖拽时会有触觉反馈'),
+              Text('• 蓝色网格帮助您精确定位'),
+            ],
+          ),
         ),
         actions: [
           TextButton(

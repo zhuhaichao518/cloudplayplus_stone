@@ -89,6 +89,11 @@ class _VirtualGamepadSettingsPageState
           mainAxisSize: MainAxisSize.min,
           children: [
             ListTile(
+              leading: const Icon(Icons.add),
+              title: const Text('新建空配置'),
+              onTap: () => _showNewConfigDialog(),
+            ),
+            ListTile(
               leading: const Icon(Icons.save),
               title: const Text('保存当前配置'),
               onTap: () => _showSaveConfigDialog(),
@@ -109,6 +114,35 @@ class _VirtualGamepadSettingsPageState
           TextButton(
             onPressed: () => Navigator.pop(context),
             child: const Text('关闭'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showNewConfigDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('新建空配置'),
+        content: const Text('确定要清空当前所有控件吗？如果当前配置未保存将无法恢复。'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('取消'),
+          ),
+          TextButton(
+            onPressed: () {
+              // 清空当前控件
+              widget.controlManager.clearControls();
+              Navigator.pop(context);
+              Navigator.pop(context); // 关闭配置管理对话框
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('已清空所有控件，编辑完后请自行保存配置')),
+              );
+              setState(() {}); // 刷新界面
+            },
+            child: const Text('确定'),
           ),
         ],
       ),
@@ -258,7 +292,7 @@ class _VirtualGamepadSettingsPageState
         elevation: 0,
         actions: [
           IconButton(
-            icon: const Icon(Icons.settings),
+            icon: const Icon(Icons.edit),
             onPressed: () => _navigateToManagementScreen(),
           ),
           IconButton(
