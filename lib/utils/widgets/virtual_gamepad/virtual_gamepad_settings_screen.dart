@@ -136,7 +136,6 @@ class _VirtualGamepadSettingsPageState
               // 清空当前控件
               widget.controlManager.clearControls();
               Navigator.pop(context);
-              Navigator.pop(context); // 关闭配置管理对话框
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(content: Text('已清空所有控件，编辑完后请自行保存配置')),
               );
