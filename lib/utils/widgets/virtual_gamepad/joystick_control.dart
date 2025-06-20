@@ -147,7 +147,7 @@ class _JoystickWidgetState extends State<_JoystickWidget> {
   Widget build(BuildContext context) {
     // 在build方法中直接计算大小
     final joystickRadius = widget.screenWidth * widget.control.size / 2;
-    final thumbRadius = joystickRadius * 0.4;
+    final thumbRadius = joystickRadius * 0.2;
 
     return Positioned(
       left: widget.screenWidth * widget.control.centerX - joystickRadius,
@@ -330,8 +330,8 @@ class _EightDirectionJoystickWidgetState extends State<_EightDirectionJoystickWi
   @override
   Widget build(BuildContext context) {
     final joystickRadius = widget.screenWidth * widget.control.size / 2;
-    final thumbRadius = joystickRadius * 0.4;
-    final threshold = joystickRadius * 0.6; // 跳转阈值
+    final thumbRadius = joystickRadius * 0.2;
+    final threshold = joystickRadius * 0.4; // 跳转阈值
 
     return Positioned(
       left: widget.screenWidth * widget.control.centerX - joystickRadius,
