@@ -134,13 +134,6 @@ class _ControlManagementScreenState extends State<ControlManagementScreen> {
           ),
         ),
 
-        // 控制面板
-        Positioned(
-          bottom: 16,
-          right: 16,
-          child: _buildControlPanel(),
-        ),
-
         // 控件信息面板
         if (_draggingControlId != null)
           Positioned(
@@ -148,6 +141,12 @@ class _ControlManagementScreenState extends State<ControlManagementScreen> {
             right: 16,
             child: _buildControlInfoPanel(),
           ),
+        // 控制面板
+        Positioned(
+          bottom: 16,
+          right: 16,
+          child: _buildControlPanel(),
+        ),
       ],
     );
   }
