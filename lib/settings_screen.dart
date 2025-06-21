@@ -710,13 +710,13 @@ class _NetworkSettingsScreenState extends State<NetworkSettingsScreen> {
     useTurnServer = StreamingSettings.useTurnServer;
     customTurnServerAddress =
         SharedPreferencesManager.getString('customTurnServerAddress') ??
-            'turn:106.14.91.137:3478';
+            'turn:47.100.84.139:3478';
     customTurnServerUsername =
         SharedPreferencesManager.getString('customTurnServerUsername') ??
-            'haichaozhu';
+            'cloudplayplus';
     customTurnServerPassword =
         SharedPreferencesManager.getString('customTurnServerPassword') ??
-            'pdhcppturn123';
+            'zhuhaichao';
 
     _addressController.text = customTurnServerAddress;
     _usernameController.text = customTurnServerUsername;

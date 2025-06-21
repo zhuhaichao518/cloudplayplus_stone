@@ -85,13 +85,13 @@ class StreamingSettings {
     useTurnServer = SharedPreferencesManager.getBool('useTurnServer') ?? false;
     customTurnServerAddress =
         SharedPreferencesManager.getString('customTurnServerAddress') ??
-            'turn:106.14.91.137:3478';
+            'turn:47.100.84.139:3478';
     customTurnServerUsername =
         SharedPreferencesManager.getString('customTurnServerUsername') ??
-            'haichaozhu';
+            'cloudplayplus';
     customTurnServerPassword =
         SharedPreferencesManager.getString('customTurnServerPassword') ??
-            'pdhcppturn123';
+            'zhuhaichao';
 
     codec = SharedPreferencesManager.getString('codec') ?? 'default';
 
