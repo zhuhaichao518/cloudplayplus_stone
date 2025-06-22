@@ -652,6 +652,7 @@ class _DeviceDetailPageState extends State<DeviceDetailPage> {
     // if (password == null) return;
     if (AppPlatform.isMobile) {
       AppStateService.isMouseConnected = (await HardwareSimulator.getIsMouseConnected())!;
+      StreamingSettings.hookCursorImage = AppStateService.isMouseConnected;
     }
     StreamingSettings.updateScreenId(_selectedMonitorId - 1);
     StreamingSettings.connectPassword = _passwordController.text;

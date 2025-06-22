@@ -423,8 +423,8 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
                     if (_mouseTouchMode == MouseMode.leftClick) {
                         _syncMouseButtonState(event);
                     }
-                    //TODO:Check if we need to return in IOS, Web and other platforms.
-                    if (InputController.isCursorLocked && !AppPlatform.isAndroid) return;
+                    // When cursor is locked, we dont' need to handle mouse move events here.
+                    if (InputController.isCursorLocked && event.kind == PointerDeviceKind.mouse) return;
                     final Offset localPosition =
                         renderBox!.globalToLocal(event.position);
                     final double xPercent =
