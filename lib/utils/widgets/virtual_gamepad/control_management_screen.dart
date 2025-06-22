@@ -143,8 +143,8 @@ class _ControlManagementScreenState extends State<ControlManagementScreen> {
           ),
         // 控制面板
         Positioned(
-          bottom: 16,
-          right: 16,
+          bottom: 32,
+          left: 16,
           child: _buildControlPanel(),
         ),
       ],
@@ -1778,7 +1778,7 @@ class _ControlManagementScreenState extends State<ControlManagementScreen> {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(6),
       decoration: BoxDecoration(
         color: isDarkMode 
             ? Colors.black.withOpacity(0.9)
