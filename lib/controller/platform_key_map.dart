@@ -437,6 +437,7 @@ Map<int, int> androidToWindowsKeyMap = {
   187: 0xB7, // LAUNCH APP2
 
   // 浏览器键
+  // TODO(haichao):小米键盘esc会被视为back,如何处理？
   4: 0xA6,   // BROWSER BACK
   125: 0xA7, // BROWSER FORWARD
   285: 0xA8, // BROWSER REFRESH
