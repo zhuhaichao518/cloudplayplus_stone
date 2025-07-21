@@ -7,6 +7,7 @@ import Foundation
 
 import bitsdojo_window_macos
 import custom_mouse_cursor
+import device_info_plus
 import flutter_secure_storage_macos
 import flutter_webrtc
 import flutter_window_close
@@ -24,6 +25,7 @@ import window_manager
 func RegisterGeneratedPlugins(registry: FlutterPluginRegistry) {
   BitsdojoWindowPlugin.register(with: registry.registrar(forPlugin: "BitsdojoWindowPlugin"))
   CustomMouseCursorPlugin.register(with: registry.registrar(forPlugin: "CustomMouseCursorPlugin"))
+  DeviceInfoPlusMacosPlugin.register(with: registry.registrar(forPlugin: "DeviceInfoPlusMacosPlugin"))
   FlutterSecureStoragePlugin.register(with: registry.registrar(forPlugin: "FlutterSecureStoragePlugin"))
   FlutterWebRTCPlugin.register(with: registry.registrar(forPlugin: "FlutterWebRTCPlugin"))
   FlutterWindowClosePlugin.register(with: registry.registrar(forPlugin: "FlutterWindowClosePlugin"))

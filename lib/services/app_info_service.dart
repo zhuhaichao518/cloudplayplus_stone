@@ -1,6 +1,7 @@
 //掉线连接管理.md
 import 'dart:io';
 import 'package:flutter/foundation.dart';
+import 'package:device_info_plus/device_info_plus.dart';
 import '../entities/device.dart';
 import '../entities/user.dart';
 
@@ -90,6 +91,7 @@ class AppStateService {
 class AppPlatform {
   static const bool isWeb = kIsWeb;
   static final bool isAndroid = !kIsWeb && Platform.isAndroid;
+  static bool isAndroidTV = false;
   static final bool isIOS = !kIsWeb && Platform.isIOS;
   static final bool isWindows = !kIsWeb && Platform.isWindows;
   static final bool isMacos = !kIsWeb && Platform.isMacOS;
@@ -98,4 +100,12 @@ class AppPlatform {
       !kIsWeb && (Platform.isLinux || Platform.isWindows || Platform.isMacOS);
   static final bool isMobile =
       !kIsWeb && (Platform.isAndroid || Platform.isIOS);
+
+  static Future<void> init() async {
+      if (isAndroid) {
+        DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
+        AndroidDeviceInfo androidInfo = await deviceInfo.androidInfo;
+        isAndroidTV = androidInfo.systemFeatures.contains('android.software.leanback');
+      }
+  }
 }
