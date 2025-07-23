@@ -1,3 +1,6 @@
+import 'package:cloudplayplus/entities/device.dart';
+import 'package:cloudplayplus/services/app_info_service.dart';
+import 'package:cloudplayplus/utils/widgets/device_tile_page.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_sticky_header/flutter_sticky_header.dart';
@@ -95,7 +98,18 @@ class ElementList<T> extends StatelessWidget {
 
   Widget _buildElement(BuildContext context, T item) {
     return GestureDetector(
-      onTap: () => onTap(item),
+      onTap: () {
+        if (!AppPlatform.isAndroidTV) {
+          onTap(item);
+        } else {
+          //TODO: This is Only a work around for android TV. Use different Method to do this.
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+                builder: (context) => DeviceDetailPage(device: item as Device)),
+          );
+        }
+      },
       child: masterItemBuilder(
         context,
         item,

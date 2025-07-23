@@ -1,3 +1,4 @@
+import 'package:cloudplayplus/services/app_info_service.dart';
 import 'package:flutter/material.dart';
 import 'desktop_view.dart';
 import 'elements_view_model.dart';
@@ -80,6 +81,14 @@ class MasterDetailsList<T> extends StatelessWidget {
         // Do something once your viewModel is initialized
       },
       builder: (context, viewModel, child) {
+        if (AppPlatform.isAndroidTV) {
+          // only use mobile view for android TV.
+          return ScreenTypeLayout.builder(
+            mobile: (ctx) => _buildMobileView(viewModel),
+            desktop: (ctx) => _buildMobileView(viewModel),
+            tablet: (ctx) => _buildMobileView(viewModel),
+          );
+        }
         return ScreenTypeLayout.builder(
           mobile: (ctx) => _buildMobileView(viewModel),
           desktop: (ctx) => _buildDesktopView(viewModel),
