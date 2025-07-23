@@ -37,11 +37,20 @@ class _MainScreenState extends State<MainScreen> {
           ),
         ),
       ),*/
-      const SettingsScreen(), //GamesPage(),
+      if (!AppPlatform.isAndroidTV)
+        const SettingsScreen(), //GamesPage(),
     ];
   }
 
   void onTabTapped(int index) {
+    if (AppPlatform.isAndroidTV && index == 1) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+            builder: (context) => const SettingsScreen()),
+      );
+      return;
+    }
     setState(() {
       _currentIndex = index;
     });
@@ -198,19 +207,11 @@ class _MainScreenState extends State<MainScreen> {
                       type: BottomNavigationBarType.fixed,
                       onTap: onTabTapped,
                       currentIndex: _currentIndex,
-                      items: const [
+                      items: const[
                         BottomNavigationBarItem(
                           icon: Icon(Icons.computer),
                           label: '设备',
                         ),
-                        /*BottomNavigationBarItem(
-                    icon: Icon(Icons.games_rounded),
-                    label: 'Games',
-                  ),*/
-                        /*BottomNavigationBarItem(
-                          icon: Icon(Icons.group),
-                          label: '好友',
-                        ),*/
                         BottomNavigationBarItem(
                           icon: Icon(Icons.settings),
                           label: '设置',

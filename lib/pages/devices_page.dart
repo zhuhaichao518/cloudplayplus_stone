@@ -221,7 +221,20 @@ class _DevicesPageState extends State<DevicesPage> {
     return ListTile(
       title: Text(data.devicename),
       //subtitle: Text(data.devicetype),
-      trailing: IconBuilder.findIconByName(data.devicetype),
+      trailing: AppPlatform.isAndroidTV? 
+      IconButton(
+        icon: IconBuilder.findIconByName(data.devicetype),
+        color: Theme.of(context).iconTheme.color,
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+                builder: (context) => DeviceDetailPage(device: data)),
+          );
+        },
+      )
+      //non-android TV
+      :IconBuilder.findIconByName(data.devicetype),
       selected: isSelected,
     );
   }

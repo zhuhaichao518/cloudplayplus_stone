@@ -510,6 +510,14 @@ class InputController {
   };
 
   static KeyboardPressedCallback keyboardPressedCallbackAndroid = (keycode, isDown) {
+    if (AppPlatform.isAndroidTV && keycode == 4) {
+      // Android TV go back. quit the streaming context.
+      if (_cursorContext != null) {
+        Navigator.pop(_cursorContext!);
+        _cursorContext = null;
+      }
+      return;
+    }
     if (androidToWindowsKeyMap.containsKey(keycode)) {
       WebrtcService.currentRenderingSession?.inputController
         ?.requestKeyEvent(androidToWindowsKeyMap[keycode], isDown);

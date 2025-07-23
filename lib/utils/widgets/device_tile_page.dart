@@ -178,7 +178,7 @@ class _DeviceDetailPageState extends State<DeviceDetailPage> {
                     ),
                   ),
                 ),
-                FloatingMenuPanel(
+                if (!AppPlatform.isAndroidTV) FloatingMenuPanel(
                   panelIcon: AppIcons.mainIcon,
                   onPressed: (index) async {
                     if (index == 0) {

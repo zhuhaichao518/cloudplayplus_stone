@@ -53,8 +53,7 @@ class StreamingSettings {
 
   static void init() {
     InputController.resendCount =
-        SharedPreferencesManager.getInt('ControlMsgResendCount') ?? 3;
-
+        SharedPreferencesManager.getInt('ControlMsgResendCount') ?? (AppPlatform.isAndroidTV? 0:3);
     framerate =
         SharedPreferencesManager.getInt('framerate') ?? 60; // Default to 60
     bitrate =

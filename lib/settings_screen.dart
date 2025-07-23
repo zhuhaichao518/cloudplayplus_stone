@@ -319,7 +319,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
           SettingsSection(title: const Text('版本号'), tiles: <SettingsTile>[
             SettingsTile(
-              title: const Text('1.0.6'),
+              title: const Text('1.0.61'),
               leading: const Icon(Icons.sunny),
             ),
             if (AppPlatform.isMobile)
@@ -669,6 +669,9 @@ class _NetworkSettingsScreenState extends State<NetworkSettingsScreen> {
   String customTurnServerUsername = "";
   String customTurnServerPassword = "";
 
+  final FocusNode _addressfocusNode = FocusNode();
+  final FocusNode _usernamefocusNode = FocusNode();
+  final FocusNode _passwordfocusNode = FocusNode();
   //Turn server info
   late TextEditingController _addressController;
   late TextEditingController _usernameController;
@@ -691,10 +694,10 @@ class _NetworkSettingsScreenState extends State<NetworkSettingsScreen> {
   @override
   void initState() {
     super.initState();
-    _loadSettings();
     _addressController = TextEditingController(text: customTurnServerAddress);
     _usernameController = TextEditingController(text: customTurnServerUsername);
     _passwordController = TextEditingController(text: customTurnServerPassword);
+    _loadSettings();
   }
 
   @override
@@ -721,6 +724,50 @@ class _NetworkSettingsScreenState extends State<NetworkSettingsScreen> {
     _addressController.text = customTurnServerAddress;
     _usernameController.text = customTurnServerUsername;
     _passwordController.text = customTurnServerPassword;
+  }
+
+  Future<void> _saveTurnConfig(BuildContext context) async{
+    // Update the values when the user presses the save button
+    setState(() {
+      customTurnServerAddress =
+          _addressController.text.trim();
+      customTurnServerUsername =
+          _usernameController.text.trim();
+      customTurnServerPassword =
+          _passwordController.text.trim();
+      StreamingSettings.customTurnServerAddress =
+          customTurnServerAddress;
+      StreamingSettings.customTurnServerUsername =
+          customTurnServerUsername;
+      StreamingSettings.customTurnServerPassword =
+          customTurnServerPassword;
+      SharedPreferencesManager.setString(
+          'customTurnServerAddress',
+          customTurnServerAddress);
+      SharedPreferencesManager.setString(
+          'customTurnServerUsername',
+          customTurnServerUsername);
+      SharedPreferencesManager.setString(
+          'customTurnServerPassword',
+          customTurnServerPassword);
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: const Text('保存成功'),
+            content: const Text('TURN 服务器信息已保存。'),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                child: const Text('确定'),
+              ),
+            ],
+          );
+        },
+      );
+    });
   }
 
   @override
@@ -819,7 +866,9 @@ class _NetworkSettingsScreenState extends State<NetworkSettingsScreen> {
                             decoration: const InputDecoration(
                               hintText: '请输入自定义 TURN 服务器地址',
                             ),
+                            focusNode: _addressfocusNode,
                             controller: _addressController,
+                            onSubmitted: (_) => _usernamefocusNode.requestFocus(),
                           ),
                           const SizedBox(height: 16.0),
                           const Text(
@@ -830,6 +879,8 @@ class _NetworkSettingsScreenState extends State<NetworkSettingsScreen> {
                             decoration: const InputDecoration(
                               hintText: '请输入自定义用户名',
                             ),
+                            focusNode: _usernamefocusNode,
+                            onSubmitted: (_) => _passwordfocusNode.requestFocus(),
                             controller: _usernameController,
                           ),
                           const SizedBox(height: 16.0),
@@ -841,54 +892,16 @@ class _NetworkSettingsScreenState extends State<NetworkSettingsScreen> {
                             decoration: const InputDecoration(
                               hintText: '请输入自定义密码',
                             ),
+                            focusNode: _passwordfocusNode,
                             controller: _passwordController,
+                            onSubmitted: (_) => _saveTurnConfig(context),
                             obscureText: true,
                           ),
                           const SizedBox(height: 16.0),
                           Center(
                             child: ElevatedButton(
                               onPressed: () {
-                                // Update the values when the user presses the save button
-                                setState(() {
-                                  customTurnServerAddress =
-                                      _addressController.text.trim();
-                                  customTurnServerUsername =
-                                      _usernameController.text.trim();
-                                  customTurnServerPassword =
-                                      _passwordController.text.trim();
-                                  StreamingSettings.customTurnServerAddress =
-                                      customTurnServerAddress;
-                                  StreamingSettings.customTurnServerUsername =
-                                      customTurnServerUsername;
-                                  StreamingSettings.customTurnServerPassword =
-                                      customTurnServerPassword;
-                                  SharedPreferencesManager.setString(
-                                      'customTurnServerAddress',
-                                      customTurnServerAddress);
-                                  SharedPreferencesManager.setString(
-                                      'customTurnServerUsername',
-                                      customTurnServerUsername);
-                                  SharedPreferencesManager.setString(
-                                      'customTurnServerPassword',
-                                      customTurnServerPassword);
-                                  showDialog(
-                                    context: context,
-                                    builder: (BuildContext context) {
-                                      return AlertDialog(
-                                        title: const Text('保存成功'),
-                                        content: const Text('TURN 服务器信息已保存。'),
-                                        actions: [
-                                          TextButton(
-                                            onPressed: () {
-                                              Navigator.of(context).pop();
-                                            },
-                                            child: const Text('确定'),
-                                          ),
-                                        ],
-                                      );
-                                    },
-                                  );
-                                });
+                                _saveTurnConfig(context);
                               },
                               child: const Text('保存'),
                             ),

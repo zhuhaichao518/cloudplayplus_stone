@@ -23,9 +23,9 @@ import 'package:flutter_web_plugins/url_strategy.dart';
 import 'utils/widgets/virtual_gamepad/control_manager.dart';
 
 void main() async {
-  await AppPlatform.init();
   LoginService.init();
   WidgetsFlutterBinding.ensureInitialized();
+  await AppPlatform.init();
   await ScreenController.initialize();
   await SharedPreferencesManager.init();
   SecureStorageManager.init();
