@@ -6,6 +6,7 @@ import 'package:cloudplayplus/services/app_info_service.dart';
 import 'package:cloudplayplus/services/login_service.dart';
 import 'package:cloudplayplus/services/secure_storage_manager.dart';
 import 'package:cloudplayplus/services/websocket_service.dart';
+import 'package:cloudplayplus/utils/widgets/text_field_wrapper.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -862,6 +863,16 @@ class _NetworkSettingsScreenState extends State<NetworkSettingsScreen> {
                             'TURN 服务器地址',
                             style: TextStyle(fontWeight: FontWeight.bold),
                           ),
+                          AppPlatform.isAndroidTV?
+                          DpadTextField(focusNode: _addressfocusNode, 
+                            child: TextField(
+                              decoration: const InputDecoration(
+                                hintText: '请输入自定义 TURN 服务器地址',
+                              ),
+                              controller: _addressController,
+                              onSubmitted: (_) => _usernamefocusNode.requestFocus(),
+                            ),
+                          ):
                           TextField(
                             decoration: const InputDecoration(
                               hintText: '请输入自定义 TURN 服务器地址',
@@ -875,6 +886,16 @@ class _NetworkSettingsScreenState extends State<NetworkSettingsScreen> {
                             'TURN 服务器用户名',
                             style: TextStyle(fontWeight: FontWeight.bold),
                           ),
+                          AppPlatform.isAndroidTV?
+                          DpadTextField(focusNode: _usernamefocusNode, 
+                            child:TextField(
+                              decoration: const InputDecoration(
+                                hintText: '请输入自定义用户名',
+                              ),
+                              onSubmitted: (_) => _passwordfocusNode.requestFocus(),
+                              controller: _usernameController,
+                            ),
+                          ):
                           TextField(
                             decoration: const InputDecoration(
                               hintText: '请输入自定义用户名',
@@ -888,6 +909,16 @@ class _NetworkSettingsScreenState extends State<NetworkSettingsScreen> {
                             'TURN 服务器密码',
                             style: TextStyle(fontWeight: FontWeight.bold),
                           ),
+                          AppPlatform.isAndroidTV?
+                          DpadTextField(focusNode: _passwordfocusNode, 
+                            child:TextField(
+                              decoration: const InputDecoration(
+                                hintText: '请输入自定义密码',
+                              ),
+                              onSubmitted: (_) => _passwordfocusNode.requestFocus(),
+                              controller: _passwordController,
+                            ),
+                          ):
                           TextField(
                             decoration: const InputDecoration(
                               hintText: '请输入自定义密码',
