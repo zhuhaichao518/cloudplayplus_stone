@@ -910,6 +910,7 @@ class _NetworkSettingsScreenState extends State<NetworkSettingsScreen> {
                           DpadNativeTextField(
                             focusNode: _passwordfocusNode, 
                             controller: _passwordController as NativeTextFieldController,
+                            obscureText: true,
                           ):
                           TextField(
                             decoration: const InputDecoration(
