@@ -6,6 +6,7 @@ import 'package:flutter_login/flutter_login.dart';
 import 'package:flutter_login/src/widgets/term_of_service_checkbox.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:intl_phone_number_input/intl_phone_number_input.dart';
+import 'package:native_textfield_tv/native_textfield_tv.dart';
 import 'package:phone_numbers_parser/phone_numbers_parser.dart' as pnp;
 import 'package:url_launcher/url_launcher.dart';
 
@@ -55,6 +56,7 @@ class AnimatedTextFormField extends StatefulWidget {
     this.autofillHints,
     this.tooltip,
     required this.initialIsoCode,
+    this.isAndroidTV = false,
   }) : assert(
           (inertiaController == null && inertiaDirection == null) ||
               (inertiaController != null && inertiaDirection != null),
@@ -84,6 +86,7 @@ class AnimatedTextFormField extends StatefulWidget {
   final TextFieldInertiaDirection? inertiaDirection;
   final InlineSpan? tooltip;
   final String? initialIsoCode;
+  final bool isAndroidTV;
 
   @override
   State<AnimatedTextFormField> createState() => _AnimatedTextFormFieldState();
@@ -368,21 +371,49 @@ class _AnimatedTextFormFieldState extends State<AnimatedTextFormField> {
               ),
       );
     } else {
-      inputField = TextFormField(
-        cursorColor: theme.primaryColor,
-        controller: widget.controller,
-        focusNode: widget.focusNode,
-        decoration: _getInputDecoration(theme),
-        keyboardType: widget.keyboardType,
-        textInputAction: widget.textInputAction,
-        obscureText: widget.obscureText,
-        onFieldSubmitted: widget.onFieldSubmitted,
-        onSaved: widget.onSaved,
-        validator: widget.validator,
-        enabled: widget.enabled,
-        autocorrect: widget.autocorrect,
-        autofillHints: widget.autofillHints,
-      );
+      // 在Android TV平台上使用DpadNativeTextField
+      if (widget.isAndroidTV) {
+        // 在Android TV模式下，我们需要手动处理onSaved回调
+        final nativeController = widget.controller as NativeTextFieldController? ?? NativeTextFieldController();
+        
+        // 创建一个包装器来处理onSaved
+        inputField = FormField<String>(
+          initialValue: nativeController.text,
+          validator: widget.validator,
+          onSaved: widget.onSaved,
+          builder: (FormFieldState<String> field) {
+            // 监听控制器变化，更新FormField的值
+            nativeController.addListener(() {
+              if (field.value != nativeController.text) {
+                field.didChange(nativeController.text);
+              }
+            });
+            
+            return DpadNativeTextField(
+              focusNode: widget.focusNode ?? FocusNode(),
+              controller: nativeController,
+              obscureText: widget.obscureText,
+              hint: widget.labelText,
+            );
+          },
+        );
+      } else {
+        inputField = TextFormField(
+          cursorColor: theme.primaryColor,
+          controller: widget.controller,
+          focusNode: widget.focusNode,
+          decoration: _getInputDecoration(theme),
+          keyboardType: widget.keyboardType,
+          textInputAction: widget.textInputAction,
+          obscureText: widget.obscureText,
+          onFieldSubmitted: widget.onFieldSubmitted,
+          onSaved: widget.onSaved,
+          validator: widget.validator,
+          enabled: widget.enabled,
+          autocorrect: widget.autocorrect,
+          autofillHints: widget.autofillHints,
+        );
+      }
     }
 
     if (widget.tooltip != null) {
@@ -460,6 +491,7 @@ class AnimatedPasswordTextFormField extends StatefulWidget {
     this.onSaved,
     this.autofillHints,
     required this.initialIsoCode,
+    this.isAndroidTV = false,
   }) : assert(
           (inertiaController == null && inertiaDirection == null) ||
               (inertiaController != null && inertiaDirection != null),
@@ -481,6 +513,7 @@ class AnimatedPasswordTextFormField extends StatefulWidget {
   final TextFieldInertiaDirection? inertiaDirection;
   final Iterable<String>? autofillHints;
   final String? initialIsoCode;
+  final bool isAndroidTV;
 
   @override
   State<AnimatedPasswordTextFormField> createState() =>
@@ -541,6 +574,7 @@ class _AnimatedPasswordTextFormFieldState
       onSaved: widget.onSaved,
       inertiaDirection: widget.inertiaDirection,
       initialIsoCode: widget.initialIsoCode,
+      isAndroidTV: widget.isAndroidTV,
     );
   }
 }

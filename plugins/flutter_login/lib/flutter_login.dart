@@ -339,6 +339,7 @@ class FlutterLogin extends StatefulWidget {
     this.onSwitchToAdditionalFields,
     this.initialIsoCode,
     this.keyboardDismissBehavior = ScrollViewKeyboardDismissBehavior.manual,
+    this.isAndroidTV = false,
   })  : assert((logo is String?) || (logo is ImageProvider?)),
         logo = logo is String ? AssetImage(logo) : logo as ImageProvider?;
 
@@ -486,6 +487,10 @@ class FlutterLogin extends StatefulWidget {
   final String? initialIsoCode;
 
   final ScrollViewKeyboardDismissBehavior keyboardDismissBehavior;
+
+  /// Whether to use Android TV specific text fields (DpadNativeTextField)
+  /// Default: false
+  final bool isAndroidTV;
 
   static String? defaultEmailValidator(String? value) {
     if (value == null || value.isEmpty || !email.hasMatch(value)) {
@@ -883,6 +888,7 @@ class _FlutterLoginState extends State<FlutterLogin>
                             widget.confirmSignupKeyboardType,
                         introWidget: widget.headerWidget,
                         initialIsoCode: widget.initialIsoCode,
+                        isAndroidTV: widget.isAndroidTV,
                       ),
                     ),
                     Positioned(

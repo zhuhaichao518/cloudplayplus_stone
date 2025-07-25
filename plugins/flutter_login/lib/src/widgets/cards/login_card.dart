@@ -23,6 +23,7 @@ class _LoginCard extends StatefulWidget {
     this.hideProvidersTitle = false,
     this.introWidget,
     required this.initialIsoCode,
+    this.isAndroidTV = false,
   });
 
   final AnimationController loadingController;
@@ -42,6 +43,7 @@ class _LoginCard extends StatefulWidget {
   final Future<bool> Function() requireSignUpConfirmation;
   final Widget? introWidget;
   final String? initialIsoCode;
+  final bool isAndroidTV;
 
   @override
   _LoginCardState createState() => _LoginCardState();
@@ -83,9 +85,15 @@ class _LoginCardState extends State<_LoginCard> with TickerProviderStateMixin {
     super.initState();
 
     final auth = Provider.of<Auth>(context, listen: false);
-    _nameController = TextEditingController(text: auth.email);
-    _passController = TextEditingController(text: auth.password);
-    _confirmPassController = TextEditingController(text: auth.confirmPassword);
+    if (widget.isAndroidTV) {
+      _nameController = NativeTextFieldController(text: auth.email);
+      _passController = NativeTextFieldController(text: auth.password);
+      _confirmPassController = NativeTextFieldController(text: auth.confirmPassword);
+    } else {
+      _nameController = TextEditingController(text: auth.email);
+      _passController = TextEditingController(text: auth.password);
+      _confirmPassController = TextEditingController(text: auth.confirmPassword);
+    }
 
     widget.loadingController.addStatusListener(handleLoadingAnimationStatus);
 
@@ -394,6 +402,7 @@ class _LoginCardState extends State<_LoginCard> with TickerProviderStateMixin {
       onSaved: (value) => auth.email = value!,
       enabled: !_isSubmitting,
       initialIsoCode: widget.initialIsoCode,
+      isAndroidTV: widget.isAndroidTV,
     );
   }
 
@@ -424,6 +433,7 @@ class _LoginCardState extends State<_LoginCard> with TickerProviderStateMixin {
       onSaved: (value) => auth.password = value!,
       enabled: !_isSubmitting,
       initialIsoCode: widget.initialIsoCode,
+      isAndroidTV: widget.isAndroidTV,
     );
   }
 
@@ -453,6 +463,7 @@ class _LoginCardState extends State<_LoginCard> with TickerProviderStateMixin {
           : (value) => null,
       onSaved: (value) => auth.confirmPassword = value!,
       initialIsoCode: widget.initialIsoCode,
+      isAndroidTV: widget.isAndroidTV,
     );
   }
 

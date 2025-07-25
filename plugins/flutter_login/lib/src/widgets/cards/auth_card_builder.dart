@@ -21,6 +21,7 @@ import 'package:flutter_login/src/widgets/expandable_container.dart';
 import 'package:flutter_login/src/widgets/fade_in.dart';
 import 'package:flutter_login/src/widgets/term_of_service_checkbox.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:native_textfield_tv/native_textfield_tv.dart';
 import 'package:provider/provider.dart';
 import 'package:sign_in_button/sign_in_button.dart';
 
@@ -54,6 +55,7 @@ class AuthCard extends StatefulWidget {
     this.introWidget,
     required this.initialIsoCode,
     this.keyboardDismissBehavior = ScrollViewKeyboardDismissBehavior.manual,
+    this.isAndroidTV = false,
   });
 
   final EdgeInsets padding;
@@ -82,6 +84,7 @@ class AuthCard extends StatefulWidget {
   final TextInputType? confirmSignupKeyboardType;
   final Widget? introWidget;
   final String? initialIsoCode;
+  final bool isAndroidTV;
 
   @override
   AuthCardState createState() => AuthCardState();
@@ -382,6 +385,7 @@ class AuthCardState extends State<AuthCard> with TickerProviderStateMixin {
             hideProvidersTitle: widget.hideProvidersTitle,
             introWidget: widget.introWidget,
             initialIsoCode: widget.initialIsoCode,
+            isAndroidTV: widget.isAndroidTV,
           ),
         );
       case _recoveryIndex:

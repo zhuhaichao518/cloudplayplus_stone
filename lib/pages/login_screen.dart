@@ -1,6 +1,7 @@
 import 'package:cloudplayplus/pages/main_page.dart';
 import 'package:cloudplayplus/services/secure_storage_manager.dart';
 import 'package:cloudplayplus/services/shared_preferences_manager.dart';
+import 'package:cloudplayplus/services/app_info_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_login/flutter_login.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -126,6 +127,7 @@ class _LoginScreenState extends State<LoginScreen> {
           }
         },
         onRecoverPassword: _recoverPassword,
+        isAndroidTV: AppPlatform.isAndroidTV,
         additionalSignupFields: [
           const UserFormField(
             keyName: 'username',
