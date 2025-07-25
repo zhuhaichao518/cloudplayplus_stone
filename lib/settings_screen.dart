@@ -9,6 +9,7 @@ import 'package:cloudplayplus/services/websocket_service.dart';
 import 'package:cloudplayplus/utils/widgets/text_field_wrapper.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:native_textfield_tv/native_textfield_tv.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'plugins/flutter_settings_ui/flutter_settings_ui.dart';
@@ -695,9 +696,15 @@ class _NetworkSettingsScreenState extends State<NetworkSettingsScreen> {
   @override
   void initState() {
     super.initState();
-    _addressController = TextEditingController(text: customTurnServerAddress);
-    _usernameController = TextEditingController(text: customTurnServerUsername);
-    _passwordController = TextEditingController(text: customTurnServerPassword);
+    if (AppPlatform.isAndroidTV) {
+      _addressController = NativeTextFieldController(text: customTurnServerAddress);
+      _usernameController = NativeTextFieldController(text: customTurnServerUsername);
+      _passwordController = NativeTextFieldController(text: customTurnServerPassword);
+    } else {
+      _addressController = TextEditingController(text: customTurnServerAddress);
+      _usernameController = TextEditingController(text: customTurnServerUsername);
+      _passwordController = TextEditingController(text: customTurnServerPassword);
+    }
     _loadSettings();
   }
 
@@ -864,14 +871,9 @@ class _NetworkSettingsScreenState extends State<NetworkSettingsScreen> {
                             style: TextStyle(fontWeight: FontWeight.bold),
                           ),
                           AppPlatform.isAndroidTV?
-                          DpadTextField(focusNode: _addressfocusNode, 
-                            child: TextField(
-                              decoration: const InputDecoration(
-                                hintText: '请输入自定义 TURN 服务器地址',
-                              ),
-                              controller: _addressController,
-                              onSubmitted: (_) => _usernamefocusNode.requestFocus(),
-                            ),
+                          DpadNativeTextField(
+                            focusNode: _addressfocusNode, 
+                            controller: _addressController as NativeTextFieldController,
                           ):
                           TextField(
                             decoration: const InputDecoration(
@@ -887,14 +889,9 @@ class _NetworkSettingsScreenState extends State<NetworkSettingsScreen> {
                             style: TextStyle(fontWeight: FontWeight.bold),
                           ),
                           AppPlatform.isAndroidTV?
-                          DpadTextField(focusNode: _usernamefocusNode, 
-                            child:TextField(
-                              decoration: const InputDecoration(
-                                hintText: '请输入自定义用户名',
-                              ),
-                              onSubmitted: (_) => _passwordfocusNode.requestFocus(),
-                              controller: _usernameController,
-                            ),
+                          DpadNativeTextField(
+                            focusNode: _usernamefocusNode, 
+                            controller: _usernameController as NativeTextFieldController,
                           ):
                           TextField(
                             decoration: const InputDecoration(
@@ -910,14 +907,9 @@ class _NetworkSettingsScreenState extends State<NetworkSettingsScreen> {
                             style: TextStyle(fontWeight: FontWeight.bold),
                           ),
                           AppPlatform.isAndroidTV?
-                          DpadTextField(focusNode: _passwordfocusNode, 
-                            child:TextField(
-                              decoration: const InputDecoration(
-                                hintText: '请输入自定义密码',
-                              ),
-                              onSubmitted: (_) => _passwordfocusNode.requestFocus(),
-                              controller: _passwordController,
-                            ),
+                          DpadNativeTextField(
+                            focusNode: _passwordfocusNode, 
+                            controller: _passwordController as NativeTextFieldController,
                           ):
                           TextField(
                             decoration: const InputDecoration(

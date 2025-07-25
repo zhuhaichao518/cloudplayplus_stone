@@ -13,3 +13,6 @@
 [submodule "plugins/flutter-webrtc/dart-webrtc"]
 	path = plugins/flutter-webrtc/dart-webrtc
 	url = https://github.com/zhuhaichao518/dart-webrtc
+[submodule "plugins/native_textfield_tv"]
+	path = plugins/native_textfield_tv
+	url = https://github.com/zhuhaichao518/native_textfield_tv.git

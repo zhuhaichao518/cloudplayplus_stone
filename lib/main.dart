@@ -5,7 +5,6 @@ import 'package:cloudplayplus/services/app_init_service.dart';
 import 'package:cloudplayplus/services/webrtc/webrtc_initializer_platform.dart';
 import 'package:cloudplayplus/utils/system_tray_manager.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:hardware_simulator/hardware_simulator.dart';
 import 'package:provider/provider.dart';
 import 'base/logging.dart';
