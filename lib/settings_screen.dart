@@ -201,6 +201,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               SharedPreferencesManager.clear();
                               SharedPreferencesManager.setBool(
                                   'appintroFinished', true);
+                              if (AppPlatform.isAndroidTV) {
+                                //先退出设置页面
+                                Navigator.pop(context);
+                              }
                               Navigator.pushReplacement(
                                 context,
                                 MaterialPageRoute(
@@ -227,6 +231,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               SharedPreferencesManager.setBool(
                                   'is_logged_in', false);
                               Navigator.pop(context);
+                              if (AppPlatform.isAndroidTV) {
+                                //先退出设置页面
+                                Navigator.pop(context);
+                              }
                               Navigator.pushReplacement(
                                 context,
                                 MaterialPageRoute(
@@ -268,6 +276,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                     SecureStorageManager.clear();
                                   }
                                   SharedPreferencesManager.clear();
+                                  if (AppPlatform.isAndroidTV) {
+                                    //先退出设置页面
+                                    Navigator.pop(context);
+                                  }
                                   Navigator.pushReplacement(
                                     context,
                                     MaterialPageRoute(
