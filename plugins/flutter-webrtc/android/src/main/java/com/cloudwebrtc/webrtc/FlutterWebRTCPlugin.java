@@ -25,6 +25,7 @@ import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding;
 import io.flutter.embedding.engine.plugins.lifecycle.HiddenLifecycleReference;
 import io.flutter.plugin.common.BinaryMessenger;
 import io.flutter.plugin.common.EventChannel;
+import io.flutter.plugin.common.MethodCall;
 import io.flutter.plugin.common.MethodChannel;
 import io.flutter.view.TextureRegistry;
 
@@ -42,6 +43,7 @@ public class FlutterWebRTCPlugin implements FlutterPlugin, ActivityAware, EventC
     private Lifecycle lifecycle;
     private EventChannel eventChannel;
     public EventChannel.EventSink eventSink;
+    private MethodChannel nativeVideoChannel;
 
     public FlutterWebRTCPlugin() {
         sharedSingleton = this;
@@ -114,6 +116,28 @@ public class FlutterWebRTCPlugin implements FlutterPlugin, ActivityAware, EventC
         methodChannel.setMethodCallHandler(methodCallHandler);
         eventChannel = new EventChannel( messenger,"FlutterWebRTC.Event");
         eventChannel.setStreamHandler(this);
+        
+        // 设置原生视频通道
+        nativeVideoChannel = new MethodChannel(messenger, "flutter_webrtc_native_video");
+        nativeVideoChannel.setMethodCallHandler(new MethodChannel.MethodCallHandler() {
+            @Override
+            public void onMethodCall(MethodCall call, MethodChannel.Result result) {
+                switch (call.method) {
+                    case "startNativeVideoActivity":
+                        NativeVideoActivity.startActivity(context);
+                        result.success(null);
+                        break;
+                    case "stopNativeVideoActivity":
+                        NativeVideoActivity.stopActivity();
+                        result.success(null);
+                        break;
+                    default:
+                        result.notImplemented();
+                        break;
+                }
+            }
+        });
+        
         AudioSwitchManager.instance.audioDeviceChangeListener = (devices, currentDevice) -> {
             Log.w(TAG, "audioFocusChangeListener " + devices+ " " + currentDevice);
             ConstraintsMap params = new ConstraintsMap();

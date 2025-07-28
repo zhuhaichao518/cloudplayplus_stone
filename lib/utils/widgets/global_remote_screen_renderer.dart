@@ -5,6 +5,8 @@ import 'package:cloudplayplus/controller/smooth_scroll_controller.dart';
 import 'package:cloudplayplus/global_settings/streaming_settings.dart';
 import 'package:cloudplayplus/services/app_info_service.dart';
 import 'package:cloudplayplus/services/webrtc_service.dart';
+import 'package:flutter_webrtc/flutter_webrtc.dart';
+import 'package:flutter_webrtc/src/native/rtc_native_video_view_impl.dart';
 import 'package:cloudplayplus/utils/widgets/on_screen_gamepad.dart';
 import 'package:cloudplayplus/utils/widgets/on_screen_keyboard.dart';
 import 'package:cloudplayplus/utils/widgets/on_screen_mouse.dart';
@@ -295,6 +297,11 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
     }
     WakelockPlus.enable();
     initcount++;
+    
+    // 设置原生视频渲染器
+    if (AppPlatform.isAndroid && WebrtcService.globalVideoRenderer != null) {
+      RTCNativeVideoView.setVideoRenderer(WebrtcService.globalVideoRenderer!);
+    }
   }
 
   @override
@@ -307,6 +314,26 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
     return ValueListenableBuilder<bool>(
         valueListenable: ScreenController.showDetailUseScrollView,
         builder: (context, usescrollview, child) {
+                          // 添加原生视频渲染按钮（仅在安卓平台显示）
+                if (AppPlatform.isAndroid) {
+                  return ElevatedButton(
+                      onPressed: () async {
+                        if (AppPlatform.isAndroid && WebrtcService.globalVideoRenderer != null) {
+                          RTCNativeVideoView.setVideoRenderer(WebrtcService.globalVideoRenderer!);
+                        }
+                        try {
+                          if (RTCNativeVideoView.isActive) {
+                            await RTCNativeVideoView.stop();
+                          } else {
+                            await RTCNativeVideoView.start();
+                          }
+                        } catch (e) {
+                          VLOG0('Failed to control native video: $e');
+                        }
+                      },
+                      child: Text(RTCNativeVideoView.isActive ? '停止原生渲染' : '启动原生渲染'),
+                    );
+                }
           if (!usescrollview) {
             return Stack(
               children: [
