@@ -20,11 +20,6 @@
               android:name="io.flutter.embedding.android.NormalTheme"
               android:resource="@style/NormalTheme"
               />
-            <!-- For HuaWei Phone, but still crashing
-            <meta-data
-                android:name="io.flutter.embedding.android.EnableImpeller"
-                android:value="false" />
-            -->
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LEANBACK_LAUNCHER" />
@@ -36,6 +31,13 @@
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
+        <!-- 禁用Impeller渲染引擎 -->
+        <!--<meta-data
+            android:name="io.flutter.embedding.android.EnableImpeller"
+            android:value="false" />-->
+        <!--<meta-data
+            android:name="io.flutter.embedding.android.EnableSurfaceControl"
+            android:value="true" /> -->
     </application>
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
     <uses-permission android:name="android.permission.INTERNET" />
