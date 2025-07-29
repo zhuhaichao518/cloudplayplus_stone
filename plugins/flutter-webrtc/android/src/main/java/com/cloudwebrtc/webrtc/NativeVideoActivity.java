@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.FrameLayout;
+import android.widget.TextView;
 
 import org.webrtc.EglBase;
 import org.webrtc.MediaStream;
@@ -16,6 +17,7 @@ public class NativeVideoActivity extends Activity {
     
     private FrameLayout videoContainer;
     private SurfaceViewRenderer videoRenderer;
+    private TextView helloWorldText;
     private EglBase.Context eglBaseContext;
     private VideoTrack currentVideoTrack;
     private static NativeVideoActivity currentInstance;
@@ -52,6 +54,11 @@ public class NativeVideoActivity extends Activity {
         
         setContentView(videoContainer);
         
+        // 添加Hello World文本控件
+        initHelloWorldText();
+        
+        // 暂时注释掉视频渲染相关代码，只测试Activity是否正常工作
+        /*
         // 初始化 EGL 上下文
         initEglContext();
         
@@ -63,6 +70,29 @@ public class NativeVideoActivity extends Activity {
         
         // 尝试设置当前的视频流
         setupCurrentVideoStream();
+        */
+        
+        // 设置当前实例
+        currentInstance = this;
+    }
+    
+    private void initHelloWorldText() {
+        helloWorldText = new TextView(this);
+        helloWorldText.setText("Hello World");
+        helloWorldText.setTextSize(48);
+        helloWorldText.setTextColor(android.graphics.Color.WHITE);
+        helloWorldText.setGravity(android.view.Gravity.CENTER);
+        
+        // 设置布局参数
+        FrameLayout.LayoutParams textParams = new FrameLayout.LayoutParams(
+            FrameLayout.LayoutParams.WRAP_CONTENT,
+            FrameLayout.LayoutParams.WRAP_CONTENT
+        );
+        textParams.gravity = android.view.Gravity.CENTER;
+        helloWorldText.setLayoutParams(textParams);
+        
+        // 将文本控件添加到容器
+        videoContainer.addView(helloWorldText);
     }
     
     private void initEglContext() {
@@ -168,6 +198,8 @@ public class NativeVideoActivity extends Activity {
     protected void onDestroy() {
         super.onDestroy();
         
+        // 暂时注释掉视频渲染器相关的清理代码
+        /*
         // 清理资源
         if (currentVideoTrack != null) {
             currentVideoTrack.removeSink(videoRenderer);
@@ -176,6 +208,7 @@ public class NativeVideoActivity extends Activity {
             videoRenderer.release();
         }
         eglBaseContext = null;
+        */
         currentInstance = null;
     }
     
