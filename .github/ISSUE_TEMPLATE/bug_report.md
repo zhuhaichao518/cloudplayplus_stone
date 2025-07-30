@@ -1,7 +1,7 @@
 ---
 name: Bug report
 about: Create a report to help cloudplayplus improve
-title: "[Bug] Bug Template"
+title: "[Bug][Windows] Bug Template"
 labels: ''
 assignees: ''
 
