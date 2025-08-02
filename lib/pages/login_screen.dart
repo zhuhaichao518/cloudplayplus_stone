@@ -129,6 +129,13 @@ class _LoginScreenState extends State<LoginScreen> {
         onRecoverPassword: _recoverPassword,
         isAndroidTV: AppPlatform.isAndroidTV,
         additionalSignupFields: [
+          if (AppPlatform.isAndroidTV)
+          const UserFormField(
+            keyName: '请使用非TV平台注册账号',
+            displayName: '请使用非TV平台注册账号',
+            userType: LoginUserType.name,
+          ),
+          if (!AppPlatform.isAndroidTV)
           const UserFormField(
             keyName: 'username',
             displayName: '用户名',

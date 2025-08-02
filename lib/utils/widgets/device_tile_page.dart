@@ -11,6 +11,7 @@ import 'package:floating_menu_panel/floating_menu_panel.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hardware_simulator/hardware_simulator.dart';
+import 'package:native_textfield_tv/native_textfield_tv.dart';
 import '../../base/logging.dart';
 import '../../controller/platform_key_map.dart';
 import '../../entities/device.dart';
@@ -32,6 +33,8 @@ class DeviceDetailPage extends StatefulWidget {
 class _DeviceDetailPageState extends State<DeviceDetailPage> {
   late TextEditingController _shareController;
   late TextEditingController _deviceNameController;
+  final FocusNode _connectPasswordFocusNode = FocusNode();
+  late TextEditingController setpasswordController;
 
   /*void updateVideoRenderer(String mediatype, MediaStream stream) {
     setState(() {
@@ -48,15 +51,26 @@ class _DeviceDetailPageState extends State<DeviceDetailPage> {
   @override
   void initState() {
     super.initState();
-    _deviceNameController = TextEditingController();
-    _shareController = TextEditingController();
+    if (!AppPlatform.isAndroidTV) {
+      _passwordController = TextEditingController();
+      _deviceNameController = TextEditingController();
+      _shareController = TextEditingController();
+      setpasswordController = TextEditingController();
+    }else{
+      _passwordController = NativeTextFieldController();
+      _deviceNameController = NativeTextFieldController();
+      _shareController = NativeTextFieldController();
+      setpasswordController = NativeTextFieldController();
+    }
     //StreamingManager.updateRendererCallback(widget.device, updateVideoRenderer);
   }
 
   @override
   void dispose() {
+    _passwordController.dispose();
     _deviceNameController.dispose();
     _shareController.dispose();
+    setpasswordController.dispose();
     super.dispose();
   }
 
@@ -379,6 +393,11 @@ class _DeviceDetailPageState extends State<DeviceDetailPage> {
                             ],
                           ),
                           const SizedBox(height: 12),
+                          AppPlatform.isAndroidTV?
+                          DpadNativeTextField(focusNode: _connectPasswordFocusNode, 
+                             controller: _passwordController as NativeTextFieldController,
+                             obscureText: true)
+                          :
                           TextField(
                             controller: _passwordController,
                             obscureText: true,
@@ -638,7 +657,6 @@ class _DeviceDetailPageState extends State<DeviceDetailPage> {
     );
   }
   */
-  final TextEditingController _passwordController = TextEditingController();
 
   void _restartDevice(BuildContext context) async {
     WebSocketService.send('requestRestart', {
@@ -663,7 +681,7 @@ class _DeviceDetailPageState extends State<DeviceDetailPage> {
     VLOG0('连接设备: ${widget.device.devicename}');
   }
 
-  TextEditingController passwordController = TextEditingController();
+  late TextEditingController _passwordController;
 
   void _unhostDevice(BuildContext context) {
     ApplicationInfo.connectable = false;
@@ -718,8 +736,14 @@ class _DeviceDetailPageState extends State<DeviceDetailPage> {
       builder: (context) {
         return AlertDialog(
           title: Text(txt),
-          content: TextField(
-            controller: passwordController,
+          content: 
+          AppPlatform.isAndroidTV?
+          DpadNativeTextField(focusNode: _connectPasswordFocusNode, 
+                             controller: setpasswordController as NativeTextFieldController,
+                             obscureText: true)
+          :
+          TextField(
+            controller: setpasswordController,
             obscureText: true, // 隐藏输入
             decoration: InputDecoration(
               labelText: '二级密码',
@@ -733,7 +757,7 @@ class _DeviceDetailPageState extends State<DeviceDetailPage> {
             ),
             TextButton(
               onPressed: () =>
-                  Navigator.pop(context, passwordController.text), // 返回密码
+                  Navigator.pop(context, setpasswordController.text), // 返回密码
               child: Text('确认'),
             ),
           ],
