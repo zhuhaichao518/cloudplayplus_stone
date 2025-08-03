@@ -32,9 +32,9 @@
             android:name="flutterEmbedding"
             android:value="2" />
         <!-- 禁用Impeller渲染引擎 -->
-        <!--<meta-data
+        <meta-data
             android:name="io.flutter.embedding.android.EnableImpeller"
-            android:value="false" />-->
+            android:value="false" />
         <!--<meta-data
             android:name="io.flutter.embedding.android.EnableSurfaceControl"
             android:value="true" /> -->

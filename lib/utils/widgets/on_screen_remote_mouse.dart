@@ -12,12 +12,13 @@ class OnScreenRemoteMouseController extends ChangeNotifier {
   double _deltay = 0;
   double aspectRatio = 1.6;
   bool _showCursor = true;
+  bool _hasMoved = false;
 
   Offset get position => _position;
   Uint8List? get cursorBuffer => _cursorBuffer;
   double get deltax => _deltax;
   double get deltay => _deltay;
-  bool get showCursor => _showCursor;
+  bool get showCursor => _showCursor && _hasMoved; // 只有在移动过且showCursor为true时才显示
 
   void setPosition(Offset position) {
     if (_position != position) {
@@ -52,6 +53,11 @@ class OnScreenRemoteMouseController extends ChangeNotifier {
   }
 
   void moveDelta(double dx, double dy) {
+    //第一次移动之前不显示
+    if (!_hasMoved) {
+      _hasMoved = true;
+      notifyListeners();
+    }
     setDelta(dx, dy);
   }
 }
