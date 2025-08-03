@@ -112,7 +112,7 @@ class StreamingSettings {
     useTouchForTouch =
         SharedPreferencesManager.getBool('useTouchForTouch') ?? true;
 
-    cursorScale = SharedPreferencesManager.getDouble('cursorScale') ?? 50.0;
+    cursorScale = SharedPreferencesManager.getDouble('cursorScale') ?? (AppPlatform.isAndroidTV? 100.0:50.0);
 
     if (AppPlatform.isDeskTop) {
       useClipBoard = SharedPreferencesManager.getBool('useClipBoard') ?? true;

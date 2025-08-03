@@ -18,6 +18,21 @@ class MainActivity: FlutterActivity(), GamepadsCompatibleActivity {
         return motionListener?.invoke(motionEvent) ?: super.dispatchGenericMotionEvent(motionEvent)
     }
 
+    /* Does not work for KEYCODE_VOLUME_DOWN on Android TV.
+    override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
+        when (keyCode) {
+            KeyEvent.KEYCODE_VOLUME_DOWN -> {
+                //eventSink?.success(true)
+                return true
+            }
+            KeyEvent.KEYCODE_VOLUME_UP -> {
+                //eventSink?.success(false)
+                return true
+            }
+        }
+        return super.onKeyDown(keyCode, event)
+    }*/
+
     override fun dispatchKeyEvent(keyEvent: KeyEvent): Boolean {
         //return keyListener?.invoke(keyEvent) ?: super.dispatchKeyEvent(keyEvent)
         if (keyListener?.invoke(keyEvent) == true) {

@@ -5,6 +5,7 @@ import 'dart:typed_data';
 import 'package:cloudplayplus/base/logging.dart';
 import 'package:cloudplayplus/controller/gamepad_controller.dart';
 import 'package:cloudplayplus/controller/platform_key_map.dart';
+import 'package:cloudplayplus/controller/smooth_mouse_controller.dart';
 import 'package:cloudplayplus/global_settings/streaming_settings.dart';
 import 'package:cloudplayplus/services/app_info_service.dart';
 import 'package:cloudplayplus/services/webrtc_service.dart';
@@ -12,6 +13,7 @@ import 'package:cloudplayplus/utils/widgets/cursor_change_widget.dart';
 import 'package:cloudplayplus/utils/widgets/on_screen_remote_mouse.dart';
 import 'package:custom_mouse_cursor/custom_mouse_cursor.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'package:hardware_simulator/hardware_simulator.dart';
 import 'package:hardware_simulator/hardware_simulator_platform_interface.dart';
@@ -22,14 +24,21 @@ import 'package:gamepads/gamepads.dart';
 
 typedef CursorUpdatedCallback = void Function(MouseCursor newcursor);
 
+enum TVControllerMode {
+  mouse,
+  keyboard,
+  gamepad,
+}
 class InputController {
   static StreamSubscription<GamepadEvent>? _subscription;
   static late final OnScreenRemoteMouseController mouseController;
+  static SmoothMouseController? _smoothMouseController;
 
   final Map<String, bool> buttonInputs = {};
   static void init() async {
     if (AppPlatform.isMobile) {
       mouseController = OnScreenRemoteMouseController();
+      _smoothMouseController = SmoothMouseController(mouseController);
       HardwareSimulator.addCursorMoved(cursorMovedCallbackMobile);
       HardwareSimulator.addCursorPressed(cursorPressedCallbackMobile);
       HardwareSimulator.addCursorWheel(cursorWheelCallbackMobile);
@@ -48,6 +57,11 @@ class InputController {
     _subscription = Gamepads.events.listen((event) {
       CGamepadController.onEvent(event);
     });
+  }
+
+  static void dispose() {
+    _smoothMouseController?.dispose();
+    _subscription?.cancel();
   }
 
   double lastx = 1;
@@ -509,14 +523,202 @@ class InputController {
         ?.requestMouseScroll(deltax, deltay);
   };
 
+  static TVControllerMode controllerMode = TVControllerMode.mouse;
+  //Android TV Dpad controll mouse speed
+  static double speedx = 0, speedy = 0;
+
   static KeyboardPressedCallback keyboardPressedCallbackAndroid = (keycode, isDown) {
-    if (AppPlatform.isAndroidTV && keycode == 4) {
-      // Android TV go back. quit the streaming context.
-      if (_cursorContext != null) {
-        Navigator.pop(_cursorContext!);
-        _cursorContext = null;
+    if (AppPlatform.isAndroidTV) {
+      if (keycode == 4) {
+        // Android TV go back. quit the streaming context.
+        if (_cursorContext != null) {
+          Navigator.pop(_cursorContext!);
+          _cursorContext = null;
+        }
+        return;
       }
-      return;
+      if (keycode == 1082) {
+        // Android TV Dpad Menu button.
+        if (controllerMode == TVControllerMode.mouse) {
+          // right button
+          WebrtcService.currentRenderingSession?.inputController?.requestMouseClick(3, isDown);
+        } else if (controllerMode == TVControllerMode.keyboard){
+          // Show all apps
+          WebrtcService.currentRenderingSession?.inputController
+              ?.requestKeyEvent(
+                  physicalToWindowsKeyMap[
+                      PhysicalKeyboardKey.metaLeft],
+                  true);
+          WebrtcService.currentRenderingSession?.inputController
+              ?.requestKeyEvent(
+                  physicalToWindowsKeyMap[
+                      PhysicalKeyboardKey.tab],
+                  true);
+          WebrtcService.currentRenderingSession?.inputController
+              ?.requestKeyEvent(
+                  physicalToWindowsKeyMap[
+                      PhysicalKeyboardKey.tab],
+                  false);
+          WebrtcService.currentRenderingSession?.inputController
+              ?.requestKeyEvent(
+                  physicalToWindowsKeyMap[
+                      PhysicalKeyboardKey.metaLeft],
+                  false);
+        }
+        return;
+      }
+      // This current work on Android TV but we can keep this logic.
+      if (keycode == 1024) {
+        // Android TV Volume UP button.
+        //if (controllerMode == TVControllerMode.mouse) {
+          // right button
+        //  WebrtcService.currentRenderingSession?.inputController?.requestMouseClick(2, isDown);
+        //} else if (controllerMode == TVControllerMode.keyboard){
+          // 打开屏幕软键盘
+          // TODO: 改为cloudplayplus自带软键盘
+          WebrtcService.currentRenderingSession?.inputController
+              ?.requestKeyEvent(
+                  physicalToWindowsKeyMap[
+                      PhysicalKeyboardKey.metaLeft],
+                  true);
+          WebrtcService.currentRenderingSession?.inputController
+              ?.requestKeyEvent(
+                  physicalToWindowsKeyMap[
+                      PhysicalKeyboardKey.controlLeft],
+                  true);
+          WebrtcService.currentRenderingSession?.inputController
+              ?.requestKeyEvent(
+                  physicalToWindowsKeyMap[
+                      PhysicalKeyboardKey.keyO],
+                  true);
+          WebrtcService.currentRenderingSession?.inputController
+              ?.requestKeyEvent(
+                  physicalToWindowsKeyMap[
+                      PhysicalKeyboardKey.keyO],
+                  false);
+          WebrtcService.currentRenderingSession?.inputController
+              ?.requestKeyEvent(
+                  physicalToWindowsKeyMap[
+                      PhysicalKeyboardKey.controlLeft],
+                  false);
+          WebrtcService.currentRenderingSession?.inputController
+              ?.requestKeyEvent(
+                  physicalToWindowsKeyMap[
+                      PhysicalKeyboardKey.metaLeft],
+                  false);
+        //}
+        return;
+      }
+      if (keycode == 1025) {
+        // Android TV Volume Down button.
+        if (controllerMode == TVControllerMode.mouse) {
+          // right button
+          controllerMode = TVControllerMode.keyboard;
+          if (_cursorContext != null) {
+            ScaffoldMessenger.of(_cursorContext!).showSnackBar(
+              const SnackBar(
+                content: Text('遥控器已切换到键盘模式'),
+                duration: Duration(seconds: 1),
+              ),
+            );
+          }
+        } else {
+          controllerMode = TVControllerMode.mouse;
+          if (_cursorContext != null) {
+            ScaffoldMessenger.of(_cursorContext!).showSnackBar(
+              const SnackBar(
+                content: Text('遥控器已切换到鼠标模式'),
+                duration: Duration(seconds: 1),
+              ),
+            );
+          }
+        }
+        return;
+      }
+      if (keycode == 1019) {
+        // Android TV Dpad Up button.
+        if (controllerMode == TVControllerMode.mouse) {
+          if (isDown) {
+            _smoothMouseController?.onDirectionKeyDown(keycode);
+          } else {
+            _smoothMouseController?.onDirectionKeyUp(keycode);
+          }
+        } else {
+          WebrtcService.currentRenderingSession?.inputController
+              ?.requestKeyEvent(
+                  physicalToWindowsKeyMap[
+                      PhysicalKeyboardKey.arrowUp],
+                  isDown);
+        }
+        return;
+      }
+      if (keycode == 1020) {
+        // Android TV Dpad Down button.
+        if (controllerMode == TVControllerMode.mouse) {
+          if (isDown) {
+            _smoothMouseController?.onDirectionKeyDown(keycode);
+          } else {
+            _smoothMouseController?.onDirectionKeyUp(keycode);
+          }
+        } else {
+          WebrtcService.currentRenderingSession?.inputController
+              ?.requestKeyEvent(
+                  physicalToWindowsKeyMap[
+                      PhysicalKeyboardKey.arrowDown],
+                  isDown);
+        }
+        return;
+      }
+      if (keycode == 1021) {
+        // Android TV Dpad Left button.
+        if (controllerMode == TVControllerMode.mouse) {
+          if (isDown) {
+            _smoothMouseController?.onDirectionKeyDown(keycode);
+          } else {
+            _smoothMouseController?.onDirectionKeyUp(keycode);
+          }
+        } else {
+          WebrtcService.currentRenderingSession?.inputController
+              ?.requestKeyEvent(
+                  physicalToWindowsKeyMap[
+                      PhysicalKeyboardKey.arrowLeft],
+                  isDown);
+        }
+        return;
+      }
+      if (keycode == 1022) {
+        // Android TV Dpad Right button.
+        if (controllerMode == TVControllerMode.mouse) {
+          if (isDown) {
+            _smoothMouseController?.onDirectionKeyDown(keycode);
+          } else {
+            _smoothMouseController?.onDirectionKeyUp(keycode);
+          }
+        } else {
+          WebrtcService.currentRenderingSession?.inputController
+              ?.requestKeyEvent(
+                  physicalToWindowsKeyMap[
+                      PhysicalKeyboardKey.arrowRight],
+                  isDown);
+        }
+        return;
+      }
+      if (keycode == 1023) {
+        // Android TV Dpad OK button.
+        if (controllerMode == TVControllerMode.mouse) {
+          WebrtcService.currentRenderingSession?.inputController
+              ?.requestMouseClick(
+                  1,
+                  isDown);
+        } else {
+          WebrtcService.currentRenderingSession?.inputController
+              ?.requestKeyEvent(
+                  physicalToWindowsKeyMap[
+                      PhysicalKeyboardKey.enter],
+                  isDown);
+        }
+        return;
+      }
     }
     if (androidToWindowsKeyMap.containsKey(keycode)) {
       WebrtcService.currentRenderingSession?.inputController
