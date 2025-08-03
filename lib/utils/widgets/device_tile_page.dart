@@ -185,7 +185,13 @@ class _DeviceDetailPageState extends State<DeviceDetailPage> {
                         padding: const EdgeInsets.symmetric(
                             horizontal: 20, vertical: 12),
                       ),
-                      child: const Text(
+                      child: 
+                      AppPlatform.isAndroidTV?
+                      const Text(
+                        '连按三下ok切换方向键是否操控鼠标',
+                        style: TextStyle(fontSize: 16, color: Colors.white),
+                      ):
+                      const Text(
                         '展开所有窗口',
                         style: TextStyle(fontSize: 16, color: Colors.white),
                       ),

@@ -526,6 +526,26 @@ class InputController {
   static TVControllerMode controllerMode = TVControllerMode.mouse;
   //Android TV Dpad controll mouse speed
   static double speedx = 0, speedy = 0;
+  
+  // OK键连续点击跟踪
+  static int _okButtonClickCount = 0;
+  static DateTime? _lastOkButtonClick;
+  static const Duration _okButtonTimeout = Duration(milliseconds: 1000); // 1秒内需要完成3次点击
+  
+  // 测试用的getter和setter
+  static int get okButtonClickCount => _okButtonClickCount;
+  static DateTime? get lastOkButtonClick => _lastOkButtonClick;
+  static Duration get okButtonTimeout => _okButtonTimeout;
+  static void resetOkButtonState() {
+    _okButtonClickCount = 0;
+    _lastOkButtonClick = null;
+  }
+  static void setOkButtonClickCount(int count) {
+    _okButtonClickCount = count;
+  }
+  static void setLastOkButtonClick(DateTime? time) {
+    _lastOkButtonClick = time;
+  }
 
   static KeyboardPressedCallback keyboardPressedCallbackAndroid = (keycode, isDown) {
     if (AppPlatform.isAndroidTV) {
@@ -542,7 +562,7 @@ class InputController {
         if (controllerMode == TVControllerMode.mouse) {
           // right button
           WebrtcService.currentRenderingSession?.inputController?.requestMouseClick(3, isDown);
-        } else if (controllerMode == TVControllerMode.keyboard){
+        } else if (controllerMode == TVControllerMode.keyboard && isDown){
           // Show all apps
           WebrtcService.currentRenderingSession?.inputController
               ?.requestKeyEvent(
@@ -705,6 +725,51 @@ class InputController {
       }
       if (keycode == 1023) {
         // Android TV Dpad OK button.
+        if (isDown) {
+          // 处理连续点击逻辑
+          final now = DateTime.now();
+          
+          // 如果距离上次点击超过超时时间，重置计数
+          if (_lastOkButtonClick == null || 
+              now.difference(_lastOkButtonClick!) > _okButtonTimeout) {
+            _okButtonClickCount = 0;
+          }
+          
+          _okButtonClickCount++;
+          _lastOkButtonClick = now;
+          
+          // 如果连续点击了3次，切换模式
+          if (_okButtonClickCount >= 3) {
+            if (controllerMode == TVControllerMode.mouse) {
+              controllerMode = TVControllerMode.keyboard;
+              if (_cursorContext != null) {
+                ScaffoldMessenger.of(_cursorContext!).showSnackBar(
+                  const SnackBar(
+                    content: Text('方向键已切换到键盘模式'),
+                    duration: Duration(seconds: 1),
+                  ),
+                );
+              }
+            } else {
+              controllerMode = TVControllerMode.mouse;
+              if (_cursorContext != null) {
+                ScaffoldMessenger.of(_cursorContext!).showSnackBar(
+                  const SnackBar(
+                    content: Text('方向键已切换到鼠标模式'),
+                    duration: Duration(seconds: 1),
+                  ),
+                );
+              }
+            }
+            
+            // 重置计数
+            _okButtonClickCount = 0;
+            _lastOkButtonClick = null;
+            return;
+          }
+        }
+        
+        // 正常的OK键功能
         if (controllerMode == TVControllerMode.mouse) {
           WebrtcService.currentRenderingSession?.inputController
               ?.requestMouseClick(
