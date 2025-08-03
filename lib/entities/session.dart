@@ -917,14 +917,16 @@ class _AppLifecycleObserver extends WidgetsBindingObserver {
       SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive);
       onResume?.call();
       if (AppPlatform.isAndroid && WebrtcService.currentRenderingSession != null) {
-        HardwareSimulator.lockCursor();
+        HardwareSimulator.unlockCursor().then((state) async {
+          HardwareSimulator.lockCursor();
+        });
       }
-    }
-    // IOS does not allow websocket from background. Reconnect on Resume.
-    if (AppPlatform.isIOS &&
-        WebSocketService.connectionState ==
-            WebSocketConnectionState.disconnected) {
-      WebSocketService.reconnect();
+      // Reconnect WS on Resume.
+      if (AppPlatform.isMobile/* &&
+          WebSocketService.connectionState ==
+              WebSocketConnectionState.disconnected*/) {
+        WebSocketService.reconnect();
+      }
     }
   }
 }
