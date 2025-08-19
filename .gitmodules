@@ -7,9 +7,6 @@
 [submodule "plugins/hardware_simulator"]
 	path = plugins/hardware_simulator
 	url = https://github.com/zhuhaichao518/hardware_simulator
-[submodule "plugins/flutter_sticky_header"]
-	path = plugins/flutter_sticky_header
-	url = https://github.com/zhuhaichao518/flutter_sticky_header
 [submodule "plugins/flutter-webrtc/dart-webrtc"]
 	path = plugins/flutter-webrtc/dart-webrtc
 	url = https://github.com/zhuhaichao518/dart-webrtc

@@ -46,10 +46,7 @@ dependencies:
     path: plugins/virtual.keyboard.dart
   hardware_simulator:
     path: plugins/hardware_simulator
-  flutter_sticky_header:
-    path: plugins/flutter_sticky_header
-  #  git:
-  #    url: https://github.com/zhuhaichao518/flutter_sticky_header.git
+  flutter_sticky_header: ^0.8.0
   fullscreen_window:
     path: plugins/fullscreen_window
   gamepads:
@@ -66,7 +63,7 @@ dependencies:
   cupertino_icons: ^1.0.6
   provider: ^6.1.2
   shared_preferences: ^2.2.3
-  flex_color_scheme: ^7.3.1
+  flex_color_scheme: ^8.3.0
   google_fonts: ^6.2.0
   animated_text_kit: ^4.2.2
   flutter_secure_storage: ^9.2.2
