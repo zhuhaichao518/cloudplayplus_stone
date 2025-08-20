@@ -328,13 +328,13 @@ jobs:
           CODE_SIGNING_ALLOWED: "NO"
           CODE_SIGNING_REQUIRED: "NO"
         run: |
-          flutter build macos
+          flutter build macos --no-codesign
 
       - name: Upload artifact - macOS app
         uses: actions/upload-artifact@v4
         with:
           name: macos-app
-          path: build/macos/Build/Products/Release/Runner.app
+          path: build/macos/Build/Products/Release/CloudPlayPlus.app
 
   ios_build:
     name: iOS - App (no codesign)
