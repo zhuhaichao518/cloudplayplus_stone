@@ -330,7 +330,7 @@ jobs:
           CODE_SIGNING_ALLOWED: "NO"
           CODE_SIGNING_REQUIRED: "NO"
         run: |
-          flutter build macos -allowProvisioningUpdates
+          flutter build macos --allowProvisioningUpdates
 
       - name: Build iOS (no code sign)
         run: |
