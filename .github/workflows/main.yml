@@ -328,7 +328,7 @@ jobs:
           CODE_SIGNING_ALLOWED: "NO"
           CODE_SIGNING_REQUIRED: "NO"
         run: |
-          flutter build macos --no-codesign
+          flutter build macos
 
       - name: Upload artifact - macOS app
         uses: actions/upload-artifact@v4
