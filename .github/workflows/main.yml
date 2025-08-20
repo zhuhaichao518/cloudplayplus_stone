@@ -299,7 +299,7 @@ jobs:
         run: flutter config --enable-macos-desktop
 
       - name: Accept Xcode license
-        run: sudo xcodebuild -license accept
+        run: sudo xcodebuild -license accept -allowProvisioningUpdates
 
       - name: Cache Pub
         uses: actions/cache@v4
