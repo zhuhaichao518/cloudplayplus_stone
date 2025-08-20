@@ -271,8 +271,8 @@ jobs:
           name: windows-bundle
           path: build/windows/x64/runner/Release
 
-  macos_builds:
-    name: macOS - Desktop/iOS
+  macos_build:
+    name: macOS - Desktop
     runs-on: macos-latest
     env:
       CODE_SIGNING_ALLOWED: "NO"
@@ -295,10 +295,8 @@ jobs:
           flutter --version
           flutter doctor -v
 
-      - name: Enable targets
-        run: |
-          flutter config --enable-macos-desktop
-          flutter config --enable-ios
+      - name: Enable macOS desktop
+        run: flutter config --enable-macos-desktop
 
       - name: Accept Xcode license
         run: sudo xcodebuild -license accept
@@ -330,17 +328,66 @@ jobs:
           CODE_SIGNING_ALLOWED: "NO"
           CODE_SIGNING_REQUIRED: "NO"
         run: |
-          flutter build macos --allowProvisioningUpdates
-
-      - name: Build iOS (no code sign)
-        run: |
-          flutter build ios --no-codesign
+          flutter build macos
 
       - name: Upload artifact - macOS app
         uses: actions/upload-artifact@v4
         with:
           name: macos-app
           path: build/macos/Build/Products/Release/Runner.app
+
+  ios_build:
+    name: iOS - App (no codesign)
+    runs-on: macos-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: 'stable'
+          cache: true
+
+      - name: Flutter info
+        run: |
+          flutter --version
+          flutter doctor -v
+
+      - name: Enable iOS
+        run: flutter config --enable-ios
+
+      - name: Accept Xcode license
+        run: sudo xcodebuild -license accept
+
+      - name: Cache Pub
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.PUB_CACHE }}
+          key: pub-${{ runner.os }}-${{ env.FLUTTER_VERSION }}-${{ hashFiles('pubspec.lock') }}
+          restore-keys: |
+            pub-${{ runner.os }}-${{ env.FLUTTER_VERSION }}-
+            pub-${{ runner.os }}-
+
+      - name: Get dependencies (root + plugins)
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "Resolving root dependencies..."
+          flutter pub get
+          echo "Resolving plugin dependencies..."
+          while IFS= read -r -d '' pubspec; do
+            plugin_dir=$(dirname "$pubspec")
+            echo "  -> $plugin_dir"
+            (cd "$plugin_dir" && flutter pub get)
+          done < <(find "plugins" -maxdepth 2 -name pubspec.yaml -print0 || true)
+
+      - name: Build iOS (no code sign)
+        run: |
+          flutter build ios --no-codesign
 
       - name: Upload artifact - iOS app (unsigned .app)
         uses: actions/upload-artifact@v4
