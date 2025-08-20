@@ -273,7 +273,7 @@ jobs:
 
   macos_build:
     name: macOS - Desktop
-    runs-on: macos-latest
+    runs-on: macos-14
     env:
       CODE_SIGNING_ALLOWED: "NO"
       CODE_SIGNING_REQUIRED: "NO"
@@ -338,7 +338,7 @@ jobs:
 
   ios_build:
     name: iOS - App
-    runs-on: macos-latest
+    runs-on: macos-14
     steps:
       - name: Checkout
         uses: actions/checkout@v4
