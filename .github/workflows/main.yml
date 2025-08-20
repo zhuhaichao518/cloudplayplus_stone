@@ -337,7 +337,7 @@ jobs:
           path: build/macos/Build/Products/Release/CloudPlayPlus.app
 
   ios_build:
-    name: iOS - App (no codesign)
+    name: iOS - App
     runs-on: macos-latest
     steps:
       - name: Checkout
