@@ -1,0 +1,397 @@
+name: CI Flutter Multi-Platform Build
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+  workflow_dispatch:
+
+env:
+  FLUTTER_VERSION: 3.35.1
+  FLUTTER_STORAGE_BASE_URL: https://storage.flutter-io.cn
+  PUB_HOSTED_URL: https://pub.flutter-io.cn
+  PUB_CACHE: ${{ github.workspace }}/.pub-cache
+
+jobs:
+  linux_build:
+    name: Linux - Desktop
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install system dependencies (Linux desktop)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            clang \
+            cmake \
+            ninja-build \
+            pkg-config \
+            libgtk-3-dev \
+            liblzma-dev \
+            libsecret-1-dev \
+            libayatana-appindicator3-dev
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: 'stable'
+          cache: true
+
+      - name: Flutter info
+        run: |
+          flutter --version
+          flutter doctor -v
+
+      - name: Enable Linux desktop
+        run: flutter config --enable-linux-desktop
+
+      - name: Cache Pub
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.PUB_CACHE }}
+          key: pub-${{ runner.os }}-${{ env.FLUTTER_VERSION }}-${{ hashFiles('pubspec.lock') }}
+          restore-keys: |
+            pub-${{ runner.os }}-${{ env.FLUTTER_VERSION }}-
+            pub-${{ runner.os }}-
+
+      - name: Get dependencies (root + plugins)
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "Resolving root dependencies..."
+          flutter pub get
+          echo "Resolving plugin dependencies..."
+          while IFS= read -r -d '' pubspec; do
+            plugin_dir=$(dirname "$pubspec")
+            echo "  -> $plugin_dir"
+            (cd "$plugin_dir" && flutter pub get)
+          done < <(find "plugins" -maxdepth 2 -name pubspec.yaml -print0 || true)
+
+      - name: Build Linux desktop
+        run: flutter build linux
+
+      - name: Upload artifact - Linux bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-bundle
+          path: build/linux/x64/release/bundle
+
+  web_build:
+    name: Web
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: 'stable'
+          cache: true
+
+      - name: Flutter info
+        run: |
+          flutter --version
+          flutter doctor -v
+
+      - name: Enable Web
+        run: flutter config --enable-web
+
+      - name: Cache Pub
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.PUB_CACHE }}
+          key: pub-${{ runner.os }}-${{ env.FLUTTER_VERSION }}-${{ hashFiles('pubspec.lock') }}
+          restore-keys: |
+            pub-${{ runner.os }}-${{ env.FLUTTER_VERSION }}-
+            pub-${{ runner.os }}-
+
+      - name: Get dependencies (root + plugins)
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "Resolving root dependencies..."
+          flutter pub get
+          echo "Resolving plugin dependencies..."
+          while IFS= read -r -d '' pubspec; do
+            plugin_dir=$(dirname "$pubspec")
+            echo "  -> $plugin_dir"
+            (cd "$plugin_dir" && flutter pub get)
+          done < <(find "plugins" -maxdepth 2 -name pubspec.yaml -print0 || true)
+
+      - name: Build Web (CanvasKit)
+        run: |
+          flutter build web --release
+
+      - name: Upload artifact - Web
+        uses: actions/upload-artifact@v4
+        with:
+          name: web-build
+          path: build/web
+
+  android_build:
+    name: Android - APK
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Setup Java (Android)
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: 'stable'
+          cache: true
+
+      - name: Flutter info
+        run: |
+          flutter --version
+          flutter doctor -v
+
+      - name: Enable Android
+        run: flutter config --enable-android
+
+      - name: Cache Pub
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.PUB_CACHE }}
+          key: pub-${{ runner.os }}-${{ env.FLUTTER_VERSION }}-${{ hashFiles('pubspec.lock') }}
+          restore-keys: |
+            pub-${{ runner.os }}-${{ env.FLUTTER_VERSION }}-
+            pub-${{ runner.os }}-
+
+      - name: Get dependencies (root + plugins)
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "Resolving root dependencies..."
+          flutter pub get
+          echo "Resolving plugin dependencies..."
+          while IFS= read -r -d '' pubspec; do
+            plugin_dir=$(dirname "$pubspec")
+            echo "  -> $plugin_dir"
+            (cd "$plugin_dir" && flutter pub get)
+          done < <(find "plugins" -maxdepth 2 -name pubspec.yaml -print0 || true)
+
+      - name: Accept Android SDK licenses (best-effort)
+        run: |
+          set -e
+          if [ -n "${ANDROID_SDK_ROOT:-}" ] && [ -x "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" ]; then
+            yes | "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" --licenses || true
+          elif [ -n "${ANDROID_HOME:-}" ] && [ -x "$ANDROID_HOME/tools/bin/sdkmanager" ]; then
+            yes | "$ANDROID_HOME/tools/bin/sdkmanager" --licenses || true
+          else
+            echo "sdkmanager not found; skipping license acceptance"
+          fi
+
+      - name: Build Android APK (skip dependency validation)
+        run: |
+          flutter build apk --release --android-skip-build-dependency-validation
+
+      - name: Upload artifact - Android APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-apk
+          path: build/app/outputs/flutter-apk/app-release.apk
+
+  windows_build:
+    name: Windows - Desktop
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install Ninja (required by CMake)
+        run: choco install ninja -y
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: 'stable'
+          cache: true
+
+      - name: Flutter info
+        shell: bash
+        run: |
+          flutter --version
+          flutter doctor -v
+
+      - name: Enable Windows desktop
+        shell: bash
+        run: flutter config --enable-windows-desktop
+
+      - name: Cache Pub
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.PUB_CACHE }}
+          key: pub-${{ runner.os }}-${{ env.FLUTTER_VERSION }}-${{ hashFiles('pubspec.lock') }}
+          restore-keys: |
+            pub-${{ runner.os }}-${{ env.FLUTTER_VERSION }}-
+            pub-${{ runner.os }}-
+
+      - name: Get dependencies (root + plugins)
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "Resolving root dependencies..."
+          flutter pub get
+          echo "Resolving plugin dependencies..."
+          while IFS= read -r -d '' pubspec; do
+            plugin_dir=$(dirname "$pubspec")
+            echo "  -> $plugin_dir"
+            (cd "$plugin_dir" && flutter pub get)
+          done < <(find "plugins" -maxdepth 2 -name pubspec.yaml -print0 || true)
+
+      - name: Build Windows desktop
+        shell: bash
+        run: flutter build windows
+
+      - name: Upload artifact - Windows bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-bundle
+          path: build/windows/x64/runner/Release
+
+  macos_build:
+    name: macOS - Desktop
+    runs-on: macos-latest
+    env:
+      CODE_SIGNING_ALLOWED: "NO"
+      CODE_SIGNING_REQUIRED: "NO"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: 'stable'
+          cache: true
+
+      - name: Flutter info
+        run: |
+          flutter --version
+          flutter doctor -v
+
+      - name: Enable macOS desktop
+        run: flutter config --enable-macos-desktop
+
+      - name: Accept Xcode license
+        run: sudo xcodebuild -license accept -allowProvisioningUpdates
+
+      - name: Cache Pub
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.PUB_CACHE }}
+          key: pub-${{ runner.os }}-${{ env.FLUTTER_VERSION }}-${{ hashFiles('pubspec.lock') }}
+          restore-keys: |
+            pub-${{ runner.os }}-${{ env.FLUTTER_VERSION }}-
+            pub-${{ runner.os }}-
+
+      - name: Get dependencies (root + plugins)
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "Resolving root dependencies..."
+          flutter pub get
+          echo "Resolving plugin dependencies..."
+          while IFS= read -r -d '' pubspec; do
+            plugin_dir=$(dirname "$pubspec")
+            echo "  -> $plugin_dir"
+            (cd "$plugin_dir" && flutter pub get)
+          done < <(find "plugins" -maxdepth 2 -name pubspec.yaml -print0 || true)
+
+      - name: Build macOS desktop (no code sign)
+        env:
+          CODE_SIGNING_ALLOWED: "NO"
+          CODE_SIGNING_REQUIRED: "NO"
+        run: |
+          flutter build macos
+
+      - name: Upload artifact - macOS app
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-app
+          path: build/macos/Build/Products/Release/CloudPlayPlus.app
+
+  ios_build:
+    name: iOS - App
+    runs-on: macos-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: 'stable'
+          cache: true
+
+      - name: Flutter info
+        run: |
+          flutter --version
+          flutter doctor -v
+
+      - name: Enable iOS
+        run: flutter config --enable-ios
+
+      - name: Accept Xcode license
+        run: sudo xcodebuild -license accept
+
+      - name: Cache Pub
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.PUB_CACHE }}
+          key: pub-${{ runner.os }}-${{ env.FLUTTER_VERSION }}-${{ hashFiles('pubspec.lock') }}
+          restore-keys: |
+            pub-${{ runner.os }}-${{ env.FLUTTER_VERSION }}-
+            pub-${{ runner.os }}-
+
+      - name: Get dependencies (root + plugins)
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "Resolving root dependencies..."
+          flutter pub get
+          echo "Resolving plugin dependencies..."
+          while IFS= read -r -d '' pubspec; do
+            plugin_dir=$(dirname "$pubspec")
+            echo "  -> $plugin_dir"
+            (cd "$plugin_dir" && flutter pub get)
+          done < <(find "plugins" -maxdepth 2 -name pubspec.yaml -print0 || true)
+
+      - name: Build iOS (no code sign)
+        run: |
+          flutter build ios --no-codesign
+
+      - name: Upload artifact - iOS app (unsigned .app)
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-app
+          path: build/ios/iphoneos/Runner.app
+
