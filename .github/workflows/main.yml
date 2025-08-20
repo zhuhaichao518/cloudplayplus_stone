@@ -1,0 +1,236 @@
+name: CI Flutter Multi-Platform Build
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+  workflow_dispatch:
+
+env:
+  FLUTTER_VERSION: 3.35.1
+  FLUTTER_STORAGE_BASE_URL: https://storage.flutter-io.cn
+  PUB_HOSTED_URL: https://pub.flutter-io.cn
+  PUB_CACHE: ${{ github.workspace }}/.pub-cache
+
+jobs:
+  ubuntu_builds:
+    name: Ubuntu - Linux/Web/Android
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install system dependencies (Linux desktop)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            clang \
+            cmake \
+            ninja-build \
+            pkg-config \
+            libgtk-3-dev \
+            liblzma-dev \
+            libsecret-1-dev
+
+      - name: Setup Java (Android)
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: 'stable'
+          cache: true
+
+      - name: Flutter info
+        run: |
+          flutter --version
+          flutter doctor -v
+
+      - name: Enable targets
+        run: |
+          flutter config --enable-linux-desktop
+          flutter config --enable-web
+          flutter config --enable-android
+
+      - name: Cache Pub
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.PUB_CACHE }}
+          key: pub-${{ runner.os }}-${{ env.FLUTTER_VERSION }}-${{ hashFiles('pubspec.lock') }}
+          restore-keys: |
+            pub-${{ runner.os }}-${{ env.FLUTTER_VERSION }}-
+            pub-${{ runner.os }}-
+
+      - name: Bootstrap dependencies (root + plugins)
+        shell: bash
+        run: |
+          bash scripts/build.sh bootstrap
+
+      - name: Build Linux desktop
+        run: |
+          flutter build linux
+
+      - name: Build Web (CanvasKit)
+        run: |
+          bash scripts/build.sh build-web
+
+      - name: Accept Android SDK licenses (best-effort)
+        run: |
+          set -e
+          if [ -n "${ANDROID_SDK_ROOT:-}" ] && [ -x "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" ]; then
+            yes | "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" --licenses || true
+          elif [ -n "${ANDROID_HOME:-}" ] && [ -x "$ANDROID_HOME/tools/bin/sdkmanager" ]; then
+            yes | "$ANDROID_HOME/tools/bin/sdkmanager" --licenses || true
+          else
+            echo "sdkmanager not found; skipping license acceptance"
+          fi
+
+      - name: Build Android APK (skip dependency validation)
+        run: |
+          flutter build apk --release --android-skip-build-dependency-validation
+
+      - name: Upload artifact - Linux bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-bundle
+          path: build/linux/x64/release/bundle
+
+      - name: Upload artifact - Web
+        uses: actions/upload-artifact@v4
+        with:
+          name: web-build
+          path: build/web
+
+      - name: Upload artifact - Android APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-apk
+          path: build/app/outputs/flutter-apk/app-release.apk
+
+  windows_build:
+    name: Windows - Desktop
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install Ninja (required by CMake)
+        run: choco install ninja -y
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: 'stable'
+          cache: true
+
+      - name: Flutter info
+        shell: bash
+        run: |
+          flutter --version
+          flutter doctor -v
+
+      - name: Enable Windows desktop
+        shell: bash
+        run: flutter config --enable-windows-desktop
+
+      - name: Cache Pub
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.PUB_CACHE }}
+          key: pub-${{ runner.os }}-${{ env.FLUTTER_VERSION }}-${{ hashFiles('pubspec.lock') }}
+          restore-keys: |
+            pub-${{ runner.os }}-${{ env.FLUTTER_VERSION }}-
+            pub-${{ runner.os }}-
+
+      - name: Bootstrap dependencies (root + plugins)
+        shell: bash
+        run: |
+          bash scripts/build.sh bootstrap
+
+      - name: Build Windows desktop
+        shell: bash
+        run: flutter build windows
+
+      - name: Upload artifact - Windows bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-bundle
+          path: build/windows/x64/runner/Release
+
+  macos_builds:
+    name: macOS - Desktop/iOS
+    runs-on: macos-latest
+    env:
+      CODE_SIGNING_ALLOWED: "NO"
+      CODE_SIGNING_REQUIRED: "NO"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: 'stable'
+          cache: true
+
+      - name: Flutter info
+        run: |
+          flutter --version
+          flutter doctor -v
+
+      - name: Enable targets
+        run: |
+          flutter config --enable-macos-desktop
+          flutter config --enable-ios
+
+      - name: Accept Xcode license
+        run: sudo xcodebuild -license accept
+
+      - name: Cache Pub
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.PUB_CACHE }}
+          key: pub-${{ runner.os }}-${{ env.FLUTTER_VERSION }}-${{ hashFiles('pubspec.lock') }}
+          restore-keys: |
+            pub-${{ runner.os }}-${{ env.FLUTTER_VERSION }}-
+            pub-${{ runner.os }}-
+
+      - name: Bootstrap dependencies (root + plugins)
+        run: |
+          bash scripts/build.sh bootstrap
+
+      - name: Build macOS desktop (no code sign)
+        env:
+          CODE_SIGNING_ALLOWED: "NO"
+          CODE_SIGNING_REQUIRED: "NO"
+        run: |
+          flutter build macos
+
+      - name: Build iOS (no code sign)
+        run: |
+          flutter build ios --no-codesign
+
+      - name: Upload artifact - macOS app
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-app
+          path: build/macos/Build/Products/Release/Runner.app
+
+      - name: Upload artifact - iOS app (unsigned .app)
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-app
+          path: build/ios/iphoneos/Runner.app
+
