@@ -330,11 +330,11 @@ jobs:
           CODE_SIGNING_ALLOWED: "NO"
           CODE_SIGNING_REQUIRED: "NO"
         run: |
-          flutter build macos --no-codesign -allowProvisioningUpdates
+          flutter build macos -allowProvisioningUpdates
 
       - name: Build iOS (no code sign)
         run: |
-          flutter build ios --no-codesign -allowProvisioningUpdates
+          flutter build ios --no-codesign
 
       - name: Upload artifact - macOS app
         uses: actions/upload-artifact@v4
