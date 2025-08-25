@@ -13,6 +13,7 @@
 #include <flutter_window_close/flutter_window_close_plugin.h>
 #include <gamepads_linux/gamepads_linux_plugin.h>
 #include <hardware_simulator/hardware_simulator_plugin.h>
+#include <pointer_lock/pointer_lock_plugin.h>
 #include <screen_retriever/screen_retriever_plugin.h>
 #include <system_tray/system_tray_plugin.h>
 #include <url_launcher_linux/url_launcher_plugin.h>
@@ -40,6 +41,9 @@ void fl_register_plugins(FlPluginRegistry* registry) {
   g_autoptr(FlPluginRegistrar) hardware_simulator_registrar =
       fl_plugin_registry_get_registrar_for_plugin(registry, "HardwareSimulatorPlugin");
   hardware_simulator_plugin_register_with_registrar(hardware_simulator_registrar);
+  g_autoptr(FlPluginRegistrar) pointer_lock_registrar =
+      fl_plugin_registry_get_registrar_for_plugin(registry, "PointerLockPlugin");
+  pointer_lock_plugin_register_with_registrar(pointer_lock_registrar);
   g_autoptr(FlPluginRegistrar) screen_retriever_registrar =
       fl_plugin_registry_get_registrar_for_plugin(registry, "ScreenRetrieverPlugin");
   screen_retriever_plugin_register_with_registrar(screen_retriever_registrar);

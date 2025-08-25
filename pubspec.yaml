@@ -104,6 +104,11 @@ dependencies:
 dependency_overrides:
   flutter_secure_storage_web: ^2.0.0
   flutter_secure_storage_platform_interface: ^2.0.1
+  libphonenumber_web:
+    git:
+      url: https://github.com/zhuhaichao518/plugin_libphonenumber.git
+      ref: migrate_to_next_gen_js_interop
+      path: libphonenumber_web
 
 dev_dependencies:
   flutter_test:

@@ -9,6 +9,7 @@ list(APPEND FLUTTER_PLUGIN_LIST
   flutter_window_close
   fullscreen_window
   hardware_simulator
+  pointer_lock
   screen_retriever
   system_tray
   url_launcher_windows

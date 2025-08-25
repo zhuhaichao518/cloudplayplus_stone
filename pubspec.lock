@@ -650,12 +650,13 @@ packages:
     source: hosted
     version: "0.3.3"
   libphonenumber_web:
-    dependency: transitive
+    dependency: "direct overridden"
     description:
-      name: libphonenumber_web
-      sha256: "8186f420dbe97c3132283e52819daff1e55d60d6db46f7ea5ac42f42a28cc2ef"
-      url: "https://pub.dev"
-    source: hosted
+      path: libphonenumber_web
+      ref: migrate_to_next_gen_js_interop
+      resolved-ref: "9411948ce912dab38dab07f3df8140b7cafc683a"
+      url: "https://github.com/zhuhaichao518/plugin_libphonenumber.git"
+    source: git
     version: "0.3.2"
   lints:
     dependency: transitive
@@ -824,6 +825,15 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.1.8"
+  pointer_lock:
+    dependency: transitive
+    description:
+      path: "."
+      ref: main
+      resolved-ref: "11322c22059af6898412c171b093ee75a9716d89"
+      url: "https://github.com/zhuhaichao518/pointer_lock.git"
+    source: git
+    version: "0.0.2"
   posix:
     dependency: transitive
     description:
