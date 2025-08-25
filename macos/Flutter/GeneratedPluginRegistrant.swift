@@ -15,6 +15,7 @@ import gamepads_darwin
 import hardware_simulator
 import package_info_plus
 import path_provider_foundation
+import pointer_lock
 import screen_retriever
 import shared_preferences_foundation
 import system_tray
@@ -33,6 +34,7 @@ func RegisterGeneratedPlugins(registry: FlutterPluginRegistry) {
   HardwareSimulatorPlugin.register(with: registry.registrar(forPlugin: "HardwareSimulatorPlugin"))
   FPPPackageInfoPlusPlugin.register(with: registry.registrar(forPlugin: "FPPPackageInfoPlusPlugin"))
   PathProviderPlugin.register(with: registry.registrar(forPlugin: "PathProviderPlugin"))
+  PointerLockPlugin.register(with: registry.registrar(forPlugin: "PointerLockPlugin"))
   ScreenRetrieverPlugin.register(with: registry.registrar(forPlugin: "ScreenRetrieverPlugin"))
   SharedPreferencesPlugin.register(with: registry.registrar(forPlugin: "SharedPreferencesPlugin"))
   SystemTrayPlugin.register(with: registry.registrar(forPlugin: "SystemTrayPlugin"))

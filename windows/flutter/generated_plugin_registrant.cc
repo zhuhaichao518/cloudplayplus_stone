@@ -12,6 +12,7 @@
 #include <flutter_window_close/flutter_window_close_plugin.h>
 #include <fullscreen_window/fullscreen_window_plugin_c_api.h>
 #include <hardware_simulator/hardware_simulator_plugin_c_api.h>
+#include <pointer_lock/pointer_lock_plugin_c_api.h>
 #include <screen_retriever/screen_retriever_plugin.h>
 #include <system_tray/system_tray_plugin.h>
 #include <url_launcher_windows/url_launcher_windows.h>
@@ -30,6 +31,8 @@ void RegisterPlugins(flutter::PluginRegistry* registry) {
       registry->GetRegistrarForPlugin("FullscreenWindowPluginCApi"));
   HardwareSimulatorPluginCApiRegisterWithRegistrar(
       registry->GetRegistrarForPlugin("HardwareSimulatorPluginCApi"));
+  PointerLockPluginCApiRegisterWithRegistrar(
+      registry->GetRegistrarForPlugin("PointerLockPluginCApi"));
   ScreenRetrieverPluginRegisterWithRegistrar(
       registry->GetRegistrarForPlugin("ScreenRetrieverPlugin"));
   SystemTrayPluginRegisterWithRegistrar(
