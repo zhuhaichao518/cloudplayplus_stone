@@ -80,4 +80,12 @@ class SmoothScrollController {
     _ticker?.dispose();
     _ticker = null;
   }
+
+  /// 清理资源，防止内存泄漏
+  void dispose() {
+    _stopFling(); // 停止并清理 Ticker
+    onScroll = null; // 清理回调引用
+    _simulationX = null; // 清理模拟对象
+    _simulationY = null;
+  }
 }

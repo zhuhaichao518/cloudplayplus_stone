@@ -279,11 +279,15 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
 
   static int initcount = 0;
 
+  void _handleKeyBlocked(int keyCode, bool isDown) {
+    WebrtcService.currentRenderingSession?.inputController
+        ?.requestKeyEvent(keyCode, isDown);
+  }
+
   @override
   void initState() {
     super.initState();
     _scrollController.onScroll = (dx, dy) {
-      // 发送事件到远程桌面
       if (dx.abs() > 0 || dy.abs() > 0) {
         WebrtcService.currentRenderingSession?.inputController
             ?.requestMouseScroll(dx * 10, dy * 10);
@@ -294,6 +298,16 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
        HardwareSimulator.lockCursor();
     }
     WakelockPlus.enable();
+    if (AppPlatform.isWindows) {
+      HardwareSimulator.addKeyBlocked(_handleKeyBlocked);
+      focusNode.addListener(() {
+        if (focusNode.hasFocus) {
+          HardwareSimulator.putImmersiveModeEnabled(true);
+        } else {
+          HardwareSimulator.putImmersiveModeEnabled(false);
+        }
+      });
+    }
     initcount++;
   }
 
@@ -697,6 +711,12 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
 
   @override
   void dispose() {
+    focusNode.dispose();
+    if (AppPlatform.isWindows) {
+      HardwareSimulator.putImmersiveModeEnabled(false);
+      HardwareSimulator.removeKeyBlocked(_handleKeyBlocked);
+    }
+    _scrollController.dispose(); // 清理滚动控制器资源
     aspectRatioNotifier.dispose(); // 销毁时清理 ValueNotifier
     ControlManager().removeEventListener(_handleControlEvent);
 
