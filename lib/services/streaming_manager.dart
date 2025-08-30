@@ -41,6 +41,7 @@ class StreamingManager {
   }
 */
   static void stopStreaming(Device target) {
+    VLOG0("stopStreaming: $target.websocketSessionid");
     if (sessions.containsKey(target.websocketSessionid)) {
       StreamingSession? session = sessions[target.websocketSessionid];
       session?.stop();
