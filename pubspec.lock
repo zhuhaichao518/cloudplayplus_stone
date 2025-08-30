@@ -829,10 +829,10 @@ packages:
     description:
       path: "."
       ref: main
-      resolved-ref: "11322c22059af6898412c171b093ee75a9716d89"
+      resolved-ref: f85486f92ef5a96d077d6423f85e11f2b1ae559f
       url: "https://github.com/zhuhaichao518/pointer_lock.git"
     source: git
-    version: "0.0.2"
+    version: "0.0.3"
   posix:
     dependency: transitive
     description:

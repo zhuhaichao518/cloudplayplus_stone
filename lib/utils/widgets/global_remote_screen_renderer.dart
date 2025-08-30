@@ -311,10 +311,31 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
     initcount++;
   }
 
+  void onHardwareCursorPositionUpdateRequested(double x, double y) {
+    if (renderBox == null || parentBox == null) return;
+    //print("onHardwareCursorPositionUpdateRequested: renderBox(${x.toStringAsFixed(3)}, ${y.toStringAsFixed(3)})");
+    try {
+      final screenSize = MediaQuery.of(context).size;
+
+      final Offset globalPosition = renderBox!.localToGlobal(Offset(renderBox!.size.width * x, renderBox!.size.height * y));
+      final double targetXInWindow = (globalPosition.dx / screenSize.width).clamp(0.0, 1.0);
+      final double targetYInWindow = (globalPosition.dy / screenSize.height).clamp(0.0, 1.0);
+
+      HardwareSimulator.mouse.performMouseMoveToWindowPosition(targetXInWindow, targetYInWindow);
+      
+      VLOG0("Hardware cursor position updated: renderBox(${x.toStringAsFixed(3)}, ${y.toStringAsFixed(3)}) -> window(${targetXInWindow.toStringAsFixed(3)}, ${targetYInWindow.toStringAsFixed(3)})");
+    } catch (e) {
+      VLOG0("Error updating hardware cursor position: $e");
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     // set the default focus to remote desktop.
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (AppPlatform.isWindows) {
+        InputController.cursorPositionCallback = onHardwareCursorPositionUpdateRequested;
+      }
       focusNode.requestFocus();
     });
     /*WebrtcService.audioStateChanged = onAudioRenderStateChanged;*/
@@ -715,6 +736,7 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
     if (AppPlatform.isWindows) {
       HardwareSimulator.putImmersiveModeEnabled(false);
       HardwareSimulator.removeKeyBlocked(_handleKeyBlocked);
+      InputController.cursorPositionCallback = null;
     }
     _scrollController.dispose(); // 清理滚动控制器资源
     aspectRatioNotifier.dispose(); // 销毁时清理 ValueNotifier
