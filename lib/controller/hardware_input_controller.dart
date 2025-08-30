@@ -92,7 +92,12 @@ class InputController {
   static RTCDataChannelMessage emptyMessage =
       RTCDataChannelMessage.fromBinary(Uint8List.fromList([LP_EMPTY]));
 
+  static bool blockCursorMove = false;
+
   void requestMoveMouseAbsl(double x, double y, int tempScreenId) async {
+    if (blockCursorMove) {
+      return;
+    }
     // Cursor moved out of scope when tempScreenId = -1
     // print("${x} ${y}");
     if (tempScreenId == -1) {
@@ -179,6 +184,9 @@ class InputController {
 
   // maybe we don't need screenId?
   void requestMoveMouseRelative(double x, double y, int screenId) async {
+    if (blockCursorMove) {
+      return;
+    }
     // 创建一个ByteData足够存储 LP_MOUSE, screenId, dx, dy
     ByteData byteData = ByteData(10);
     byteData.setUint8(0, LP_MOUSEMOVE_RELATIVE);
@@ -474,12 +482,6 @@ class InputController {
     if (isCursorLocked) {
       WebrtcService.currentRenderingSession?.inputController
           ?.requestMoveMouseRelative(deltax, deltay, 0);
-      if (sendEmptyPacket) {
-        for (int i = 0; i < resendCount / 2; i++) {
-          WebrtcService.currentRenderingSession?.inputController?.channel
-              .send(emptyMessage);
-        }
-      }
     }
   };
 
@@ -792,6 +794,9 @@ class InputController {
   };
 
   static bool isCursorLocked = false;
+  static int cursorVisibleCount = 0;
+
+  static Function(double xPercent, double yPercent)? cursorPositionCallback;
 
   void handleCursorUpdate(RTCDataChannelMessage msg) async {
     Uint8List buffer = msg.binary;
@@ -804,6 +809,11 @@ class InputController {
           isCursorLocked = true;
       }else if (message == HardwareSimulator.CURSOR_VISIBLE &&
           StreamingSettings.autoHideLocalCursor){
+          int msgscreenId = byteData.getInt32(5);
+          // buffer.length > 10 used to be compatible with old version.
+          if (buffer.length > 10 && screenId == msgscreenId) {
+            //TODO: implement cursor move for ipadOS/Android.
+          }
           mouseController.setShowCursor(true);
           isCursorLocked = false;
       }else {
@@ -974,8 +984,13 @@ class InputController {
         _cursorContext?.read<MouseStyleBloc>().setCursor(remotecursor);
       } else if (message == HardwareSimulator.CURSOR_INVISIBLE &&
           StreamingSettings.autoHideLocalCursor) {
+        //print("cursor invisible");
         //lock cursor will start tracing mouse.
+        if (isCursorLocked) {
+          return;
+        }
         isCursorLocked = true;
+
         HardwareSimulator.lockCursor();
         HardwareSimulator.addCursorMoved(cursorMovedCallback);
         if (AppPlatform.isWeb) {
@@ -984,13 +999,34 @@ class InputController {
         }
       } else if (message == HardwareSimulator.CURSOR_VISIBLE &&
           StreamingSettings.autoHideLocalCursor) {
-        isCursorLocked = false;
-        HardwareSimulator.unlockCursor();
-        HardwareSimulator.removeCursorMoved(cursorMovedCallback);
-        if (AppPlatform.isWeb) {
-          HardwareSimulator.removeCursorPressed(cursorPressedCallback);
-          HardwareSimulator.removeCursorWheel(cursorWheelCallback);
+        if (!isCursorLocked) {
+          return;
         }
+        isCursorLocked = false;
+        cursorVisibleCount++;
+        //print("cursor visible $cursorVisibleCount");
+        // 如果已经有timer在运行，取消它
+        blockCursorMove = true;
+        ByteData byteData = ByteData.sublistView(buffer);
+        HardwareSimulator.unlockCursor().then((value) {
+          // buffer.length > 10 used to be compatible with old version.
+          if (buffer.length > 10 && screenId == msgInfo) {
+            double xPercent = byteData.getFloat32(9, Endian.little);
+            double yPercent = byteData.getFloat32(13, Endian.little);
+            if (AppPlatform.isWindows) {
+              //TODO: implement cursor move for MacOS.
+              cursorPositionCallback?.call(xPercent, yPercent);
+            }
+          }
+          Timer(const Duration(milliseconds: 200), () {
+            blockCursorMove = false;
+          });
+          HardwareSimulator.removeCursorMoved(cursorMovedCallback);
+          if (AppPlatform.isWeb) {
+            HardwareSimulator.removeCursorPressed(cursorPressedCallback);
+            HardwareSimulator.removeCursorWheel(cursorWheelCallback);
+          }
+        });
       }
     }
   }

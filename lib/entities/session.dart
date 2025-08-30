@@ -324,10 +324,10 @@ class StreamingSession {
   void acceptRequest(StreamedSettings settings) async {
     await _lock.synchronized(() async {
       // 对于移动平台 需要hookAll,且在channel建立之后hook
-      if (settings.hookCursorImage == true && AppPlatform.isDeskTop && !(controller.devicetype == 'IOS' || controller.devicetype == 'Android')) {
+      /*if (settings.hookCursorImage == true && AppPlatform.isDeskTop && !(controller.devicetype == 'IOS' || controller.devicetype == 'Android')) {
           HardwareSimulator.addCursorImageUpdated(
               onLocalCursorImageMessage, cursorImageHookID, false);
-      }
+      }*/
       if (connectionState != StreamingSessionConnectionState.free &&
           connectionState != StreamingSessionConnectionState.disconnected) {
         VLOG0("starting connection on which is already started. Please debug.");
@@ -444,11 +444,13 @@ class StreamingSession {
           await pc!.createDataChannel('userInput', reliableDataChannelDict);
 
       channel?.onMessage = (RTCDataChannelMessage msg) {
-        if (!image_hooked) {
-          if (streamSettings!.hookCursorImage == true && controller.devicetype == 'IOS' || controller.devicetype == 'Android') {
-              HardwareSimulator.addCursorImageUpdated(
-                  onLocalCursorImageMessage, cursorImageHookID, true);
+        if (!image_hooked && !AppPlatform.isWeb) {
+          bool hookall = false;
+          if (AppPlatform.isDeskTop && (controller.devicetype == 'IOS' || controller.devicetype == 'Android')) {
+            hookall = true;
           }
+          HardwareSimulator.addCursorImageUpdated(
+              onLocalCursorImageMessage, cursorImageHookID, hookall);
           image_hooked = true;
         }
         processDataChannelMessageFromClient(msg);
@@ -726,6 +728,19 @@ class StreamingSession {
       int message, int messageInfo, Uint8List cursorImage) {
     if (message == HardwareSimulator.CURSOR_UPDATED_IMAGE) {
       channel?.send(RTCDataChannelMessage.fromBinary(cursorImage));
+    } else if (message == HardwareSimulator.CURSOR_VISIBLE) {
+      ByteData byteData = ByteData(17);
+      byteData.setUint8(0, LP_MOUSECURSOR_CHANGED);
+      byteData.setInt32(1, message);
+      byteData.setInt32(5, messageInfo);
+      ByteData locationData = ByteData.sublistView(cursorImage);
+      double xPercent = locationData.getFloat32(0, Endian.little);
+      double yPercent = locationData.getFloat32(4, Endian.little);
+      byteData.setFloat32(9, xPercent);
+      byteData.setFloat32(13, yPercent);
+      VLOG0("cursor is visible: xPercent: $xPercent, yPercent: $yPercent");
+      Uint8List buffer = byteData.buffer.asUint8List();
+      channel?.send(RTCDataChannelMessage.fromBinary(buffer));
     } else {
       ByteData byteData = ByteData(9);
       byteData.setUint8(0, LP_MOUSECURSOR_CHANGED);
