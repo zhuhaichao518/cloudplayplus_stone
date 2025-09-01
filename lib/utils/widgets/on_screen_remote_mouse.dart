@@ -13,12 +13,14 @@ class OnScreenRemoteMouseController extends ChangeNotifier {
   double aspectRatio = 1.6;
   bool _showCursor = true;
   bool _hasMoved = false;
+  Offset _positionPercentage = Offset.zero;
 
   Offset get position => _position;
   Uint8List? get cursorBuffer => _cursorBuffer;
   double get deltax => _deltax;
   double get deltay => _deltay;
   bool get showCursor => _showCursor && _hasMoved; // 只有在移动过且showCursor为true时才显示
+  Offset get positionPercentage => _positionPercentage;
 
   void setPosition(Offset position) {
     if (_position != position) {
@@ -48,6 +50,8 @@ class OnScreenRemoteMouseController extends ChangeNotifier {
     //if (_deltax != x || _deltay != y) {
       _deltax = x;
       _deltay = y;
+      // We don't want to update the position from percentage when setting delta
+      _positionPercentage = const Offset(-1, -1);
       notifyListeners();
     //}
   }
@@ -56,9 +60,35 @@ class OnScreenRemoteMouseController extends ChangeNotifier {
     //第一次移动之前不显示
     if (!_hasMoved) {
       _hasMoved = true;
-      notifyListeners();
     }
     setDelta(dx, dy);
+  }
+
+  /// 移动指针到绝对位置
+  /// [xPercent] X轴百分比位置 (0.0 - 1.0)
+  /// [yPercent] Y轴百分比位置 (0.0 - 1.0)
+  void moveAbsl(double xPercent, double yPercent) {
+    // 确保百分比在有效范围内
+    xPercent = xPercent.clamp(0.0, 1.0);
+    yPercent = yPercent.clamp(0.0, 1.0);
+    
+    //第一次移动之前不显示
+    if (!_hasMoved) {
+      _hasMoved = true;
+    }
+    
+    // 设置绝对位置百分比
+    setAbsolutePosition(xPercent, yPercent);
+    notifyListeners();
+  }
+
+  void setAbsolutePosition(double xPercent, double yPercent) {
+    // 清除 delta 值，因为我们要设置绝对位置
+    _deltax = 0;
+    _deltay = 0;
+    
+    // 设置绝对位置百分比
+    _positionPercentage = Offset(xPercent, yPercent);
   }
 }
 
@@ -105,7 +135,8 @@ class _OnScreenRemoteMouseState extends State<OnScreenRemoteMouse> {
       ..deltax += widget.controller.deltax
       ..deltay += widget.controller.deltay
       ..aspectRatio = widget.controller.aspectRatio
-      ..showCursor = widget.controller.showCursor;
+      ..showCursor = widget.controller.showCursor
+      ..controllerPositionPercentage = widget.controller.positionPercentage;
   }
 
   @override
@@ -216,6 +247,15 @@ class RenderRemoteMouse extends RenderBox {
 
   Offset _positionPercentage = Offset.zero;
   Offset get positionPercentage => _positionPercentage;
+  
+  Offset _controllerPositionPercentage = Offset.zero;
+  Offset get controllerPositionPercentage => _controllerPositionPercentage;
+  set controllerPositionPercentage(Offset value) {
+    if (value == const Offset(-1,-1)) return;
+    _controllerPositionPercentage = value;
+    _updatePositionFromPercentage();
+    markNeedsPaint();
+  }
 
   // 添加缓存变量
   Size? _cachedParentSize;
@@ -277,7 +317,34 @@ class RenderRemoteMouse extends RenderBox {
     
     if (_positionPercentage != newPercentage) {
       _positionPercentage = newPercentage;
+      _controllerPositionPercentage = newPercentage;
       _onPositionChanged?.call(_positionPercentage);
+    }
+  }
+  
+  void _updatePositionFromPercentage() {
+    if (parent == null) return;
+    
+    _updateCachedValues();
+    if (_cachedDisplayRect == null) return;
+    
+    // 如果控制器设置了百分比位置（非零），则使用该位置
+    if (_controllerPositionPercentage != const Offset(-1,-1)) {
+      // 将百分比转换为实际像素位置
+      final targetX = _cachedDisplayRect!.left + (_controllerPositionPercentage.dx * _cachedDisplayRect!.width);
+      final targetY = _cachedDisplayRect!.top + (_controllerPositionPercentage.dy * _cachedDisplayRect!.height);
+      
+      // 计算新的 delta 值（相对于原始 _position 的偏移）
+      _deltax = targetX - _position.dx;
+      _deltay = targetY - _position.dy;
+      
+      // 更新百分比位置
+      final newPercentage = _controllerPositionPercentage;
+      if (_positionPercentage != newPercentage) {
+        _positionPercentage = newPercentage;
+        //对于自绘鼠标，百分比移动仅用于同步位置，不涉及位置改变回调
+        //_onPositionChanged?.call(_positionPercentage);
+      }
     }
   }
   
