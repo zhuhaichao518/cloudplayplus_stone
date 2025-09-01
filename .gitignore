@@ -5,9 +5,11 @@
 *.swp
 .DS_Store
 .atom/
+.build/
 .buildlog/
 .history
 .svn/
+.swiftpm/
 migrate_working_dir/
 
 # IntelliJ related
@@ -63,3 +65,6 @@ windows/flutter/generated_plugins.cmake
 # These are add the webrtc source code reference to the xcode project.
 Package.resolved
 *.xcworkspacedata
+
+# FVM Version Cache
+.fvm/

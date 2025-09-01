@@ -1013,8 +1013,8 @@ class InputController {
           if (buffer.length > 10 && screenId == msgInfo) {
             double xPercent = byteData.getFloat32(9, Endian.little);
             double yPercent = byteData.getFloat32(13, Endian.little);
-            if (AppPlatform.isWindows) {
-              //TODO: implement cursor move for MacOS.
+            if (AppPlatform.isDeskTop) {
+              //TODO: implement cursor move for Linux.
               cursorPositionCallback?.call(xPercent, yPercent);
             }
           }
