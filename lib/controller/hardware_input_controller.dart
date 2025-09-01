@@ -794,7 +794,6 @@ class InputController {
   };
 
   static bool isCursorLocked = false;
-  static int cursorVisibleCount = 0;
 
   static Function(double xPercent, double yPercent)? cursorPositionCallback;
 
@@ -807,15 +806,26 @@ class InputController {
           StreamingSettings.autoHideLocalCursor) {
           mouseController.setShowCursor(false);
           isCursorLocked = true;
-      }else if (message == HardwareSimulator.CURSOR_VISIBLE &&
+      } else if (message == HardwareSimulator.CURSOR_VISIBLE &&
           StreamingSettings.autoHideLocalCursor){
-          int msgscreenId = byteData.getInt32(5);
+          if (!isCursorLocked) {
+            return;
+          }
+          isCursorLocked = false;
           // buffer.length > 10 used to be compatible with old version.
-          if (buffer.length > 10 && screenId == msgscreenId) {
-            //TODO: implement cursor move for ipadOS/Android.
+          if (buffer.length > 10) {
+            blockCursorMove = true;
+            int msgscreenId = byteData.getInt32(5);
+            if (buffer.length > 10 && screenId == msgscreenId) {
+              double xPercent = byteData.getFloat32(9, Endian.little);
+              double yPercent = byteData.getFloat32(13, Endian.little);
+              mouseController.setAbsolutePosition(xPercent, yPercent);
+            }
+            Timer(const Duration(milliseconds: 200), () {
+              blockCursorMove = false;
+            });
           }
           mouseController.setShowCursor(true);
-          isCursorLocked = false;
       }else {
           mouseController.setCursorBuffer(buffer);
       }
@@ -1003,8 +1013,6 @@ class InputController {
           return;
         }
         isCursorLocked = false;
-        cursorVisibleCount++;
-        //print("cursor visible $cursorVisibleCount");
         // 如果已经有timer在运行，取消它
         blockCursorMove = true;
         ByteData byteData = ByteData.sublistView(buffer);
