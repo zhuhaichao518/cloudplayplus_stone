@@ -62,6 +62,11 @@ class _DeviceDetailPageState extends State<DeviceDetailPage> {
       _shareController = NativeTextFieldController();
       setpasswordController = NativeTextFieldController();
     }
+    
+    // 初始化虚拟显示器尺寸为默认值，将在build方法中更新为实际屏幕尺寸
+    _virtualDisplayWidth = 1920;
+    _virtualDisplayHeight = 1080;
+    
     //StreamingManager.updateRendererCallback(widget.device, updateVideoRenderer);
   }
 
@@ -78,6 +83,12 @@ class _DeviceDetailPageState extends State<DeviceDetailPage> {
   bool needSetstate = false;
   int _selectedMonitorId = 1;
   bool _editingDeviceName = false;
+  
+  // 高级模式相关状态
+  int _selectedMode = 0; // 0: 标准模式, 1: 独占模式, 2: 扩展屏模式
+  int _virtualDisplayWidth = 1920; // 虚拟显示器宽度
+  int _virtualDisplayHeight = 1080; // 虚拟显示器高度
+  bool _syncRemoteMousePosition = false; // 同步远程鼠标位置
   /*void setAspectRatio(double ratio) {
     if (aspectRatio == ratio) return;
     aspectRatio = ratio;
@@ -101,6 +112,12 @@ class _DeviceDetailPageState extends State<DeviceDetailPage> {
   Widget build(BuildContext context) {
     inbuilding = true;
     _iconColor = Theme.of(context).colorScheme.primary;
+    
+    // 更新虚拟显示器尺寸为当前屏幕尺寸
+    final screenSize = MediaQuery.of(context).size;
+    final pixelRatio = MediaQuery.of(context).devicePixelRatio;
+    _virtualDisplayWidth = (screenSize.width * pixelRatio).toInt();
+    _virtualDisplayHeight = (screenSize.height * pixelRatio).toInt();
 
     MessageBoxManager().init(context);
     WebrtcService.updateCurrentRenderingDevice(
@@ -507,41 +524,6 @@ class _DeviceDetailPageState extends State<DeviceDetailPage> {
                   ),
                 const SizedBox(height: 16),
 
-                // 会话信息卡片
-                Card(
-                  elevation: 2,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Icon(Icons.info_outline,
-                                size: 24, color: _iconColor),
-                            const SizedBox(width: 8),
-                            const Text(
-                              "会话信息",
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 12),
-                        Text(
-                          "会话ID: ${widget.device.websocketSessionid.toString().substring(widget.device.websocketSessionid.toString().length - 6)}",
-                          style: const TextStyle(fontSize: 16),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 16),
 
                 // 设备连接权限控制
                 if (widget.device.websocketSessionid ==
@@ -626,7 +608,206 @@ class _DeviceDetailPageState extends State<DeviceDetailPage> {
                       ),
                     ),
                   ),
-                const SizedBox(height: 24),
+                const SizedBox(height: 16),
+
+                // 高级模式选择卡片
+                Card(
+                  elevation: 2,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Icon(Icons.settings, size: 24, color: _iconColor),
+                            const SizedBox(width: 8),
+                            const Text(
+                              "高级模式",
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 16),
+                        
+                        // 模式选择
+                        const Text(
+                          "连接模式",
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        ...List.generate(3, (index) {
+                          String modeName;
+                          String modeDescription;
+                          switch (index) {
+                            case 0:
+                              modeName = "标准模式";
+                              modeDescription = "直接连接到指定显示器";
+                              break;
+                            case 1:
+                              modeName = "独占模式";
+                              modeDescription = "创建一个虚拟显示器，并将其设置为主显示器并连接";
+                              break;
+                            case 2:
+                              modeName = "扩展屏模式";
+                              modeDescription = "创建一个虚拟显示器并连接";
+                              break;
+                            default:
+                              modeName = "";
+                              modeDescription = "";
+                          }
+                          
+                          return ListTile(
+                            contentPadding: EdgeInsets.zero,
+                            leading: Radio(
+                              value: index,
+                              groupValue: _selectedMode,
+                              onChanged: (int? value) {
+                                setState(() {
+                                  _selectedMode = value!;
+                                });
+                              },
+                            ),
+                            title: Text(
+                              modeName,
+                              style: const TextStyle(fontSize: 16),
+                            ),
+                            subtitle: Text(
+                              modeDescription,
+                              style: const TextStyle(fontSize: 12, color: Colors.grey),
+                            ),
+                          );
+                        }),
+                        
+                        const SizedBox(height: 16),
+                        
+                        // 虚拟显示器尺寸设置（仅在非标准模式下显示）
+                        if (_selectedMode != 0) ...[
+                          const Text(
+                            "虚拟显示器尺寸",
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: TextField(
+                                  decoration: InputDecoration(
+                                    labelText: '宽度',
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    contentPadding: const EdgeInsets.symmetric(
+                                        horizontal: 12, vertical: 8),
+                                  ),
+                                  keyboardType: TextInputType.number,
+                                  controller: TextEditingController(
+                                    text: _virtualDisplayWidth.toString(),
+                                  ),
+                                  onChanged: (value) {
+                                    setState(() {
+                                      _virtualDisplayWidth = int.tryParse(value) ?? 1920;
+                                    });
+                                  },
+                                ),
+                              ),
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: TextField(
+                                  decoration: InputDecoration(
+                                    labelText: '高度',
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    contentPadding: const EdgeInsets.symmetric(
+                                        horizontal: 12, vertical: 8),
+                                  ),
+                                  keyboardType: TextInputType.number,
+                                  controller: TextEditingController(
+                                    text: _virtualDisplayHeight.toString(),
+                                  ),
+                                  onChanged: (value) {
+                                    setState(() {
+                                      _virtualDisplayHeight = int.tryParse(value) ?? 1080;
+                                    });
+                                  },
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 16),
+                        ],
+                        
+                        // 同步远程鼠标位置选项
+                        CheckboxListTile(
+                          title: const Text(
+                            "同步远程鼠标位置",
+                            style: TextStyle(fontSize: 16),
+                          ),
+                          subtitle: const Text(
+                            "在远程鼠标位置更新时，更新本地鼠标位置",
+                            style: TextStyle(fontSize: 12, color: Colors.grey),
+                          ),
+                          value: _syncRemoteMousePosition,
+                          onChanged: (bool? value) {
+                            setState(() {
+                              _syncRemoteMousePosition = value ?? false;
+                            });
+                          },
+                          contentPadding: EdgeInsets.zero,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                // 会话信息卡片
+                Card(
+                  elevation: 2,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Icon(Icons.info_outline,
+                                size: 24, color: _iconColor),
+                            const SizedBox(width: 8),
+                            const Text(
+                              "会话信息",
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+                        Text(
+                          "会话ID: ${widget.device.websocketSessionid.toString().substring(widget.device.websocketSessionid.toString().length - 6)}",
+                          style: const TextStyle(fontSize: 16),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
               ],
             ),
           );
@@ -683,6 +864,7 @@ class _DeviceDetailPageState extends State<DeviceDetailPage> {
     }
     StreamingSettings.updateScreenId(_selectedMonitorId - 1);
     StreamingSettings.connectPassword = _passwordController.text;
+    StreamingSettings.syncMousePosition = _syncRemoteMousePosition;
     StreamingManager.startStreaming(widget.device);
     VLOG0('连接设备: ${widget.device.devicename}');
   }

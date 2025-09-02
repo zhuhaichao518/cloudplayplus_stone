@@ -165,6 +165,7 @@ class StreamingSettings {
       'hookCursorImage': hookCursorImage,
       'connectPassword': connectPassword,
       'useClipBoard': useClipBoard,
+      'syncMousePosition': syncMousePosition,
     };
     data.removeWhere((key, value) => value == null);
     return data;
@@ -194,6 +195,7 @@ class StreamedSettings {
   //设备的连接密码
   String? connectPassword = "";
   bool? useClipBoard;
+  bool? syncMousePosition;
 
   static StreamedSettings fromJson(Map<String, dynamic> settings) {
     return StreamedSettings()
@@ -206,6 +208,7 @@ class StreamedSettings {
       ..codec = settings['codec'] as String?
       ..hookCursorImage = settings['hookCursorImage'] as bool?
       ..connectPassword = settings['connectPassword'] as String?
-      ..useClipBoard = settings['useClipBoard'] as bool?;
+      ..useClipBoard = settings['useClipBoard'] as bool?
+      ..syncMousePosition = settings['syncMousePosition'] as bool?;
   }
 }

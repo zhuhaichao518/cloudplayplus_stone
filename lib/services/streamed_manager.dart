@@ -28,6 +28,7 @@ class StreamedManager {
 
   //auto increment. used for cursor hooks.
   static int cursorImageHookID = 0;
+  static int cursorPositionUpdatedHookID = 0;
 
   static ValueNotifier<int> currentlyStreamedCount = ValueNotifier(0);
   static void setCurrentStreamedState(int value) {
@@ -96,6 +97,8 @@ class StreamedManager {
           StreamingSession(target, ApplicationInfo.thisDevice);
       cursorImageHookID++;
       session.cursorImageHookID = cursorImageHookID;
+      cursorPositionUpdatedHookID++;
+      session.cursorPositionUpdatedHookID = cursorPositionUpdatedHookID;
       session.acceptRequest(settings);
       sessions[target.websocketSessionid] = session;
       setCurrentStreamedState(sessions.length);

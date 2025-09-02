@@ -826,8 +826,18 @@ class InputController {
             });
           }
           mouseController.setShowCursor(true);
-      }else {
-          mouseController.setCursorBuffer(buffer);
+      } else if (message == HardwareSimulator.CURSOR_POSITION_CHANGED) {
+          int msgscreenId = byteData.getInt32(5);
+          double xPercent = byteData.getFloat32(9, Endian.little);
+          double yPercent = byteData.getFloat32(13, Endian.little);
+          print("CURSOR_POSITION_CHANGEDxxx: $xPercent, $yPercent, $msgscreenId, $screenId");
+          if (screenId == msgscreenId) {
+            print("CURSOR_POSITION_CHANGED2: $xPercent, $yPercent, $screenId");
+            mouseController.setAbsolutePosition(xPercent, yPercent);
+          }
+      } else {
+        //cursor image changed.
+        mouseController.setCursorBuffer(buffer);
       }
       return;
     }
@@ -1035,6 +1045,16 @@ class InputController {
             HardwareSimulator.removeCursorWheel(cursorWheelCallback);
           }
         });
+      } else if (message == HardwareSimulator.CURSOR_POSITION_CHANGED) {
+          int msgscreenId = byteData.getInt32(5);
+          double xPercent = byteData.getFloat32(9, Endian.little);
+          double yPercent = byteData.getFloat32(13, Endian.little);
+          if (screenId == msgscreenId) {
+            if (AppPlatform.isDeskTop) {
+              //TODO: implement cursor move for Linux.
+              cursorPositionCallback?.call(xPercent, yPercent);
+            }
+          }
       }
     }
   }
