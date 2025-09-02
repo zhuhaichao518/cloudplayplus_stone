@@ -93,11 +93,22 @@ class InputController {
       RTCDataChannelMessage.fromBinary(Uint8List.fromList([LP_EMPTY]));
 
   static bool blockCursorMove = false;
+  // 远程鼠标位置被同步到本地时，由于鼠标被移动到指定位置会生成一个移动事件，阻止该事件。
+  static int blockNextAbsl = 0;
+  static int lastAbslMoveTime = 0;
+
 
   void requestMoveMouseAbsl(double x, double y, int tempScreenId) async {
     if (blockCursorMove) {
       return;
     }
+    if (blockNextAbsl > 0) {
+      blockNextAbsl--;
+      return;
+    }
+
+    lastAbslMoveTime = DateTime.now().millisecondsSinceEpoch;
+
     // Cursor moved out of scope when tempScreenId = -1
     // print("${x} ${y}");
     if (tempScreenId == -1) {
@@ -794,6 +805,9 @@ class InputController {
   };
 
   static bool isCursorLocked = false;
+  static bool isCursorLockedbySyncMouse = false;
+  //控制端能控制看不见的屏幕
+  static bool canControlOtherMonitors = true;
 
   static Function(double xPercent, double yPercent)? cursorPositionCallback;
 
@@ -1050,9 +1064,32 @@ class InputController {
           double xPercent = byteData.getFloat32(9, Endian.little);
           double yPercent = byteData.getFloat32(13, Endian.little);
           if (screenId == msgscreenId) {
-            if (AppPlatform.isDeskTop) {
+            if (AppPlatform.isDeskTop && (!isCursorLocked || isCursorLockedbySyncMouse) && DateTime.now().millisecondsSinceEpoch - lastAbslMoveTime > 1000) {
               //TODO: implement cursor move for Linux.
+              //This will generate a mousemoveabsl event. so we block the next
+              //由于精度问题 可能触发反复同步。block住这个同步。
+              //即使这次没有真正触发鼠标移动 也仅仅会多消耗掉下一次用户鼠标移动事件。
+              if (isCursorLocked) {
+                //鼠标从别的屏幕移入
+                HardwareSimulator.unlockCursor();
+                HardwareSimulator.removeCursorMoved(cursorMovedCallback);
+                isCursorLockedbySyncMouse = false;
+                isCursorLocked = false;
+              }
+              blockNextAbsl++;
               cursorPositionCallback?.call(xPercent, yPercent);
+            }
+          } else {
+            if (canControlOtherMonitors && AppPlatform.isDeskTop && !isCursorLocked && !isCursorLockedbySyncMouse) {
+              //鼠标移动到别的屏幕(非边缘),锁住鼠标
+              if ((xPercent < 0.98 && xPercent > 0.02) && (yPercent < 0.98 && yPercent > 0.02)) {
+                blockNextAbsl++;
+                cursorPositionCallback?.call(0.5, 0.5);
+                HardwareSimulator.lockCursor();
+                HardwareSimulator.addCursorMoved(cursorMovedCallback);
+                isCursorLockedbySyncMouse = true;
+                isCursorLocked = true;
+              }
             }
           }
       }

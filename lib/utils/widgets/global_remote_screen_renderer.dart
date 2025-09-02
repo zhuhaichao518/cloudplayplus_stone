@@ -333,7 +333,7 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
   Widget build(BuildContext context) {
     // set the default focus to remote desktop.
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (AppPlatform.isWindows) {
+      if (AppPlatform.isDeskTop) {
         InputController.cursorPositionCallback = onHardwareCursorPositionUpdateRequested;
       }
       focusNode.requestFocus();
