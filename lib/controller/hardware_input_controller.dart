@@ -810,7 +810,7 @@ class InputController {
   static bool canControlOtherMonitors = true;
 
   static Function(double xPercent, double yPercent)? cursorPositionCallback;
-
+  static int id = 0;
   void handleCursorUpdate(RTCDataChannelMessage msg) async {
     Uint8List buffer = msg.binary;
     if (AppPlatform.isMobile) {
@@ -834,6 +834,7 @@ class InputController {
               double xPercent = byteData.getFloat32(9, Endian.little);
               double yPercent = byteData.getFloat32(13, Endian.little);
               mouseController.setAbsolutePosition(xPercent, yPercent);
+              mouseController.setShowCursor(true);
             } else {
               mouseController.setShowCursor(false);
             }
@@ -844,16 +845,19 @@ class InputController {
             mouseController.setShowCursor(true);
           }
       } else if (message == HardwareSimulator.CURSOR_POSITION_CHANGED) {
-          int msgscreenId = byteData.getInt32(5);
-          double xPercent = byteData.getFloat32(9, Endian.little);
-          double yPercent = byteData.getFloat32(13, Endian.little);
-          //print("CURSOR_POSITION_CHANGEDxxx: $xPercent, $yPercent, $msgscreenId, $screenId");
-          if (screenId == msgscreenId) {
-            //print("CURSOR_POSITION_CHANGED2: $xPercent, $yPercent, $screenId");
-            mouseController.setShowCursor(true);
-            mouseController.moveAbsl(xPercent, yPercent);
-          } else {
-            mouseController.setShowCursor(false);
+          //TODO: 有些时候单点触屏收不到对应消息 不知道为什么
+          if (!isCursorLocked && DateTime.now().millisecondsSinceEpoch - lastAbslMoveTime > 1000) {
+            int msgscreenId = byteData.getInt32(5);
+            double xPercent = byteData.getFloat32(9, Endian.little);
+            double yPercent = byteData.getFloat32(13, Endian.little);
+            if (screenId == msgscreenId) {
+              mouseController.setShowCursor(true);
+              mouseController.moveAbsl(xPercent, yPercent);
+            } else {
+              if ((xPercent < 0.98 && xPercent > 0.02) && (yPercent < 0.98 && yPercent > 0.02)) {
+                mouseController.setShowCursor(false);
+              }
+            }
           }
       } else {
         //cursor image changed.

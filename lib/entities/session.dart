@@ -715,6 +715,9 @@ class StreamingSession {
             _cursorPositionHookRegistered = false;
         }
       }
+      if (selfSessionType == SelfSessionType.controller && (AppPlatform.isMobile || AppPlatform.isAndroidTV)) {
+        InputController.mouseController.setHasMoved(false);
+      }
       if (WebrtcService.currentRenderingSession == this) {
         if (HardwareSimulator.cursorlocked) {
           if (AppPlatform.isDeskTop || AppPlatform.isWeb) {

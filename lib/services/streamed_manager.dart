@@ -136,7 +136,7 @@ class StreamedManager {
         int? virtualDisplayId = await _createVirtualDisplay(width, height);
         if (virtualDisplayId != null) {
           // 使用虚拟显示器的ID作为screenId
-          settings.screenId = virtualDisplayId;
+          // settings.screenId = virtualDisplayId;
           VLOG0('使用虚拟显示器模式，显示器ID: $virtualDisplayId');
         } else {
           VLOG0('创建虚拟显示器失败，使用默认模式');

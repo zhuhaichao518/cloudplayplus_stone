@@ -41,6 +41,11 @@ class OnScreenRemoteMouseController extends ChangeNotifier {
     notifyListeners();
   }
 
+  void setHasMoved(bool value) {
+    _hasMoved = value;
+    notifyListeners();
+  }
+
   void setShowCursor(bool value) {
     _showCursor = value;
     notifyListeners();

@@ -613,7 +613,7 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
                   'You pressed: $_pressedKey',
                   style: TextStyle(fontSize: 24, color: Colors.red),
                 ),*/
-                if ((AppPlatform.isAndroidTV) || (AppPlatform.isMobile && AppStateService.isMouseConnected))
+                if ((AppPlatform.isAndroidTV) || (AppPlatform.isMobile /*&& AppStateService.isMouseConnected*/))
                   OnScreenRemoteMouse(
                   controller: InputController.mouseController,
                   onPositionChanged: (percentage) {
