@@ -674,6 +674,12 @@ class _DeviceDetailPageState extends State<DeviceDetailPage> {
                               onChanged: (int? value) {
                                 setState(() {
                                   _selectedMode = value!;
+                                  // 扩展屏模式默认启用同步远程鼠标
+                                  if (value == 2) {
+                                    _syncRemoteMousePosition = true;
+                                  } else {
+                                    _syncRemoteMousePosition = false;
+                                  }
                                 });
                               },
                             ),
@@ -865,6 +871,12 @@ class _DeviceDetailPageState extends State<DeviceDetailPage> {
     StreamingSettings.updateScreenId(_selectedMonitorId - 1);
     StreamingSettings.connectPassword = _passwordController.text;
     StreamingSettings.syncMousePosition = _syncRemoteMousePosition;
+    
+    // 设置流模式
+    StreamingSettings.streamMode = _selectedMode;
+    StreamingSettings.customScreenWidth = _virtualDisplayWidth;
+    StreamingSettings.customScreenHeight = _virtualDisplayHeight;
+    
     StreamingManager.startStreaming(widget.device);
     VLOG0('连接设备: ${widget.device.devicename}');
   }

@@ -3,6 +3,7 @@ import 'package:cloudplayplus/utils/hash_util.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'package:synchronized/synchronized.dart';
+import 'package:hardware_simulator/hardware_simulator.dart';
 
 import '../base/logging.dart';
 import '../entities/device.dart';
@@ -37,6 +38,79 @@ class StreamedManager {
     //}
   }
 
+  // 虚拟显示器管理 - 使用集合记录所有创建的虚拟显示器
+  static Set<int> _virtualDisplayIds = {};
+
+  // 创建虚拟显示器
+  static Future<int?> _createVirtualDisplay(int width, int height) async {
+    try {
+      // 初始化parsec-vdd
+      bool initialized = await HardwareSimulator.initParsecVdd();
+      if (!initialized) {
+        VLOG0('初始化parsec-vdd失败');
+        return null;
+      }
+
+      // 创建虚拟显示器
+      int displayId = await HardwareSimulator.createDisplay();
+      if (displayId > 0) {
+        _virtualDisplayIds.add(displayId);
+        VLOG0('创建虚拟显示器成功，ID: $displayId');
+        
+        // 设置虚拟显示器分辨率
+        bool success = await HardwareSimulator.changeDisplaySettings(
+          displayId, width, height, 60);
+        if (success) {
+          VLOG0('设置虚拟显示器分辨率成功: ${width}x${height}');
+        } else {
+          VLOG0('设置虚拟显示器分辨率失败');
+        }
+        
+        return displayId;
+      } else {
+        VLOG0('创建虚拟显示器失败');
+        return null;
+      }
+    } catch (e) {
+      VLOG0('创建虚拟显示器异常: $e');
+      return null;
+    }
+  }
+
+  // 移除指定的虚拟显示器
+  static Future<void> _removeVirtualDisplay(int displayId) async {
+    try {
+      if (_virtualDisplayIds.contains(displayId)) {
+        bool removed = await HardwareSimulator.removeDisplay(displayId);
+        if (removed) {
+          _virtualDisplayIds.remove(displayId);
+          VLOG0('删除虚拟显示器成功，ID: $displayId');
+        } else {
+          VLOG0('删除虚拟显示器失败，ID: $displayId');
+        }
+      }
+    } catch (e) {
+      VLOG0('删除虚拟显示器异常: $e');
+    }
+  }
+
+  // 移除所有虚拟显示器
+  static Future<void> _removeAllVirtualDisplays() async {
+    try {
+      for (int displayId in _virtualDisplayIds.toList()) {
+        bool removed = await HardwareSimulator.removeDisplay(displayId);
+        if (removed) {
+          VLOG0('删除虚拟显示器成功，ID: $displayId');
+        } else {
+          VLOG0('删除虚拟显示器失败，ID: $displayId');
+        }
+      }
+      _virtualDisplayIds.clear();
+    } catch (e) {
+      VLOG0('删除所有虚拟显示器异常: $e');
+    }
+  }
+
   static void startStreaming(Device target, StreamedSettings settings) async {
     bool allowConnect = ApplicationInfo
         .connectable; // || (AppPlatform.isWindows && ApplicationInfo.isSystem);
@@ -52,7 +126,24 @@ class StreamedManager {
             "Starting session which is already started: $target.websocketSessionid");
         return;
       }
-      if (!localVideoStreams.containsKey(settings.screenId)) {
+
+      // 处理虚拟显示器模式
+      if (settings.streamMode != null && settings.streamMode! > 0) {
+        // 独占模式或扩展屏模式，需要创建虚拟显示器
+        int width = settings.customScreenWidth ?? 1920;
+        int height = settings.customScreenHeight ?? 1080;
+        
+        int? virtualDisplayId = await _createVirtualDisplay(width, height);
+        if (virtualDisplayId != null) {
+          // 使用虚拟显示器的ID作为screenId
+          settings.screenId = virtualDisplayId;
+          VLOG0('使用虚拟显示器模式，显示器ID: $virtualDisplayId');
+        } else {
+          VLOG0('创建虚拟显示器失败，使用默认模式');
+        }
+      }
+
+      if (!localVideoStreams.containsKey(settings.screenId!)) {
         final Map<String, dynamic> mediaConstraints;
         if (AppPlatform.isWeb) {
           mediaConstraints = {
@@ -123,9 +214,16 @@ class StreamedManager {
             });
             localVideoStreams.remove(screenId);
           }
+          
+          // 如果这个screenId是虚拟显示器，则移除它
+          if (_virtualDisplayIds.contains(screenId)) {
+            _removeVirtualDisplay(screenId);
+          }
         }
         if (sessions.isEmpty) {
           //TODO(Haichao): maybe restart app to save memory? 给用户一个按钮来重启app.
+          // 清理所有剩余的虚拟显示器
+          _removeAllVirtualDisplays();
         }
       } else {
         VLOG0("No session found with sessionId: $target.websocketSessionid");

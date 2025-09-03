@@ -166,6 +166,9 @@ class StreamingSettings {
       'connectPassword': connectPassword,
       'useClipBoard': useClipBoard,
       'syncMousePosition': syncMousePosition,
+      'streamMode': streamMode,
+      'customScreenWidth': customScreenWidth,
+      'customScreenHeight': customScreenHeight,
     };
     data.removeWhere((key, value) => value == null);
     return data;
@@ -196,6 +199,9 @@ class StreamedSettings {
   String? connectPassword = "";
   bool? useClipBoard;
   bool? syncMousePosition;
+  int? streamMode;
+  int? customScreenWidth;
+  int? customScreenHeight;
 
   static StreamedSettings fromJson(Map<String, dynamic> settings) {
     return StreamedSettings()
@@ -209,6 +215,9 @@ class StreamedSettings {
       ..hookCursorImage = settings['hookCursorImage'] as bool?
       ..connectPassword = settings['connectPassword'] as String?
       ..useClipBoard = settings['useClipBoard'] as bool?
-      ..syncMousePosition = settings['syncMousePosition'] as bool?;
+      ..syncMousePosition = settings['syncMousePosition'] as bool?
+      ..streamMode = settings['streamMode'] as int?
+      ..customScreenWidth = settings['customScreenWidth'] as int?
+      ..customScreenHeight = settings['customScreenHeight'] as int?;
   }
 }
