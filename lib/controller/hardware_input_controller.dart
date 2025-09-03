@@ -820,20 +820,26 @@ class InputController {
               double xPercent = byteData.getFloat32(9, Endian.little);
               double yPercent = byteData.getFloat32(13, Endian.little);
               mouseController.setAbsolutePosition(xPercent, yPercent);
+            } else {
+              mouseController.setShowCursor(false);
             }
             Timer(const Duration(milliseconds: 200), () {
               blockCursorMove = false;
             });
+          } else {
+            mouseController.setShowCursor(true);
           }
-          mouseController.setShowCursor(true);
       } else if (message == HardwareSimulator.CURSOR_POSITION_CHANGED) {
           int msgscreenId = byteData.getInt32(5);
           double xPercent = byteData.getFloat32(9, Endian.little);
           double yPercent = byteData.getFloat32(13, Endian.little);
-          print("CURSOR_POSITION_CHANGEDxxx: $xPercent, $yPercent, $msgscreenId, $screenId");
+          //print("CURSOR_POSITION_CHANGEDxxx: $xPercent, $yPercent, $msgscreenId, $screenId");
           if (screenId == msgscreenId) {
-            print("CURSOR_POSITION_CHANGED2: $xPercent, $yPercent, $screenId");
-            mouseController.setAbsolutePosition(xPercent, yPercent);
+            //print("CURSOR_POSITION_CHANGED2: $xPercent, $yPercent, $screenId");
+            mouseController.setShowCursor(true);
+            mouseController.moveAbsl(xPercent, yPercent);
+          } else {
+            mouseController.setShowCursor(false);
           }
       } else {
         //cursor image changed.
