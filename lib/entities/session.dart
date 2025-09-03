@@ -715,6 +715,9 @@ class StreamingSession {
             _cursorPositionHookRegistered = false;
         }
       }
+      if (selfSessionType == SelfSessionType.controlled && (AppPlatform.isWindows)) {
+        await HardwareSimulator.clearAllPressedEvents();
+      }
       if (selfSessionType == SelfSessionType.controller && (AppPlatform.isMobile || AppPlatform.isAndroidTV)) {
         InputController.mouseController.setHasMoved(false);
       }
