@@ -97,6 +97,10 @@ class StreamingSession {
 
   int cursorImageHookID = 0;
   int cursorPositionUpdatedHookID = 0;
+  
+  // 标记哪些回调已经注册
+  bool _cursorImageHookRegistered = false;
+  bool _cursorPositionHookRegistered = false;
 
   AudioSession? audioSession;
   int audioBitrate = 32;
@@ -353,6 +357,7 @@ class StreamingSession {
               channel?.send(RTCDataChannelMessage.fromBinary(buffer));
             }
           }, cursorPositionUpdatedHookID);
+          _cursorPositionHookRegistered = true;
       }
       selfSessionType = SelfSessionType.controlled;
       restartPingTimeoutTimer(10);
@@ -469,6 +474,7 @@ class StreamingSession {
           HardwareSimulator.addCursorImageUpdated(
               onLocalCursorImageMessage, cursorImageHookID, hookall);
           image_hooked = true;
+          _cursorImageHookRegistered = true;
         }
         processDataChannelMessageFromClient(msg);
       };
@@ -696,17 +702,17 @@ class StreamingSession {
           StreamingSessionConnectionState.disconnected;
       connectionState = StreamingSessionConnectionState.disconnected;
       //controlled.connectionState.value = StreamingSessionConnectionState.free;
-      if (streamSettings?.hookCursorImage == true &&
-          selfSessionType == SelfSessionType.controlled) {
+      if (_cursorImageHookRegistered && selfSessionType == SelfSessionType.controlled) {
         if (AppPlatform.isDeskTop) {
           HardwareSimulator.removeCursorImageUpdated(cursorImageHookID);
+          _cursorImageHookRegistered = false;
         }
       }
-      if (streamSettings?.hookCursorImage == true &&
-          selfSessionType == SelfSessionType.controlled) {
+      if (_cursorPositionHookRegistered && selfSessionType == SelfSessionType.controlled) {
         //TODO:implement for MacOS
-        if (AppPlatform.isWindows && streamSettings?.syncMousePosition == true) {
+        if (AppPlatform.isWindows) {
             HardwareSimulator.removeCursorPositionUpdated(cursorPositionUpdatedHookID);
+            _cursorPositionHookRegistered = false;
         }
       }
       if (WebrtcService.currentRenderingSession == this) {
