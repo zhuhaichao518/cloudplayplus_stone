@@ -346,7 +346,7 @@ class StreamingSession {
       if (settings.syncMousePosition == true && AppPlatform.isWindows) {
           HardwareSimulator.addCursorPositionUpdated((message, screenId, xPercent, yPercent) {
             if (message == HardwareSimulator.CURSOR_POSITION_CHANGED && image_hooked) {
-              print("CURSOR_POSITION_CHANGED: $xPercent, $yPercent");
+              //print("CURSOR_POSITION_CHANGED: $xPercent, $yPercent");
               ByteData byteData = ByteData(17);
               byteData.setUint8(0, LP_MOUSECURSOR_CHANGED);
               byteData.setInt32(1, message);

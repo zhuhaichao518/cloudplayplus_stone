@@ -199,6 +199,7 @@ class StreamedSettings {
   String? connectPassword = "";
   bool? useClipBoard;
   bool? syncMousePosition;
+  // 0 默认 1 独占 2 扩展屏
   int? streamMode;
   int? customScreenWidth;
   int? customScreenHeight;

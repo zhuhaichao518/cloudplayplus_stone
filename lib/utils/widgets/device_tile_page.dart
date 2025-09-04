@@ -21,6 +21,9 @@ import '../../services/webrtc_service.dart';
 import '../hash_util.dart';
 import 'cpp_icon.dart';
 
+class DeviceSelectManager {
+  static Device? lastSelectedDevice = null;
+}
 class DeviceDetailPage extends StatefulWidget {
   final Device device;
 
@@ -35,6 +38,14 @@ class _DeviceDetailPageState extends State<DeviceDetailPage> {
   late TextEditingController _deviceNameController;
   final FocusNode _connectPasswordFocusNode = FocusNode();
   late TextEditingController setpasswordController;
+  
+  // 虚拟显示器尺寸的FocusNode
+  final FocusNode _virtualDisplayWidthFocusNode = FocusNode();
+  final FocusNode _virtualDisplayHeightFocusNode = FocusNode();
+  
+  // 虚拟显示器尺寸控制器
+  late TextEditingController _virtualDisplayWidthController;
+  late TextEditingController _virtualDisplayHeightController;
 
   /*void updateVideoRenderer(String mediatype, MediaStream stream) {
     setState(() {
@@ -63,9 +74,30 @@ class _DeviceDetailPageState extends State<DeviceDetailPage> {
       setpasswordController = NativeTextFieldController();
     }
     
-    // 初始化虚拟显示器尺寸为默认值，将在build方法中更新为实际屏幕尺寸
-    _virtualDisplayWidth = 1920;
-    _virtualDisplayHeight = 1080;
+    DeviceSelectManager.lastSelectedDevice = widget.device;
+    // 从缓存中加载虚拟显示器尺寸，如果没有则使用默认值
+    _virtualDisplayWidth = SharedPreferencesManager.getInt('virtualDisplayWidth') ?? 1920;
+    _virtualDisplayHeight = SharedPreferencesManager.getInt('virtualDisplayHeight') ?? 1080;
+    
+    // 初始化虚拟显示器尺寸控制器
+    if (!AppPlatform.isAndroidTV) {
+      _virtualDisplayWidthController = TextEditingController(text: _virtualDisplayWidth.toString());
+      _virtualDisplayHeightController = TextEditingController(text: _virtualDisplayHeight.toString());
+    } else {
+      _virtualDisplayWidthController = NativeTextFieldController();
+      _virtualDisplayHeightController = NativeTextFieldController();
+      _virtualDisplayWidthController.text = _virtualDisplayWidth.toString();
+      _virtualDisplayHeightController.text = _virtualDisplayHeight.toString();
+      
+      // 为Android TV添加文本变化监听
+      _virtualDisplayWidthController.addListener(() {
+        _virtualDisplayWidth = int.tryParse(_virtualDisplayWidthController.text) ?? 1920;
+      });
+      
+      _virtualDisplayHeightController.addListener(() {
+        _virtualDisplayHeight = int.tryParse(_virtualDisplayHeightController.text) ?? 1080;
+      });
+    }
     
     //StreamingManager.updateRendererCallback(widget.device, updateVideoRenderer);
   }
@@ -76,6 +108,8 @@ class _DeviceDetailPageState extends State<DeviceDetailPage> {
     _deviceNameController.dispose();
     _shareController.dispose();
     setpasswordController.dispose();
+    _virtualDisplayWidthController.dispose();
+    _virtualDisplayHeightController.dispose();
     super.dispose();
   }
 
@@ -89,6 +123,9 @@ class _DeviceDetailPageState extends State<DeviceDetailPage> {
   int _virtualDisplayWidth = 1920; // 虚拟显示器宽度
   int _virtualDisplayHeight = 1080; // 虚拟显示器高度
   bool _syncRemoteMousePosition = false; // 同步远程鼠标位置
+  
+  // 屏幕尺寸缓存，用于检测屏幕尺寸变化
+  Size? _lastScreenSize;
   /*void setAspectRatio(double ratio) {
     if (aspectRatio == ratio) return;
     aspectRatio = ratio;
@@ -113,11 +150,35 @@ class _DeviceDetailPageState extends State<DeviceDetailPage> {
     inbuilding = true;
     _iconColor = Theme.of(context).colorScheme.primary;
     
-    // 更新虚拟显示器尺寸为当前屏幕尺寸
-    final screenSize = MediaQuery.of(context).size;
-    final pixelRatio = MediaQuery.of(context).devicePixelRatio;
-    _virtualDisplayWidth = (screenSize.width * pixelRatio).toInt();
-    _virtualDisplayHeight = (screenSize.height * pixelRatio).toInt();
+    DeviceSelectManager.lastSelectedDevice = widget.device;
+    // 检测屏幕尺寸变化，只在屏幕尺寸真正变化时才更新虚拟显示器尺寸
+    final currentScreenSize = MediaQuery.of(context).size;
+    if (_lastScreenSize == null || _lastScreenSize != currentScreenSize) {
+      _lastScreenSize = currentScreenSize;
+      
+      // 只有在没有缓存值或者是首次构建时才使用屏幕尺寸
+      if (SharedPreferencesManager.getInt('virtualDisplayWidth') == null && 
+          SharedPreferencesManager.getInt('virtualDisplayHeight') == null) {
+        final pixelRatio = MediaQuery.of(context).devicePixelRatio;
+        final newWidth = (currentScreenSize.width * pixelRatio).toInt();
+        final newHeight = (currentScreenSize.height * pixelRatio).toInt();
+        
+        // 只有当新尺寸与当前尺寸不同时才更新
+        if (_virtualDisplayWidth != newWidth || _virtualDisplayHeight != newHeight) {
+          _virtualDisplayWidth = newWidth;
+          _virtualDisplayHeight = newHeight;
+          
+          // 更新控制器文本
+          if (AppPlatform.isAndroidTV) {
+            (_virtualDisplayWidthController as NativeTextFieldController).text = _virtualDisplayWidth.toString();
+            (_virtualDisplayHeightController as NativeTextFieldController).text = _virtualDisplayHeight.toString();
+          } else {
+            _virtualDisplayWidthController.text = _virtualDisplayWidth.toString();
+            _virtualDisplayHeightController.text = _virtualDisplayHeight.toString();
+          }
+        }
+      }
+    }
 
     MessageBoxManager().init(context);
     WebrtcService.updateCurrentRenderingDevice(
@@ -698,57 +759,126 @@ class _DeviceDetailPageState extends State<DeviceDetailPage> {
                         
                         // 虚拟显示器尺寸设置（仅在非标准模式下显示）
                         if (_selectedMode != 0) ...[
-                          const Text(
-                            "虚拟显示器尺寸",
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w500,
-                            ),
+                          Row(
+                            children: [
+                              const Text(
+                                "虚拟显示器尺寸",
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              const Spacer(),
+                              Text(
+                                "当前: ${_virtualDisplayWidth} x ${_virtualDisplayHeight}",
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.grey[600],
+                                ),
+                              ),
+                            ],
                           ),
                           const SizedBox(height: 8),
                           Row(
                             children: [
                               Expanded(
-                                child: TextField(
-                                  decoration: InputDecoration(
-                                    labelText: '宽度',
-                                    border: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
-                                    contentPadding: const EdgeInsets.symmetric(
-                                        horizontal: 12, vertical: 8),
-                                  ),
-                                  keyboardType: TextInputType.number,
-                                  controller: TextEditingController(
-                                    text: _virtualDisplayWidth.toString(),
-                                  ),
-                                  onChanged: (value) {
-                                    setState(() {
-                                      _virtualDisplayWidth = int.tryParse(value) ?? 1920;
-                                    });
-                                  },
-                                ),
+                                child: AppPlatform.isAndroidTV
+                                    ? DpadNativeTextField(
+                                        focusNode: _virtualDisplayWidthFocusNode,
+                                        controller: _virtualDisplayWidthController as NativeTextFieldController,
+                                        obscureText: false,
+                                      )
+                                    : TextField(
+                                        decoration: InputDecoration(
+                                          labelText: '宽度',
+                                          border: OutlineInputBorder(
+                                            borderRadius: BorderRadius.circular(8),
+                                          ),
+                                          contentPadding: const EdgeInsets.symmetric(
+                                              horizontal: 12, vertical: 8),
+                                        ),
+                                        keyboardType: TextInputType.number,
+                                        controller: _virtualDisplayWidthController,
+                                        onChanged: (value) {
+                                          _virtualDisplayWidth = int.tryParse(value) ?? 1920;
+                                        },
+                                      ),
                               ),
                               const SizedBox(width: 16),
                               Expanded(
-                                child: TextField(
-                                  decoration: InputDecoration(
-                                    labelText: '高度',
-                                    border: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
-                                    contentPadding: const EdgeInsets.symmetric(
-                                        horizontal: 12, vertical: 8),
-                                  ),
-                                  keyboardType: TextInputType.number,
-                                  controller: TextEditingController(
-                                    text: _virtualDisplayHeight.toString(),
-                                  ),
-                                  onChanged: (value) {
-                                    setState(() {
-                                      _virtualDisplayHeight = int.tryParse(value) ?? 1080;
-                                    });
-                                  },
+                                child: AppPlatform.isAndroidTV
+                                    ? DpadNativeTextField(
+                                        focusNode: _virtualDisplayHeightFocusNode,
+                                        controller: _virtualDisplayHeightController as NativeTextFieldController,
+                                        obscureText: false,
+                                      )
+                                    : TextField(
+                                        decoration: InputDecoration(
+                                          labelText: '高度',
+                                          border: OutlineInputBorder(
+                                            borderRadius: BorderRadius.circular(8),
+                                          ),
+                                          contentPadding: const EdgeInsets.symmetric(
+                                              horizontal: 12, vertical: 8),
+                                        ),
+                                        keyboardType: TextInputType.number,
+                                        controller: _virtualDisplayHeightController,
+                                        onChanged: (value) {
+                                          _virtualDisplayHeight = int.tryParse(value) ?? 1080;
+                                        },
+                                      ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          Row(
+                            children: [
+                              TextButton.icon(
+                                onPressed: () {
+                                  // 重置为当前屏幕尺寸
+                                  final screenSize = MediaQuery.of(context).size;
+                                  final pixelRatio = MediaQuery.of(context).devicePixelRatio;
+                                  final newWidth = (screenSize.width * pixelRatio).toInt();
+                                  final newHeight = (screenSize.height * pixelRatio).toInt();
+                                  
+                                  setState(() {
+                                    _virtualDisplayWidth = newWidth;
+                                    _virtualDisplayHeight = newHeight;
+                                    if (AppPlatform.isAndroidTV) {
+                                      (_virtualDisplayWidthController as NativeTextFieldController).text = newWidth.toString();
+                                      (_virtualDisplayHeightController as NativeTextFieldController).text = newHeight.toString();
+                                    } else {
+                                      _virtualDisplayWidthController.text = newWidth.toString();
+                                      _virtualDisplayHeightController.text = newHeight.toString();
+                                    }
+                                  });
+                                },
+                                icon: const Icon(Icons.screen_rotation, size: 16),
+                                label: const Text('重置为当前屏幕尺寸'),
+                                style: TextButton.styleFrom(
+                                  foregroundColor: _iconColor,
+                                ),
+                              ),
+                              const Spacer(),
+                              TextButton.icon(
+                                onPressed: () {
+                                  // 重置为默认尺寸
+                                  setState(() {
+                                    _virtualDisplayWidth = 1920;
+                                    _virtualDisplayHeight = 1080;
+                                    if (AppPlatform.isAndroidTV) {
+                                      (_virtualDisplayWidthController as NativeTextFieldController).text = '1920';
+                                      (_virtualDisplayHeightController as NativeTextFieldController).text = '1080';
+                                    } else {
+                                      _virtualDisplayWidthController.text = '1920';
+                                      _virtualDisplayHeightController.text = '1080';
+                                    }
+                                  });
+                                },
+                                icon: const Icon(Icons.refresh, size: 16),
+                                label: const Text('重置为默认尺寸'),
+                                style: TextButton.styleFrom(
+                                  foregroundColor: _iconColor,
                                 ),
                               ),
                             ],
@@ -874,8 +1004,16 @@ class _DeviceDetailPageState extends State<DeviceDetailPage> {
     
     // 设置流模式
     StreamingSettings.streamMode = _selectedMode;
+    if (_selectedMode != 0) {
+      // 创建虚拟显示器 其id应当为对方的屏幕数量
+      StreamingSettings.updateScreenId(widget.device.screencount);
+    }
     StreamingSettings.customScreenWidth = _virtualDisplayWidth;
     StreamingSettings.customScreenHeight = _virtualDisplayHeight;
+    
+    // 保存虚拟显示器尺寸到缓存
+    await SharedPreferencesManager.setInt('virtualDisplayWidth', _virtualDisplayWidth);
+    await SharedPreferencesManager.setInt('virtualDisplayHeight', _virtualDisplayHeight);
     
     StreamingManager.startStreaming(widget.device);
     VLOG0('连接设备: ${widget.device.devicename}');

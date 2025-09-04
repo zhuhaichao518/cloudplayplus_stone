@@ -38,8 +38,8 @@ class StreamedManager {
     //}
   }
 
-  // 虚拟显示器管理 - 使用集合记录所有创建的虚拟显示器
-  static Set<int> _virtualDisplayIds = {};
+  // Map from real screen id to virtual display id
+  static Map<int, int> virtualDisplayIds = {};
 
   // 创建虚拟显示器
   static Future<int?> _createVirtualDisplay(int width, int height) async {
@@ -53,9 +53,8 @@ class StreamedManager {
 
       // 创建虚拟显示器
       int displayId = await HardwareSimulator.createDisplay();
-      if (displayId > 0) {
-        _virtualDisplayIds.add(displayId);
-        VLOG0('创建虚拟显示器成功，ID: $displayId');
+      if (displayId >= 0) {
+        VLOG0('创建虚拟显示器成功,ID: $displayId');
         
         // 设置虚拟显示器分辨率
         bool success = await HardwareSimulator.changeDisplaySettings(
@@ -80,34 +79,14 @@ class StreamedManager {
   // 移除指定的虚拟显示器
   static Future<void> _removeVirtualDisplay(int displayId) async {
     try {
-      if (_virtualDisplayIds.contains(displayId)) {
-        bool removed = await HardwareSimulator.removeDisplay(displayId);
-        if (removed) {
-          _virtualDisplayIds.remove(displayId);
-          VLOG0('删除虚拟显示器成功，ID: $displayId');
-        } else {
-          VLOG0('删除虚拟显示器失败，ID: $displayId');
-        }
+      bool removed = await HardwareSimulator.removeDisplay(displayId);
+      if (removed) {
+        VLOG0('删除虚拟显示器成功,ID: $displayId');
+      } else {
+        VLOG0('删除虚拟显示器失败,ID: $displayId');
       }
     } catch (e) {
       VLOG0('删除虚拟显示器异常: $e');
-    }
-  }
-
-  // 移除所有虚拟显示器
-  static Future<void> _removeAllVirtualDisplays() async {
-    try {
-      for (int displayId in _virtualDisplayIds.toList()) {
-        bool removed = await HardwareSimulator.removeDisplay(displayId);
-        if (removed) {
-          VLOG0('删除虚拟显示器成功，ID: $displayId');
-        } else {
-          VLOG0('删除虚拟显示器失败，ID: $displayId');
-        }
-      }
-      _virtualDisplayIds.clear();
-    } catch (e) {
-      VLOG0('删除所有虚拟显示器异常: $e');
     }
   }
 
@@ -119,6 +98,8 @@ class StreamedManager {
     if (settings.connectPassword == null) return;
     if (StreamingSettings.connectPasswordHash !=
         HashUtil.hash(settings.connectPassword!)) return;
+    
+    bool shouldWait = false;
 
     await _lock.synchronized(() async {
       if (sessions.containsKey(target.websocketSessionid)) {
@@ -126,23 +107,35 @@ class StreamedManager {
             "Starting session which is already started: $target.websocketSessionid");
         return;
       }
-
       // 处理虚拟显示器模式
       if (settings.streamMode != null && settings.streamMode! > 0) {
+        //远端负责给我们传screenId, id应当等于目前显示器数量, 否则可能未及时同步，拒绝创建虚拟显示器
+        if (settings.screenId != ApplicationInfo.screencount) {
+          VLOG0('远端传的screenId不等于目前显示器数量，拒绝创建虚拟显示器');
+          return;
+        }
         // 独占模式或扩展屏模式，需要创建虚拟显示器
         int width = settings.customScreenWidth ?? 1920;
         int height = settings.customScreenHeight ?? 1080;
-        
         int? virtualDisplayId = await _createVirtualDisplay(width, height);
         if (virtualDisplayId != null) {
           // 使用虚拟显示器的ID作为screenId
-          // settings.screenId = virtualDisplayId;
+          shouldWait = true;
+          virtualDisplayIds[settings.screenId!] = virtualDisplayId;
           VLOG0('使用虚拟显示器模式，显示器ID: $virtualDisplayId');
         } else {
-          VLOG0('创建虚拟显示器失败，使用默认模式');
+          VLOG0('创建虚拟显示器失败');
+          return;
         }
       }
+    });
+    
+    //Give Windows a second to create virtual display.
+    if (shouldWait) {
+      await Future.delayed(const Duration(milliseconds: 5000));
+    }
 
+    await _lock.synchronized(() async {
       if (!localVideoStreams.containsKey(settings.screenId!)) {
         final Map<String, dynamic> mediaConstraints;
         if (AppPlatform.isWeb) {
@@ -165,7 +158,8 @@ class StreamedManager {
               'deviceId': {'exact': source.id},
               'mandatory': {
                 'frameRate': settings.framerate,
-                'hasCursor': settings.showRemoteCursor
+                //Todo(haichao): currently disable this because it will cause crash on some devices.
+                'hasCursor': false//settings.showRemoteCursor
               }
             },
             'audio': false
@@ -215,15 +209,14 @@ class StreamedManager {
             localVideoStreams.remove(screenId);
           }
           
-          // 如果这个screenId是虚拟显示器，则移除它
-          if (_virtualDisplayIds.contains(screenId)) {
-            _removeVirtualDisplay(screenId);
+          // 如果这个screenId对应的是虚拟显示器，则移除它
+          if (virtualDisplayIds.containsKey(screenId)) {
+            _removeVirtualDisplay(virtualDisplayIds[screenId]!);
+            virtualDisplayIds.remove(screenId);
           }
         }
         if (sessions.isEmpty) {
           //TODO(Haichao): maybe restart app to save memory? 给用户一个按钮来重启app.
-          // 清理所有剩余的虚拟显示器
-          _removeAllVirtualDisplays();
         }
       } else {
         VLOG0("No session found with sessionId: $target.websocketSessionid");
