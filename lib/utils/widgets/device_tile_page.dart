@@ -716,11 +716,11 @@ class _DeviceDetailPageState extends State<DeviceDetailPage> {
                               break;
                             case 1:
                               modeName = "独占模式";
-                              modeDescription = "创建一个虚拟显示器，并将其设置为主显示器并连接";
+                              modeDescription = "创建一个虚拟显示器，并将其设置为唯一主显示器并连接";
                               break;
                             case 2:
                               modeName = "扩展屏模式";
-                              modeDescription = "创建一个虚拟显示器并连接";
+                              modeDescription = "创建一个虚拟显示器并连接。请在windows上设置>系统>屏幕为扩展这些显示器";
                               break;
                             default:
                               modeName = "";
@@ -1004,7 +1004,13 @@ class _DeviceDetailPageState extends State<DeviceDetailPage> {
     
     // 设置流模式
     StreamingSettings.streamMode = _selectedMode;
-    if (_selectedMode != 0) {
+    if (_selectedMode == 0) {
+      StreamingSettings.updateScreenId(_selectedMonitorId - 1);
+    }
+    if (_selectedMode == 1) {
+      StreamingSettings.updateScreenId(0);
+    }
+    if (_selectedMode == 2) {
       // 创建虚拟显示器 其id应当为对方的屏幕数量
       StreamingSettings.updateScreenId(widget.device.screencount);
     }

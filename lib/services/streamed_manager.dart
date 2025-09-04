@@ -3,6 +3,7 @@ import 'package:cloudplayplus/global_settings/streaming_settings.dart';
 import 'package:cloudplayplus/utils/hash_util.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
+import 'package:hardware_simulator/display_data.dart';
 import 'package:synchronized/synchronized.dart';
 import 'package:hardware_simulator/hardware_simulator.dart';
 
@@ -124,6 +125,20 @@ class StreamedManager {
     }
   }
 
+  Future<void> _loadCurrentMultiDisplayMode() async {
+    try {
+      MultiDisplayMode mode = await HardwareSimulator.getCurrentMultiDisplayMode();
+      print('Current multi-display mode: $mode');
+    } catch (e) {
+      print('Failed to load current multi-display mode: $e');
+    }
+  }
+
+  Future<void> _setMultiDisplayMode(MultiDisplayMode mode) async {
+      await HardwareSimulator.setMultiDisplayMode(mode);
+      await _loadCurrentMultiDisplayMode();
+  }
+
   static void startStreaming(Device target, StreamedSettings settings) async {
     bool allowConnect = ApplicationInfo
         .connectable; // || (AppPlatform.isWindows && ApplicationInfo.isSystem);
@@ -141,6 +156,10 @@ class StreamedManager {
         VLOG0(
             "Starting session which is already started: $target.websocketSessionid");
         return;
+      }
+      if (settings.streamMode != null && settings.streamMode == 1) {
+        // 独占模式，暂时视为串流到新增的screenid 稍后重置为0
+        settings.screenId = ApplicationInfo.screencount;
       }
       // 处理虚拟显示器模式
       if (settings.streamMode != null && settings.streamMode! > 0) {
@@ -203,6 +222,12 @@ class StreamedManager {
             }
             await Future.delayed(const Duration(milliseconds: 500));
             sources = await desktopCapturer.getSources(types: [SourceType.Screen]);
+          }
+          // 独占模式，其实需要重置新显示器为主显示器
+          if (settings.streamMode == 1) {
+            await HardwareSimulator.setPrimaryDisplay(settings.screenId!);
+            //await HardwareSimulator.setMultiDisplayMode(MultiDisplayMode.primaryOnly);
+            settings.screenId = 0;
           }
           final source = sources[settings.screenId!];
           mediaConstraints = <String, dynamic>{
