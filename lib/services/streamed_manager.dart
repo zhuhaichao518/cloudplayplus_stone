@@ -125,6 +125,33 @@ class StreamedManager {
     }
   }
 
+  // 恢复显示器配置，带重试机制
+  static Future<void> _restoreDisplayConfigurationWithRetry() async {
+    int retryCount = 0;
+    const int maxRetries = 10;
+    const Duration retryInterval = Duration(milliseconds: 500);
+    
+    while (retryCount < maxRetries) {
+      try {
+        bool success = await HardwareSimulator.restoreDisplayConfiguration();
+        if (success) {
+          VLOG0("恢复显示器配置成功，重试次数: $retryCount");
+          return;
+        }
+      } catch (e) {
+        VLOG0("恢复显示器配置异常: $e");
+      }
+      
+      retryCount++;
+      if (retryCount < maxRetries) {
+        VLOG0("恢复显示器配置失败，${retryInterval.inMilliseconds}ms后重试 (${retryCount}/$maxRetries)");
+        await Future.delayed(retryInterval);
+      }
+    }
+    
+    VLOG0("恢复显示器配置失败，已达到最大重试次数: $maxRetries");
+  }
+
   Future<void> _loadCurrentMultiDisplayMode() async {
     try {
       MultiDisplayMode mode = await HardwareSimulator.getCurrentMultiDisplayMode();
@@ -150,6 +177,8 @@ class StreamedManager {
     
     bool shouldWait = false;
     Completer<void>? displayCallbackCompleter;
+    
+    bool shouldreturn = false;
 
     await _lock.synchronized(() async {
       if (sessions.containsKey(target.websocketSessionid)) {
@@ -162,6 +191,7 @@ class StreamedManager {
         bool hasPending = await HardwareSimulator.hasPendingConfiguration();
         if (hasPending) {
           VLOG0("已经被其他设备使用了独占显示器模式，无法连接");
+          shouldreturn = true;
           return;
         }
         settings.screenId = ApplicationInfo.screencount;
@@ -171,6 +201,7 @@ class StreamedManager {
         //远端负责给我们传screenId, id应当等于目前显示器数量, 否则可能未及时同步，拒绝创建虚拟显示器
         if (settings.screenId != ApplicationInfo.screencount) {
           VLOG0('远端传的screenId不等于目前显示器数量，拒绝创建虚拟显示器');
+          shouldreturn = true;
           return;
         }
         // 独占模式或扩展屏模式，需要创建虚拟显示器
@@ -194,10 +225,13 @@ class StreamedManager {
           VLOG0('使用虚拟显示器模式，显示器ID: $virtualDisplayId');
         } else {
           VLOG0('创建虚拟显示器失败');
+          shouldreturn = true;
           return;
         }
       }
     });
+
+    if (shouldreturn) return;
     
     //Give Windows time to create virtual display and wait for display count change callback.
     if (shouldWait && displayCallbackCompleter != null) {
@@ -318,7 +352,8 @@ class StreamedManager {
             virtualDisplayIds.remove(screenId);
             if (session.streamSettings?.streamMode == 1) {
               //虚拟显示器模式结束，恢复之前的屏幕设置。
-              HardwareSimulator.restoreDisplayConfiguration();
+              _restoreDisplayConfigurationWithRetry();
+              VLOG0("restore monitor config");
             }
           }
         }
