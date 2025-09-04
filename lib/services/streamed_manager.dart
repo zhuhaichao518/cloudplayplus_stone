@@ -159,6 +159,11 @@ class StreamedManager {
       }
       if (settings.streamMode != null && settings.streamMode == 1) {
         // 独占模式，暂时视为串流到新增的screenid 稍后重置为0
+        bool hasPending = await HardwareSimulator.hasPendingConfiguration();
+        if (hasPending) {
+          VLOG0("已经被其他设备使用了独占显示器模式，无法连接");
+          return;
+        }
         settings.screenId = ApplicationInfo.screencount;
       }
       // 处理虚拟显示器模式
@@ -180,7 +185,12 @@ class StreamedManager {
         if (virtualDisplayId != null) {
           // 使用虚拟显示器的ID作为screenId
           shouldWait = true;
-          virtualDisplayIds[settings.screenId!] = virtualDisplayId;
+          if (settings.streamMode == 1) {
+            virtualDisplayIds[0] = virtualDisplayId;
+          }
+          if (settings.streamMode == 2) {
+            virtualDisplayIds[settings.screenId!] = virtualDisplayId;
+          }
           VLOG0('使用虚拟显示器模式，显示器ID: $virtualDisplayId');
         } else {
           VLOG0('创建虚拟显示器失败');
@@ -218,15 +228,31 @@ class StreamedManager {
             retryCount++;
             if (retryCount > 10) {
               VLOG0('创建虚拟显示器后 等待超时');
+              //也许不用remove？
+              if (virtualDisplayIds.containsKey(settings.screenId)) {
+                _removeVirtualDisplay(virtualDisplayIds[settings.screenId]!);
+                virtualDisplayIds.remove(settings.screenId);
+              }
               return;
             }
             await Future.delayed(const Duration(milliseconds: 500));
             sources = await desktopCapturer.getSources(types: [SourceType.Screen]);
           }
           // 独占模式，其实需要重置新显示器为主显示器
-          if (settings.streamMode == 1) {
-            await HardwareSimulator.setPrimaryDisplay(settings.screenId!);
+          if (settings.streamMode == 1 && sources.length != 1) {
             //await HardwareSimulator.setMultiDisplayMode(MultiDisplayMode.primaryOnly);
+            await HardwareSimulator.setPrimaryDisplayOnly(virtualDisplayIds[0]!);
+            retryCount = 0;
+            while (sources.length != 1) {
+              retryCount++;
+              if (retryCount > 10) {
+                VLOG0('创建虚拟显示器后 等待超时');
+                HardwareSimulator.restoreDisplayConfiguration();
+                return;
+              }
+              await Future.delayed(const Duration(milliseconds: 500));
+              sources = await desktopCapturer.getSources(types: [SourceType.Screen]);
+            }
             settings.screenId = 0;
           }
           final source = sources[settings.screenId!];
@@ -290,6 +316,10 @@ class StreamedManager {
           if (virtualDisplayIds.containsKey(screenId)) {
             _removeVirtualDisplay(virtualDisplayIds[screenId]!);
             virtualDisplayIds.remove(screenId);
+            if (session.streamSettings?.streamMode == 1) {
+              //虚拟显示器模式结束，恢复之前的屏幕设置。
+              HardwareSimulator.restoreDisplayConfiguration();
+            }
           }
         }
         if (sessions.isEmpty) {
