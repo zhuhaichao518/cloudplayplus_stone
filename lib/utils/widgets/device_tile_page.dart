@@ -672,6 +672,8 @@ class _DeviceDetailPageState extends State<DeviceDetailPage> {
                 const SizedBox(height: 16),
 
                 // 高级模式选择卡片
+                if (widget.device.websocketSessionid !=
+                        ApplicationInfo.thisDevice.websocketSessionid)
                 Card(
                   elevation: 2,
                   shape: RoundedRectangleBorder(
