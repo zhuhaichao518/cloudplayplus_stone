@@ -58,7 +58,36 @@ class StreamedManager {
       await HardwareSimulator.getAllDisplays();
       if (displayId >= 0) {
         VLOG0('创建虚拟显示器成功,ID: $displayId');
+        final customConfigs = await HardwareSimulator.getCustomDisplayConfigs();
+
+        List<Map<String, dynamic>> newConfigs = List.from(customConfigs);
         
+        bool isresolutionExist = false;
+
+        for (var config in newConfigs) {
+          if (config['width'] == width && config['height'] == height) {
+            isresolutionExist = true;
+            break;
+          }
+        }
+        if (!isresolutionExist) {
+          if (newConfigs.length > 4) {
+            newConfigs.removeAt(0);
+          }
+
+          newConfigs.add({
+            'width': width,
+            'height': height,
+            'refreshRate': 60,
+          });
+
+          bool success = await HardwareSimulator.setCustomDisplayConfigs(newConfigs);
+          if (success) {
+            VLOG0('添加虚拟显示器分辨率成功: ${width}x${height}');
+          } else {
+            VLOG0('添加虚拟显示器分辨率失败');
+          }
+        }
         // 设置虚拟显示器分辨率
         bool success = await HardwareSimulator.changeDisplaySettings(
           displayId, width, height, 60);
