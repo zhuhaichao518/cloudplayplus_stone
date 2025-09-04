@@ -101,7 +101,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   );
                 },
               ),
-              SettingsTile.navigation(
+              AppPlatform.isWindows?SettingsTile.navigation(
                 leading: const Icon(Icons.gamepad),
                 title: const Text('虚拟显示器设置'),
                 onPressed: (context) {
