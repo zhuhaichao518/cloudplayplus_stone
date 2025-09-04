@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:cloudplayplus/global_settings/streaming_settings.dart';
 import 'package:cloudplayplus/utils/hash_util.dart';
 import 'package:flutter/foundation.dart';
@@ -53,6 +54,8 @@ class StreamedManager {
 
       // 创建虚拟显示器
       int displayId = await HardwareSimulator.createDisplay();
+      //refresh display list.
+      await HardwareSimulator.getAllDisplays();
       if (displayId >= 0) {
         VLOG0('创建虚拟显示器成功,ID: $displayId');
         
@@ -81,6 +84,8 @@ class StreamedManager {
     try {
       bool removed = await HardwareSimulator.removeDisplay(displayId);
       if (removed) {
+        //refresh display list.
+        await HardwareSimulator.getAllDisplays();
         VLOG0('删除虚拟显示器成功,ID: $displayId');
       } else {
         VLOG0('删除虚拟显示器失败,ID: $displayId');
@@ -100,6 +105,7 @@ class StreamedManager {
         HashUtil.hash(settings.connectPassword!)) return;
     
     bool shouldWait = false;
+    Completer<void>? displayCallbackCompleter;
 
     await _lock.synchronized(() async {
       if (sessions.containsKey(target.websocketSessionid)) {
@@ -117,6 +123,11 @@ class StreamedManager {
         // 独占模式或扩展屏模式，需要创建虚拟显示器
         int width = settings.customScreenWidth ?? 1920;
         int height = settings.customScreenHeight ?? 1080;
+        
+        // 创建全局的Completer来等待显示器数量变化回调
+        ApplicationInfo.displayCountChangedCompleter = Completer<void>();
+        displayCallbackCompleter = ApplicationInfo.displayCountChangedCompleter;
+        
         int? virtualDisplayId = await _createVirtualDisplay(width, height);
         if (virtualDisplayId != null) {
           // 使用虚拟显示器的ID作为screenId
@@ -130,9 +141,11 @@ class StreamedManager {
       }
     });
     
-    //Give Windows a second to create virtual display.
-    if (shouldWait) {
-      await Future.delayed(const Duration(milliseconds: 5000));
+    //Give Windows time to create virtual display and wait for display count change callback.
+    if (shouldWait && displayCallbackCompleter != null) {
+      // 等待显示器数量变化回调被触发，然后等待500ms
+      await displayCallbackCompleter!.future;
+      await Future.delayed(const Duration(milliseconds: 500));
     }
 
     await _lock.synchronized(() async {
@@ -152,6 +165,16 @@ class StreamedManager {
           var sources =
               await desktopCapturer.getSources(types: [SourceType.Screen]);
           //Todo(haichao): currently this should have no effect. we should change it to be right.
+          int retryCount = 0;
+          while (sources.length <= settings.screenId!) {
+            retryCount++;
+            if (retryCount > 10) {
+              VLOG0('创建虚拟显示器后 等待超时');
+              return;
+            }
+            await Future.delayed(const Duration(milliseconds: 500));
+            sources = await desktopCapturer.getSources(types: [SourceType.Screen]);
+          }
           final source = sources[settings.screenId!];
           mediaConstraints = <String, dynamic>{
             'video': {

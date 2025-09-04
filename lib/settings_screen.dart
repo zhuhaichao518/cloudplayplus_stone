@@ -1,6 +1,7 @@
 import 'package:cloudplayplus/controller/hardware_input_controller.dart';
 import 'package:cloudplayplus/dev_settings.dart/develop_settings.dart';
 import 'package:cloudplayplus/global_settings/streaming_settings.dart';
+import 'package:cloudplayplus/pages/display_manager_page.dart';
 import 'package:cloudplayplus/pages/login_screen.dart';
 import 'package:cloudplayplus/services/app_info_service.dart';
 import 'package:cloudplayplus/services/login_service.dart';
@@ -96,6 +97,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     screen: VirtualGamepadSettingsPage(
                       controlManager: ControlManager(),
                     ),
+                    style: NavigationRouteStyle.cupertino,
+                  );
+                },
+              ),
+              SettingsTile.navigation(
+                leading: const Icon(Icons.gamepad),
+                title: const Text('虚拟显示器设置'),
+                onPressed: (context) {
+                  Navigation.navigateTo(
+                    context: context,
+                    screen: DisplayManagerPage(),
                     style: NavigationRouteStyle.cupertino,
                   );
                 },

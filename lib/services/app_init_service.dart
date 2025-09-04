@@ -64,6 +64,12 @@ class AppInitService {
         if (WebSocketService.connectionState == WebSocketConnectionState.connected) {
           WebSocketService.updateDeviceInfo();
         }
+        HardwareSimulator.initParsecVdd();
+        // 完成全局的显示器数量变化Completer
+        if (ApplicationInfo.displayCountChangedCompleter != null && 
+            !ApplicationInfo.displayCountChangedCompleter!.isCompleted) {
+          ApplicationInfo.displayCountChangedCompleter!.complete();
+        }
       }, 0);
     }
     bool? isSystem = await HardwareSimulator.isRunningAsSystem();
