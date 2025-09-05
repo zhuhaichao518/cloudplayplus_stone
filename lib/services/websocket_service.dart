@@ -174,8 +174,6 @@ class WebSocketService {
           AppStateService.websocketSessionid = data['connection_id'];
           ApplicationInfo.user =
               User(uid: data['uid'], nickname: data['nickname']);
-          ApplicationInfo.screencount =
-              await HardwareSimulator.getMonitorCount();
           send('updateDeviceInfo', {
             'deviceName': ApplicationInfo.deviceName,
             'deviceType': ApplicationInfo.deviceTypeName,

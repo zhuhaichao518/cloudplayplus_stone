@@ -6,7 +6,7 @@
 class DevelopSettings {
   static bool useUnsafeServer = false;
   static bool useLocalServer = false;
-  static bool useSecureStorage = true;
+  static bool useSecureStorage = false;
   static bool alwaysShowIntroPage = false;
   static bool useRTCTestServer = false;
   static bool isDebugging = false;

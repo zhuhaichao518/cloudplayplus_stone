@@ -96,6 +96,11 @@ class StreamingSession {
   int screenId = 0;
 
   int cursorImageHookID = 0;
+  int cursorPositionUpdatedHookID = 0;
+  
+  // 标记哪些回调已经注册
+  bool _cursorImageHookRegistered = false;
+  bool _cursorPositionHookRegistered = false;
 
   AudioSession? audioSession;
   int audioBitrate = 32;
@@ -337,6 +342,23 @@ class StreamingSession {
         VLOG0("requiring connection on wrong device. Please debug.");
         return;
       }
+      //TODO:implement addCursorPositionUpdated for MacOS.
+      if (settings.syncMousePosition == true && AppPlatform.isWindows) {
+          HardwareSimulator.addCursorPositionUpdated((message, screenId, xPercent, yPercent) {
+            if (message == HardwareSimulator.CURSOR_POSITION_CHANGED && image_hooked) {
+              //print("CURSOR_POSITION_CHANGED: $xPercent, $yPercent");
+              ByteData byteData = ByteData(17);
+              byteData.setUint8(0, LP_MOUSECURSOR_CHANGED);
+              byteData.setInt32(1, message);
+              byteData.setInt32(5, screenId);
+              byteData.setFloat32(9, xPercent, Endian.little);
+              byteData.setFloat32(13, yPercent, Endian.little);
+              Uint8List buffer = byteData.buffer.asUint8List();
+              channel?.send(RTCDataChannelMessage.fromBinary(buffer));
+            }
+          }, cursorPositionUpdatedHookID);
+          _cursorPositionHookRegistered = true;
+      }
       selfSessionType = SelfSessionType.controlled;
       restartPingTimeoutTimer(10);
       streamSettings = settings;
@@ -452,6 +474,7 @@ class StreamingSession {
           HardwareSimulator.addCursorImageUpdated(
               onLocalCursorImageMessage, cursorImageHookID, hookall);
           image_hooked = true;
+          _cursorImageHookRegistered = true;
         }
         processDataChannelMessageFromClient(msg);
       };
@@ -679,11 +702,24 @@ class StreamingSession {
           StreamingSessionConnectionState.disconnected;
       connectionState = StreamingSessionConnectionState.disconnected;
       //controlled.connectionState.value = StreamingSessionConnectionState.free;
-      if (streamSettings?.hookCursorImage == true &&
-          selfSessionType == SelfSessionType.controlled) {
+      if (_cursorImageHookRegistered && selfSessionType == SelfSessionType.controlled) {
         if (AppPlatform.isDeskTop) {
           HardwareSimulator.removeCursorImageUpdated(cursorImageHookID);
+          _cursorImageHookRegistered = false;
         }
+      }
+      if (_cursorPositionHookRegistered && selfSessionType == SelfSessionType.controlled) {
+        //TODO:implement for MacOS
+        if (AppPlatform.isWindows) {
+            HardwareSimulator.removeCursorPositionUpdated(cursorPositionUpdatedHookID);
+            _cursorPositionHookRegistered = false;
+        }
+      }
+      if (selfSessionType == SelfSessionType.controlled && (AppPlatform.isWindows)) {
+        await HardwareSimulator.clearAllPressedEvents();
+      }
+      if (selfSessionType == SelfSessionType.controller && (AppPlatform.isMobile || AppPlatform.isAndroidTV)) {
+        InputController.mouseController.setHasMoved(false);
       }
       if (WebrtcService.currentRenderingSession == this) {
         if (HardwareSimulator.cursorlocked) {
