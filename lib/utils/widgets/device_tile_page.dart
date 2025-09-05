@@ -866,19 +866,23 @@ class _DeviceDetailPageState extends State<DeviceDetailPage> {
                                 onPressed: () {
                                   // 重置为默认尺寸
                                   setState(() {
-                                    _virtualDisplayWidth = 1920;
-                                    _virtualDisplayHeight = 1080;
+                                    final screenSize = MediaQuery.of(context).size;
+                                    final pixelRatio = MediaQuery.of(context).devicePixelRatio;
+                                    final newWidth = (screenSize.width * pixelRatio / 2).toInt();
+                                    final newHeight = (screenSize.height * pixelRatio / 2).toInt();
+                                    _virtualDisplayWidth = newWidth;
+                                    _virtualDisplayHeight = newHeight;
                                     if (AppPlatform.isAndroidTV) {
-                                      (_virtualDisplayWidthController as NativeTextFieldController).text = '1920';
-                                      (_virtualDisplayHeightController as NativeTextFieldController).text = '1080';
+                                      (_virtualDisplayWidthController as NativeTextFieldController).text = newWidth.toString();
+                                      (_virtualDisplayHeightController as NativeTextFieldController).text = newHeight.toString();
                                     } else {
-                                      _virtualDisplayWidthController.text = '1920';
-                                      _virtualDisplayHeightController.text = '1080';
+                                      _virtualDisplayWidthController.text = newWidth.toString();
+                                      _virtualDisplayHeightController.text = newHeight.toString();
                                     }
                                   });
                                 },
                                 icon: const Icon(Icons.refresh, size: 16),
-                                label: const Text('重置为默认尺寸'),
+                                label: const Text('重置为当前屏幕尺寸的一半(省流 性能更好)'),
                                 style: TextButton.styleFrom(
                                   foregroundColor: _iconColor,
                                 ),

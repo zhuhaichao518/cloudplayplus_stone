@@ -238,6 +238,7 @@ class StreamedManager {
       // 等待显示器数量变化回调被触发，然后等待500ms
       await displayCallbackCompleter!.future;
       await Future.delayed(const Duration(milliseconds: 500));
+      displayCallbackCompleter = null;
     }
 
     await _lock.synchronized(() async {
@@ -258,7 +259,13 @@ class StreamedManager {
               await desktopCapturer.getSources(types: [SourceType.Screen]);
           //Todo(haichao): currently this should have no effect. we should change it to be right.
           int retryCount = 0;
+          //理论上应该等待length符合期望 但是有可能windows缓存了设置导致部分显示器不使用 显示器数量没有变多 何解？
           while (sources.length <= settings.screenId!) {
+            //有可能是因为没设置为扩展模式
+            MultiDisplayMode currentMode = await HardwareSimulator.getCurrentMultiDisplayMode();
+            if (currentMode != MultiDisplayMode.extend) {
+              await HardwareSimulator.setMultiDisplayMode(MultiDisplayMode.extend);
+            }
             retryCount++;
             if (retryCount > 10) {
               VLOG0('创建虚拟显示器后 等待超时');
@@ -269,23 +276,25 @@ class StreamedManager {
               }
               return;
             }
-            await Future.delayed(const Duration(milliseconds: 500));
             sources = await desktopCapturer.getSources(types: [SourceType.Screen]);
+            await Future.delayed(const Duration(milliseconds: 500));
           }
-          // 独占模式，其实需要重置新显示器为主显示器
-          if (settings.streamMode == 1 && sources.length != 1) {
+          // 独占模式，需要重置新显示器为主显示器
+          if (settings.streamMode == 1) {
             //await HardwareSimulator.setMultiDisplayMode(MultiDisplayMode.primaryOnly);
-            await HardwareSimulator.setPrimaryDisplayOnly(virtualDisplayIds[0]!);
-            retryCount = 0;
-            while (sources.length != 1) {
-              retryCount++;
-              if (retryCount > 10) {
-                VLOG0('创建虚拟显示器后 等待超时');
-                HardwareSimulator.restoreDisplayConfiguration();
-                return;
+            if (sources.length != 1) {
+              await HardwareSimulator.setPrimaryDisplayOnly(virtualDisplayIds[0]!);
+              retryCount = 0;
+              while (sources.length != 1) {
+                retryCount++;
+                if (retryCount > 10) {
+                  VLOG0('创建虚拟显示器后 等待超时');
+                  HardwareSimulator.restoreDisplayConfiguration();
+                  return;
+                }
+                await Future.delayed(const Duration(milliseconds: 500));
+                sources = await desktopCapturer.getSources(types: [SourceType.Screen]);
               }
-              await Future.delayed(const Duration(milliseconds: 500));
-              sources = await desktopCapturer.getSources(types: [SourceType.Screen]);
             }
             settings.screenId = 0;
           }

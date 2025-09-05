@@ -58,13 +58,13 @@ class AppInitService {
     ApplicationInfo.screencount = await HardwareSimulator.getMonitorCount();
     //TODO:implement for other platforms
     if (AppPlatform.isWindows) {
+      HardwareSimulator.initParsecVdd();
       ApplicationInfo.screencount = await HardwareSimulator.getAllDisplays();
       HardwareSimulator.addDisplayCountChangedCallback((displayCount) {
         ApplicationInfo.screencount = displayCount;
         if (WebSocketService.connectionState == WebSocketConnectionState.connected) {
           WebSocketService.updateDeviceInfo();
         }
-        HardwareSimulator.initParsecVdd();
         // 完成全局的显示器数量变化Completer
         if (ApplicationInfo.displayCountChangedCompleter != null && 
             !ApplicationInfo.displayCountChangedCompleter!.isCompleted) {
