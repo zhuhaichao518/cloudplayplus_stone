@@ -104,35 +104,95 @@ class _MyHomePageState extends State<MyHomePage> {
           ),
         ],
       ),
-      floatingActionButton: Column(
-        mainAxisAlignment: MainAxisAlignment.end,
+      floatingActionButton: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-          FloatingActionButton(
-            onPressed: () {
-              _mouseController.moveDelta(10, 0);
-            },
-            child: const Icon(Icons.arrow_right),
+          // 相对移动控制
+          Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text('相对移动'),
+              const SizedBox(height: 8),
+              FloatingActionButton(
+                heroTag: "delta_right",
+                onPressed: () {
+                  _mouseController.moveDelta(10, 0);
+                },
+                child: const Icon(Icons.arrow_right),
+              ),
+              const SizedBox(height: 8),
+              FloatingActionButton(
+                heroTag: "delta_left",
+                onPressed: () {
+                  _mouseController.moveDelta(-10, 0);
+                },
+                child: const Icon(Icons.arrow_left),
+              ),
+              const SizedBox(height: 8),
+              FloatingActionButton(
+                heroTag: "delta_up",
+                onPressed: () {
+                  _mouseController.moveDelta(0, -10);
+                },
+                child: const Icon(Icons.arrow_upward),
+              ),
+              const SizedBox(height: 8),
+              FloatingActionButton(
+                heroTag: "delta_down",
+                onPressed: () {
+                  _mouseController.moveDelta(0, 10);
+                },
+                child: const Icon(Icons.arrow_downward),
+              ),
+            ],
           ),
-          const SizedBox(height: 8),
-          FloatingActionButton(
-            onPressed: () {
-              _mouseController.moveDelta(-10, 0);
-            },
-            child: const Icon(Icons.arrow_left),
-          ),
-          const SizedBox(height: 8),
-          FloatingActionButton(
-            onPressed: () {
-              _mouseController.moveDelta(0, -10);
-            },
-            child: const Icon(Icons.arrow_upward),
-          ),
-          const SizedBox(height: 8),
-          FloatingActionButton(
-            onPressed: () {
-              _mouseController.moveDelta(0, 10);
-            },
-            child: const Icon(Icons.arrow_downward),
+          
+          // 绝对位置控制
+          Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text('绝对位置'),
+              const SizedBox(height: 8),
+              FloatingActionButton(
+                heroTag: "abs_center",
+                onPressed: () {
+                  _mouseController.moveAbsl(0.5, 0.5);
+                },
+                child: const Icon(Icons.center_focus_strong),
+              ),
+              const SizedBox(height: 8),
+              FloatingActionButton(
+                heroTag: "abs_topleft",
+                onPressed: () {
+                  _mouseController.moveAbsl(0.0, 0.0);
+                },
+                child: const Icon(Icons.north_west),
+              ),
+              const SizedBox(height: 8),
+              FloatingActionButton(
+                heroTag: "abs_topright",
+                onPressed: () {
+                  _mouseController.moveAbsl(1.0, 0.0);
+                },
+                child: const Icon(Icons.north_east),
+              ),
+              const SizedBox(height: 8),
+              FloatingActionButton(
+                heroTag: "abs_bottomleft",
+                onPressed: () {
+                  _mouseController.moveAbsl(0.0, 1.0);
+                },
+                child: const Icon(Icons.south_west),
+              ),
+              const SizedBox(height: 8),
+              FloatingActionButton(
+                heroTag: "abs_bottomright",
+                onPressed: () {
+                  _mouseController.moveAbsl(1.0, 1.0);
+                },
+                child: const Icon(Icons.south_east),
+              ),
+            ],
           ),
         ],
       ),

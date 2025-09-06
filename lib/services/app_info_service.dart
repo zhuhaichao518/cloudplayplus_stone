@@ -1,4 +1,5 @@
 //掉线连接管理.md
+import 'dart:async';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:device_info_plus/device_info_plus.dart';
@@ -15,6 +16,9 @@ class ApplicationInfo {
 
   //For windows, it is needed to be run as system to capture UAC window.
   static bool isSystem = true;
+  
+  // 全局的显示器数量变化Completer，供StreamedManager使用
+  static Completer<void>? displayCountChangedCompleter;
 
   static int get screenCount {
     if (screencount != null) {

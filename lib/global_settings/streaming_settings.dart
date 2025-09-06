@@ -51,6 +51,26 @@ class StreamingSettings {
   // 指针缩放倍率
   static double cursorScale = 50.0;
 
+  // TODO: 虚拟显示器功能实现
+  // This is not sent to controlled side.
+  // 0: 优先使用平台默认鼠标。如果没有，使用控制端渲染鼠标。
+  // 1: 强制使用控制端渲染鼠标。
+  // 2: 控制端不渲染鼠标。(配合showRemoteCursor)
+  static int cursorRenderMode = 0;
+
+  // 是否监听远程设备的鼠标位置更新
+  static bool syncMousePosition = false;
+
+  // 0: default mode. connect to monitor with that screenId
+  // 1: create a virtual monitor and stream to that monitor (Extended mode).
+  // 2: create a virtual monitor, and then set that monitor as default,
+  // then stream to that monitor.
+  static int streamMode = 0;
+
+  // if a virtual monitor needs to be created, specify the resolution.
+  static int customScreenWidth = 1920;
+  static int customScreenHeight = 1080;
+
   static void init() {
     InputController.resendCount =
         SharedPreferencesManager.getInt('ControlMsgResendCount') ?? (AppPlatform.isAndroidTV? 0:3);
@@ -143,6 +163,10 @@ class StreamingSettings {
       'hookCursorImage': hookCursorImage,
       'connectPassword': connectPassword,
       'useClipBoard': useClipBoard,
+      'syncMousePosition': syncMousePosition,
+      'streamMode': streamMode,
+      'customScreenWidth': customScreenWidth,
+      'customScreenHeight': customScreenHeight,
     };
     data.removeWhere((key, value) => value == null);
     return data;
@@ -172,6 +196,11 @@ class StreamedSettings {
   //设备的连接密码
   String? connectPassword = "";
   bool? useClipBoard;
+  bool? syncMousePosition;
+  // 0 默认 1 独占 2 扩展屏
+  int? streamMode;
+  int? customScreenWidth;
+  int? customScreenHeight;
 
   static StreamedSettings fromJson(Map<String, dynamic> settings) {
     return StreamedSettings()
@@ -184,6 +213,10 @@ class StreamedSettings {
       ..codec = settings['codec'] as String?
       ..hookCursorImage = settings['hookCursorImage'] as bool?
       ..connectPassword = settings['connectPassword'] as String?
-      ..useClipBoard = settings['useClipBoard'] as bool?;
+      ..useClipBoard = settings['useClipBoard'] as bool?
+      ..syncMousePosition = settings['syncMousePosition'] as bool?
+      ..streamMode = settings['streamMode'] as int?
+      ..customScreenWidth = settings['customScreenWidth'] as int?
+      ..customScreenHeight = settings['customScreenHeight'] as int?;
   }
 }
