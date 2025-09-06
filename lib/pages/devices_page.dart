@@ -35,9 +35,19 @@ class _DevicesPageState extends State<DevicesPage> {
         }
         Device deviceInstance;
         if (WebrtcService.streams.containsKey(device['connection_id'])) {
+          //lastSelectedDevice不是已经串流的stream时，应当保留已经串流的stream的状态。
           deviceInstance =
               StreamingManager.sessions[device['connection_id']]!.controlled;
-        } else {
+          deviceInstance.devicename = device['device_name'];
+          deviceInstance.connective = device['connective'];
+          deviceInstance.screencount = device['screen_count'];
+        } else if (device['connection_id'] == DeviceSelectManager.lastSelectedDevice?.websocketSessionid) {
+          deviceInstance = DeviceSelectManager.lastSelectedDevice!;
+          deviceInstance.devicename = device['device_name'];
+          deviceInstance.connective = device['connective'];
+          deviceInstance.screencount = device['screen_count'];
+        }
+        else {
           deviceInstance = Device(
               uid: device['owner_id'],
               nickname: device['owner_nickname'],
