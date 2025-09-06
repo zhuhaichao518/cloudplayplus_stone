@@ -10,8 +10,8 @@ class Device {
   final String devicetype;
   final String websocketSessionid;
   //allow this device to be connected
-  final bool connective;
-  final int screencount;
+  bool connective;
+  int screencount;
 
   ValueNotifier<StreamingSessionConnectionState> connectionState =
       ValueNotifier(StreamingSessionConnectionState.free);
