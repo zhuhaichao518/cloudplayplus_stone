@@ -1228,7 +1228,10 @@ class _DisplaySettingsScreenState extends State<DisplaySettingsScreen> {
                 _screenOrientation = 0;
                 SharedPreferencesManager.setInt('screenOrientation', _screenOrientation);
                 SystemChrome.setPreferredOrientations([
-                  DeviceOrientation.values.first,
+                  DeviceOrientation.portraitUp,
+                  DeviceOrientation.portraitDown,
+                  DeviceOrientation.landscapeLeft,
+                  DeviceOrientation.landscapeRight,
                 ]);
               });
             },
@@ -1261,7 +1264,6 @@ class _DisplaySettingsScreenState extends State<DisplaySettingsScreen> {
                 SharedPreferencesManager.setInt('screenOrientation', _screenOrientation);
                 SystemChrome.setPreferredOrientations([
                   DeviceOrientation.landscapeLeft,
-                  DeviceOrientation.landscapeRight,
                 ]);
               });
             },
@@ -1293,7 +1295,6 @@ class _DisplaySettingsScreenState extends State<DisplaySettingsScreen> {
                 _screenOrientation = 4;
                 SharedPreferencesManager.setInt('screenOrientation', _screenOrientation);
                 SystemChrome.setPreferredOrientations([
-                  DeviceOrientation.landscapeLeft,
                   DeviceOrientation.landscapeRight,
                 ]);
               });
