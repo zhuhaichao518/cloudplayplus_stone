@@ -333,7 +333,7 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
   Widget build(BuildContext context) {
     // set the default focus to remote desktop.
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (AppPlatform.isWindows) {
+      if (AppPlatform.isDeskTop) {
         InputController.cursorPositionCallback = onHardwareCursorPositionUpdateRequested;
       }
       focusNode.requestFocus();
@@ -613,7 +613,7 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
                   'You pressed: $_pressedKey',
                   style: TextStyle(fontSize: 24, color: Colors.red),
                 ),*/
-                if ((AppPlatform.isAndroidTV) || (AppPlatform.isMobile && AppStateService.isMouseConnected))
+                if ((AppPlatform.isAndroidTV) || (AppPlatform.isMobile /*&& AppStateService.isMouseConnected*/))
                   OnScreenRemoteMouse(
                   controller: InputController.mouseController,
                   onPositionChanged: (percentage) {
