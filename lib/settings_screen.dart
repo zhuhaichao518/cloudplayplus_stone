@@ -1,6 +1,7 @@
 import 'package:cloudplayplus/controller/hardware_input_controller.dart';
 import 'package:cloudplayplus/dev_settings.dart/develop_settings.dart';
 import 'package:cloudplayplus/global_settings/streaming_settings.dart';
+import 'package:cloudplayplus/pages/display_manager_page.dart';
 import 'package:cloudplayplus/pages/login_screen.dart';
 import 'package:cloudplayplus/services/app_info_service.dart';
 import 'package:cloudplayplus/services/login_service.dart';
@@ -96,6 +97,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     screen: VirtualGamepadSettingsPage(
                       controlManager: ControlManager(),
                     ),
+                    style: NavigationRouteStyle.cupertino,
+                  );
+                },
+              ),
+              if (AppPlatform.isWindows)SettingsTile.navigation(
+                leading: const Icon(Icons.gamepad),
+                title: const Text('虚拟显示器设置'),
+                onPressed: (context) {
+                  Navigation.navigateTo(
+                    context: context,
+                    screen: DisplayManagerPage(),
                     style: NavigationRouteStyle.cupertino,
                   );
                 },
@@ -351,7 +363,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
           SettingsSection(title: const Text('版本号'), tiles: <SettingsTile>[
             SettingsTile(
-              title: const Text('1.0.7'),
+              title: const Text('1.0.8'),
               leading: const Icon(Icons.sunny),
             ),
             if (AppPlatform.isMobile)
@@ -1216,7 +1228,10 @@ class _DisplaySettingsScreenState extends State<DisplaySettingsScreen> {
                 _screenOrientation = 0;
                 SharedPreferencesManager.setInt('screenOrientation', _screenOrientation);
                 SystemChrome.setPreferredOrientations([
-                  DeviceOrientation.values.first,
+                  DeviceOrientation.portraitUp,
+                  DeviceOrientation.portraitDown,
+                  DeviceOrientation.landscapeLeft,
+                  DeviceOrientation.landscapeRight,
                 ]);
               });
             },
@@ -1249,7 +1264,6 @@ class _DisplaySettingsScreenState extends State<DisplaySettingsScreen> {
                 SharedPreferencesManager.setInt('screenOrientation', _screenOrientation);
                 SystemChrome.setPreferredOrientations([
                   DeviceOrientation.landscapeLeft,
-                  DeviceOrientation.landscapeRight,
                 ]);
               });
             },
@@ -1281,7 +1295,6 @@ class _DisplaySettingsScreenState extends State<DisplaySettingsScreen> {
                 _screenOrientation = 4;
                 SharedPreferencesManager.setInt('screenOrientation', _screenOrientation);
                 SystemChrome.setPreferredOrientations([
-                  DeviceOrientation.landscapeLeft,
                   DeviceOrientation.landscapeRight,
                 ]);
               });

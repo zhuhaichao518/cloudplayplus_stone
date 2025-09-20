@@ -93,11 +93,22 @@ class InputController {
       RTCDataChannelMessage.fromBinary(Uint8List.fromList([LP_EMPTY]));
 
   static bool blockCursorMove = false;
+  // 远程鼠标位置被同步到本地时，由于鼠标被移动到指定位置会生成一个移动事件，阻止该事件。
+  static int blockNextAbsl = 0;
+  static int lastAbslMoveTime = 0;
+
 
   void requestMoveMouseAbsl(double x, double y, int tempScreenId) async {
     if (blockCursorMove) {
       return;
     }
+    if (blockNextAbsl > 0) {
+      blockNextAbsl--;
+      return;
+    }
+
+    lastAbslMoveTime = DateTime.now().millisecondsSinceEpoch;
+
     // Cursor moved out of scope when tempScreenId = -1
     // print("${x} ${y}");
     if (tempScreenId == -1) {
@@ -794,10 +805,12 @@ class InputController {
   };
 
   static bool isCursorLocked = false;
-  static int cursorVisibleCount = 0;
+  static bool isCursorLockedbySyncMouse = false;
+  //控制端能控制看不见的屏幕
+  static bool canControlOtherMonitors = true;
 
   static Function(double xPercent, double yPercent)? cursorPositionCallback;
-
+  static int id = 0;
   void handleCursorUpdate(RTCDataChannelMessage msg) async {
     Uint8List buffer = msg.binary;
     if (AppPlatform.isMobile) {
@@ -807,17 +820,48 @@ class InputController {
           StreamingSettings.autoHideLocalCursor) {
           mouseController.setShowCursor(false);
           isCursorLocked = true;
-      }else if (message == HardwareSimulator.CURSOR_VISIBLE &&
+      } else if (message == HardwareSimulator.CURSOR_VISIBLE &&
           StreamingSettings.autoHideLocalCursor){
-          int msgscreenId = byteData.getInt32(5);
-          // buffer.length > 10 used to be compatible with old version.
-          if (buffer.length > 10 && screenId == msgscreenId) {
-            //TODO: implement cursor move for ipadOS/Android.
+          if (!isCursorLocked) {
+            return;
           }
-          mouseController.setShowCursor(true);
           isCursorLocked = false;
-      }else {
-          mouseController.setCursorBuffer(buffer);
+          // buffer.length > 10 used to be compatible with old version.
+          if (buffer.length > 10) {
+            blockCursorMove = true;
+            int msgscreenId = byteData.getInt32(5);
+            if (buffer.length > 10 && screenId == msgscreenId) {
+              double xPercent = byteData.getFloat32(9, Endian.little);
+              double yPercent = byteData.getFloat32(13, Endian.little);
+              mouseController.setAbsolutePosition(xPercent, yPercent);
+              mouseController.setShowCursor(true);
+            } else {
+              mouseController.setShowCursor(false);
+            }
+            Timer(const Duration(milliseconds: 200), () {
+              blockCursorMove = false;
+            });
+          } else {
+            mouseController.setShowCursor(true);
+          }
+      } else if (message == HardwareSimulator.CURSOR_POSITION_CHANGED) {
+          //TODO: 有些时候单点触屏收不到对应消息 不知道为什么
+          if (!isCursorLocked && DateTime.now().millisecondsSinceEpoch - lastAbslMoveTime > 1000) {
+            int msgscreenId = byteData.getInt32(5);
+            double xPercent = byteData.getFloat32(9, Endian.little);
+            double yPercent = byteData.getFloat32(13, Endian.little);
+            if (screenId == msgscreenId) {
+              mouseController.setShowCursor(true);
+              mouseController.moveAbsl(xPercent, yPercent);
+            } else {
+              if ((xPercent < 0.98 && xPercent > 0.02) && (yPercent < 0.98 && yPercent > 0.02)) {
+                mouseController.setShowCursor(false);
+              }
+            }
+          }
+      } else {
+        //cursor image changed.
+        mouseController.setCursorBuffer(buffer);
       }
       return;
     }
@@ -1003,8 +1047,6 @@ class InputController {
           return;
         }
         isCursorLocked = false;
-        cursorVisibleCount++;
-        //print("cursor visible $cursorVisibleCount");
         // 如果已经有timer在运行，取消它
         blockCursorMove = true;
         ByteData byteData = ByteData.sublistView(buffer);
@@ -1013,8 +1055,8 @@ class InputController {
           if (buffer.length > 10 && screenId == msgInfo) {
             double xPercent = byteData.getFloat32(9, Endian.little);
             double yPercent = byteData.getFloat32(13, Endian.little);
-            if (AppPlatform.isWindows) {
-              //TODO: implement cursor move for MacOS.
+            if (AppPlatform.isDeskTop) {
+              //TODO: implement cursor move for Linux.
               cursorPositionCallback?.call(xPercent, yPercent);
             }
           }
@@ -1027,6 +1069,39 @@ class InputController {
             HardwareSimulator.removeCursorWheel(cursorWheelCallback);
           }
         });
+      } else if (message == HardwareSimulator.CURSOR_POSITION_CHANGED) {
+          int msgscreenId = byteData.getInt32(5);
+          double xPercent = byteData.getFloat32(9, Endian.little);
+          double yPercent = byteData.getFloat32(13, Endian.little);
+          if (screenId == msgscreenId) {
+            if (AppPlatform.isDeskTop && (!isCursorLocked || isCursorLockedbySyncMouse) && DateTime.now().millisecondsSinceEpoch - lastAbslMoveTime > 1000) {
+              //TODO: implement cursor move for Linux.
+              //This will generate a mousemoveabsl event. so we block the next
+              //由于精度问题 可能触发反复同步。block住这个同步。
+              //即使这次没有真正触发鼠标移动 也仅仅会多消耗掉下一次用户鼠标移动事件。
+              if (isCursorLocked) {
+                //鼠标从别的屏幕移入
+                HardwareSimulator.unlockCursor();
+                HardwareSimulator.removeCursorMoved(cursorMovedCallback);
+                isCursorLockedbySyncMouse = false;
+                isCursorLocked = false;
+              }
+              blockNextAbsl++;
+              cursorPositionCallback?.call(xPercent, yPercent);
+            }
+          } else {
+            if (canControlOtherMonitors && AppPlatform.isDeskTop && !isCursorLocked && !isCursorLockedbySyncMouse) {
+              //鼠标移动到别的屏幕(非边缘),锁住鼠标
+              if ((xPercent < 0.98 && xPercent > 0.02) && (yPercent < 0.98 && yPercent > 0.02)) {
+                blockNextAbsl++;
+                cursorPositionCallback?.call(0.5, 0.5);
+                HardwareSimulator.lockCursor();
+                HardwareSimulator.addCursorMoved(cursorMovedCallback);
+                isCursorLockedbySyncMouse = true;
+                isCursorLocked = true;
+              }
+            }
+          }
       }
     }
   }
