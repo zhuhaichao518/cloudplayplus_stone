@@ -338,7 +338,7 @@ class LoginService {
     http.Response response;
 
     try {
-      if (!kIsWeb && DevelopSettings.useUnsafeServer) {
+      if (!kIsWeb && !DevelopSettings.useLocalServer && DevelopSettings.useUnsafeServer) {
         _baseUrl = 'https://101.132.58.198';
         response = await customHttpPost(
           url,
