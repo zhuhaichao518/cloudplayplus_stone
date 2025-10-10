@@ -187,7 +187,8 @@ class _VideoInfoContentState extends State<_VideoInfoContent> {
 
   String _getDecoderDisplayName(String implementation, Map<String, dynamic> videoInfo) {
     if (implementation == '未知' || implementation.isEmpty) return '未知';
-    String name = implementation.length > 15 ? '${implementation.substring(0, 12)}...' : implementation;
+    // 增加解码器名称的显示长度，从15个字符增加到25个字符，截取长度从12增加到22
+    String name = implementation.length > 25 ? '${implementation.substring(0, 22)}...' : implementation;
     if (videoInfo['isHardwareDecoder'] == true) name += ' (硬解)';
     return name;
   }
