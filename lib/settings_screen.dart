@@ -623,7 +623,7 @@ class _StreamingSettingsScreen extends State<StreamingSettingsScreen> {
                 ),
                 SettingsTile.switchTile(
                   title: const Text('显示串流统计信息'),
-                  leading: const Icon(Icons.volume_up),
+                  leading: const Icon(Icons.speed),
                   initialValue: StreamingSettings.isStreamingStateEnabled??false,
                   onToggle: (bool value) {
                     setState(() {
