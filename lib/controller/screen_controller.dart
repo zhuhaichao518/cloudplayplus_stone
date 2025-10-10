@@ -27,7 +27,7 @@ class ScreenController {
     showMasterList.value = value;
   }
 
-  static ValueNotifier<bool> showDetailUseScrollView = ValueNotifier(true);
+  static ValueNotifier<bool> showDetailUseScrollView = ValueNotifier(false);
   static void setshowDetailUseScrollView(bool value) {
     if (showDetailUseScrollView.value != value) {
       showDetailUseScrollView.value = value;

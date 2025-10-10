@@ -145,6 +145,9 @@ class _DeviceDetailPageState extends State<DeviceDetailPage> {
   bool _showAllWindowButton = true;
   Color _iconColor = Colors.blue;
 
+  //first time succeed to connect, enter full screen.
+  bool _inited = false;
+
   @override
   Widget build(BuildContext context) {
     inbuilding = true;
@@ -211,6 +214,10 @@ class _DeviceDetailPageState extends State<DeviceDetailPage> {
             WidgetsBinding.instance.addPostFrameCallback((_) {
               if (ScreenController.showDetailUseScrollView.value == true) {
                 ScreenController.showDetailUseScrollView.value = false;
+              }
+              if (!AppPlatform.isDeskTop && !_inited) {
+                ScreenController.setOnlyShowRemoteScreen(true);
+                _inited = true;
               }
               if (WebrtcService
                           .currentRenderingSession?.controlled.devicetype ==
