@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:fullscreen_window/fullscreen_window.dart';
 
-import '../entities/session.dart';
 
 //Manage which screens will be shown.
 class ScreenController {
@@ -59,6 +58,14 @@ class ScreenController {
   }
 
   static ValueNotifier<bool> showVirtualMouse = ValueNotifier(false);
+  
+  static ValueNotifier<bool> showVideoInfo = ValueNotifier(false);
+  static void setShowVideoInfo(bool value) {
+    if (showVideoInfo.value != value) {
+      showVideoInfo.value = value;
+    }
+  }
+
   static void setShowVirtualMouse(bool value) {
     if (showVirtualMouse.value != value) {
       showVirtualMouse.value = value;

@@ -1,4 +1,5 @@
 import 'package:cloudplayplus/controller/hardware_input_controller.dart';
+import 'package:cloudplayplus/controller/screen_controller.dart';
 import 'package:cloudplayplus/dev_settings.dart/develop_settings.dart';
 import 'package:cloudplayplus/global_settings/streaming_settings.dart';
 import 'package:cloudplayplus/pages/display_manager_page.dart';
@@ -618,6 +619,18 @@ class _StreamingSettingsScreen extends State<StreamingSettingsScreen> {
                           'frameRate', framerate);
                       StreamingSettings.framerate = framerate;
                     }
+                  },
+                ),
+                SettingsTile.switchTile(
+                  title: const Text('显示串流统计信息'),
+                  leading: const Icon(Icons.volume_up),
+                  initialValue: StreamingSettings.isStreamingStateEnabled??false,
+                  onToggle: (bool value) {
+                    setState(() {
+                      ScreenController.setShowVideoInfo(value);
+                      SharedPreferencesManager.setBool('streamingState', value);
+                      StreamingSettings.isStreamingStateEnabled = value;
+                    });
                   },
                 ),
               ],

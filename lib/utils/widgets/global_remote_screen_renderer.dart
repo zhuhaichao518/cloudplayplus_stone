@@ -11,6 +11,7 @@ import 'package:cloudplayplus/utils/widgets/on_screen_mouse.dart';
 import 'package:cloudplayplus/utils/widgets/virtual_gamepad/control_manager.dart';
 import 'package:cloudplayplus/utils/widgets/virtual_gamepad/gamepad_keys.dart';
 import 'package:cloudplayplus/utils/widgets/virtual_gamepad/virtual_gamepad.dart';
+import 'package:cloudplayplus/widgets/video_info_widget.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
@@ -634,6 +635,10 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
                     : Container(),*/
                 const OnScreenVirtualGamepad(),
                 const OnScreenVirtualKeyboard(), // 放置在Stack中，独立于Listener和RawKeyboardListener,
+                const IgnorePointer(
+                  ignoring: true,
+                  child: VideoInfoWidget(),
+                ),
                 OnScreenVirtualMouse(
                     initialPosition: _virtualMousePosition,
                     onPositionChanged: (pos) {
@@ -685,7 +690,7 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
               ],
             );
           }
-
+          return const SizedBox.shrink();
           // We need to calculate and define the size if we want to show the remote screen in a scroll view.
           // Keep this code just to make user able to scroll the content in the future.
           return ValueListenableBuilder<double>(

@@ -1,4 +1,5 @@
 import 'package:cloudplayplus/controller/hardware_input_controller.dart';
+import 'package:cloudplayplus/controller/screen_controller.dart';
 import 'package:cloudplayplus/services/app_info_service.dart';
 import 'package:cloudplayplus/services/shared_preferences_manager.dart';
 
@@ -71,6 +72,8 @@ class StreamingSettings {
   static int customScreenWidth = 1920;
   static int customScreenHeight = 1080;
 
+  static bool? isStreamingStateEnabled;
+
   static void init() {
     InputController.resendCount =
         SharedPreferencesManager.getInt('ControlMsgResendCount') ?? (AppPlatform.isAndroidTV? 0:3);
@@ -139,6 +142,9 @@ class StreamingSettings {
     } else {
       useClipBoard = SharedPreferencesManager.getBool('useClipBoard') ?? false;
     }
+
+    isStreamingStateEnabled = SharedPreferencesManager.getBool('streamingState') ?? false;
+    ScreenController.setShowVideoInfo(isStreamingStateEnabled!);
   }
 
   //Screen id setting is not global, so we need to call before start streaming.
