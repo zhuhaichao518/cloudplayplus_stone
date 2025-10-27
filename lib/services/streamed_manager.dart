@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:cloudplayplus/base/constants.dart';
 import 'package:cloudplayplus/global_settings/streaming_settings.dart';
 import 'package:cloudplayplus/utils/hash_util.dart';
 import 'package:flutter/foundation.dart';
@@ -35,9 +36,7 @@ class StreamedManager {
 
   static ValueNotifier<int> currentlyStreamedCount = ValueNotifier(0);
   static void setCurrentStreamedState(int value) {
-    //if (isCurrentlyStreamed.value != value) {
     currentlyStreamedCount.value = value;
-    //}
   }
 
   // Map from real screen id to virtual display id
@@ -181,41 +180,25 @@ class StreamedManager {
   }
 
   static void startStreaming(Device target, StreamedSettings settings) async {
-    bool allowConnect = ApplicationInfo
-        .connectable; // || (AppPlatform.isWindows && ApplicationInfo.isSystem);
-    if (!allowConnect) return;
-    // 旧版本可能不传这个值，或者bug导致没有传connectPassword
-    if (settings.connectPassword == null) return;
-    if (StreamingSettings.connectPasswordHash !=
-        HashUtil.hash(settings.connectPassword!)) return;
-    
-    bool shouldWait = false;
-    Completer<void>? displayCallbackCompleter;
-    
-    bool shouldreturn = false;
+    //var sources = await desktopCapturer.getSources(types: [SourceType.Screen]);
+    //print("cppdebug x ${sources.length} ${settings.screenId}");
+    bool allowConnect = ApplicationInfo.connectable;
+    if (!allowConnect || settings.connectPassword == null || StreamingSettings.connectPasswordHash != HashUtil.hash(settings.connectPassword!)) {
+      return;
+    }
 
     await _lock.synchronized(() async {
       if (sessions.containsKey(target.websocketSessionid)) {
-        VLOG0(
-            "Starting session which is already started: $target.websocketSessionid");
+        VLOG0("Starting session which is already started: $target.websocketSessionid");
         return;
       }
-      if (settings.streamMode != null && settings.streamMode == 1) {
-        // 独占模式，暂时视为串流到新增的screenid 稍后重置为0
+
+      Completer<void>? displayCallbackCompleter;
+
+      if (settings.streamMode == VDISPLAY_OCCUPY || settings.streamMode == VDSIPLAY_EXTEND) {
         bool hasPending = await HardwareSimulator.hasPendingConfiguration();
         if (hasPending) {
-          VLOG0("已经被其他设备使用了独占显示器模式，无法连接");
-          shouldreturn = true;
-          return;
-        }
-        settings.screenId = ApplicationInfo.screencount;
-      }
-      // 处理虚拟显示器模式
-      if (settings.streamMode != null && settings.streamMode! > 0) {
-        //远端负责给我们传screenId, id应当等于目前显示器数量, 否则可能未及时同步，拒绝创建虚拟显示器
-        if (settings.screenId != ApplicationInfo.screencount) {
-          VLOG0('远端传的screenId不等于目前显示器数量，拒绝创建虚拟显示器');
-          shouldreturn = true;
+          VLOG0("其它连接正在修改显示器配置，无法连接");
           return;
         }
         // 独占模式或扩展屏模式，需要创建虚拟显示器
@@ -224,38 +207,21 @@ class StreamedManager {
         
         // 创建全局的Completer来等待显示器数量变化回调
         ApplicationInfo.displayCountChangedCompleter = Completer<void>();
-        displayCallbackCompleter = ApplicationInfo.displayCountChangedCompleter;
-        
         int? virtualDisplayId = await _createVirtualDisplay(width, height);
         if (virtualDisplayId != null) {
           // 使用虚拟显示器的ID作为screenId
-          shouldWait = true;
-          if (settings.streamMode == 1) {
-            virtualDisplayIds[0] = virtualDisplayId;
-          }
-          if (settings.streamMode == 2) {
+          await ApplicationInfo.displayCountChangedCompleter!.future;
+          await Future.delayed(const Duration(milliseconds: 500));
+          if (settings.streamMode == VDISPLAY_OCCUPY || settings.streamMode == VDSIPLAY_EXTEND) {
             virtualDisplayIds[settings.screenId!] = virtualDisplayId;
           }
           VLOG0('使用虚拟显示器模式，显示器ID: $virtualDisplayId');
         } else {
           VLOG0('创建虚拟显示器失败');
-          shouldreturn = true;
+          ApplicationInfo.displayCountChangedCompleter = null;
           return;
         }
       }
-    });
-
-    if (shouldreturn) return;
-    
-    //Give Windows time to create virtual display and wait for display count change callback.
-    if (shouldWait && displayCallbackCompleter != null) {
-      // 等待显示器数量变化回调被触发，然后等待500ms
-      await displayCallbackCompleter!.future;
-      await Future.delayed(const Duration(milliseconds: 500));
-      displayCallbackCompleter = null;
-    }
-
-    await _lock.synchronized(() async {
       if (!localVideoStreams.containsKey(settings.screenId!)) {
         final Map<String, dynamic> mediaConstraints;
         if (AppPlatform.isWeb) {
@@ -291,10 +257,11 @@ class StreamedManager {
               return;
             }
             sources = await desktopCapturer.getSources(types: [SourceType.Screen]);
-            await Future.delayed(const Duration(milliseconds: 500));
           }
           // 独占模式，需要重置新显示器为主显示器
-          if (settings.streamMode == 1) {
+          if (settings.streamMode == VDISPLAY_OCCUPY) {
+            await Future.delayed(const Duration(milliseconds: 500));
+            sources = await desktopCapturer.getSources(types: [SourceType.Screen]);
             //await HardwareSimulator.setMultiDisplayMode(MultiDisplayMode.primaryOnly);
             if (sources.length != 1) {
               await HardwareSimulator.setPrimaryDisplayOnly(virtualDisplayIds[0]!);
@@ -302,8 +269,8 @@ class StreamedManager {
               while (sources.length != 1) {
                 retryCount++;
                 if (retryCount > 10) {
-                  VLOG0('创建虚拟显示器后 等待超时');
-                  HardwareSimulator.restoreDisplayConfiguration();
+                  VLOG0('创建虚拟显示器后 设置主屏超时');
+                  _restoreDisplayConfigurationWithRetry();
                   return;
                 }
                 await Future.delayed(const Duration(milliseconds: 500));
@@ -335,6 +302,7 @@ class StreamedManager {
           return;
         }
       } else {
+        //TODO:串流过程中显示器配置发生改变如何考虑?
         localVideoStreamsCount[settings.screenId!] =
             localVideoStreamsCount[settings.screenId!]! + 1;
       }

@@ -1,3 +1,4 @@
+import 'package:cloudplayplus/base/constants.dart';
 import 'package:cloudplayplus/controller/screen_controller.dart';
 import 'package:cloudplayplus/dev_settings.dart/develop_settings.dart';
 import 'package:cloudplayplus/global_settings/streaming_settings.dart';
@@ -1020,10 +1021,10 @@ class _DeviceDetailPageState extends State<DeviceDetailPage> {
     if (_selectedMode == 0) {
       StreamingSettings.updateScreenId(_selectedMonitorId - 1);
     }
-    if (_selectedMode == 1) {
+    if (_selectedMode == VDISPLAY_OCCUPY) {
       StreamingSettings.updateScreenId(0);
     }
-    if (_selectedMode == 2) {
+    if (_selectedMode == VDSIPLAY_EXTEND) {
       // 创建虚拟显示器 其id应当为对方的屏幕数量
       StreamingSettings.updateScreenId(widget.device.screencount);
     }

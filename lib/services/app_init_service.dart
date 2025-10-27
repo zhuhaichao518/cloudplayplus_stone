@@ -1,3 +1,4 @@
+import 'package:cloudplayplus/base/logging.dart';
 import 'package:cloudplayplus/services/login_service.dart';
 import 'package:cloudplayplus/services/websocket_service.dart';
 import 'package:hardware_simulator/hardware_simulator.dart';
@@ -61,6 +62,7 @@ class AppInitService {
       HardwareSimulator.initParsecVdd();
       ApplicationInfo.screencount = await HardwareSimulator.getAllDisplays();
       HardwareSimulator.addDisplayCountChangedCallback((displayCount) {
+        VLOG0("display count changed: $displayCount");
         ApplicationInfo.screencount = displayCount;
         if (WebSocketService.connectionState == WebSocketConnectionState.connected) {
           WebSocketService.updateDeviceInfo();
