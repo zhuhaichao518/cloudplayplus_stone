@@ -141,7 +141,7 @@ class StreamedManager {
   // 恢复显示器配置，带重试机制
   static Future<void> _restoreDisplayConfigurationWithRetry() async {
     int retryCount = 0;
-    const int maxRetries = 10;
+    const int maxRetries = 5;
     const Duration retryInterval = Duration(milliseconds: 500);
     
     while (retryCount < maxRetries) {
@@ -168,9 +168,9 @@ class StreamedManager {
   Future<void> _loadCurrentMultiDisplayMode() async {
     try {
       MultiDisplayMode mode = await HardwareSimulator.getCurrentMultiDisplayMode();
-      print('Current multi-display mode: $mode');
+      VLOG0('Current multi-display mode: $mode');
     } catch (e) {
-      print('Failed to load current multi-display mode: $e');
+      VLOG0('Failed to load current multi-display mode: $e');
     }
   }
 
@@ -196,11 +196,11 @@ class StreamedManager {
       Completer<void>? displayCallbackCompleter;
 
       if (settings.streamMode == VDISPLAY_OCCUPY || settings.streamMode == VDSIPLAY_EXTEND) {
-        bool hasPending = await HardwareSimulator.hasPendingConfiguration();
-        if (hasPending) {
+        //bool hasPending = await HardwareSimulator.hasPendingConfiguration();
+        /*if (settings.streamMode == VDISPLAY_OCCUPY && isVdisplayOccupied) {
           VLOG0("其它连接正在修改显示器配置，无法连接");
           return;
-        }
+        }*/
         // 独占模式或扩展屏模式，需要创建虚拟显示器
         int width = settings.customScreenWidth ?? 1920;
         int height = settings.customScreenHeight ?? 1080;
@@ -210,8 +210,12 @@ class StreamedManager {
         int? virtualDisplayId = await _createVirtualDisplay(width, height);
         if (virtualDisplayId != null) {
           // 使用虚拟显示器的ID作为screenId
-          await ApplicationInfo.displayCountChangedCompleter!.future;
-          await Future.delayed(const Duration(milliseconds: 500));
+          VLOG0("新建虚拟显示器,等待显示器被系统加载");
+          //如果我们删除然后添加一个虚拟显示器，且配置不变，可能永远不会触发显示器数量变化回调。
+          //TODO:有时候删除最后一个显示器 再添加时不会触发displayCountChangedCompleter回调 为什么？
+          //目前只能等2秒来保证虚拟显示器加载完成
+          //await ApplicationInfo.displayCountChangedCompleter!.future;
+          await Future.delayed(const Duration(milliseconds: 2000));
           if (settings.streamMode == VDISPLAY_OCCUPY || settings.streamMode == VDSIPLAY_EXTEND) {
             virtualDisplayIds[settings.screenId!] = virtualDisplayId;
           }
@@ -270,7 +274,7 @@ class StreamedManager {
                 retryCount++;
                 if (retryCount > 10) {
                   VLOG0('创建虚拟显示器后 设置主屏超时');
-                  _restoreDisplayConfigurationWithRetry();
+                  HardwareSimulator.restoreDisplayConfiguration();
                   return;
                 }
                 await Future.delayed(const Duration(milliseconds: 500));
@@ -339,9 +343,10 @@ class StreamedManager {
           
           // 如果这个screenId对应的是虚拟显示器，则移除它
           if (virtualDisplayIds.containsKey(screenId)) {
+            VLOG0("removing monitor");
             _removeVirtualDisplay(virtualDisplayIds[screenId]!);
             virtualDisplayIds.remove(screenId);
-            if (session.streamSettings?.streamMode == 1) {
+            if (session.streamSettings?.streamMode == VDISPLAY_OCCUPY) {
               //虚拟显示器模式结束，恢复之前的屏幕设置。
               _restoreDisplayConfigurationWithRetry();
               VLOG0("restore monitor config");
