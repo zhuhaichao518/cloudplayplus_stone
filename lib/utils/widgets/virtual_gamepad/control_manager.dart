@@ -119,7 +119,7 @@ class ControlManager {
 
   // 创建并添加摇杆
   void createJoystick({
-    required String joystickType,
+    required JoystickType joystickType,
     double centerX = 0.2,
     double centerY = 0.8,
     double size = 0.1,
@@ -228,7 +228,7 @@ class ControlManager {
     double? size,
     String? label,
     int? keyCode,
-    String? joystickType,
+    JoystickType? joystickType,
     bool? isGamepadButton,
     bool? isMouseButton,
     List<MouseMode>? enabledModes,

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cloudplayplus/utils/widgets/virtual_gamepad/virtual_gamepad_settings_screen.dart';
 import 'package:cloudplayplus/utils/widgets/virtual_gamepad/control_manager.dart';
 import 'package:cloudplayplus/utils/widgets/virtual_gamepad/control_event.dart';
+import 'package:cloudplayplus/utils/widgets/virtual_gamepad/joystick_control.dart';
 
 void main() {
   runApp(const MyApp());
@@ -66,7 +67,7 @@ class _VirtualGamepadDemoPageState extends State<VirtualGamepadDemoPage> {
   void _createDefaultControls() {
     // 创建左侧摇杆
     _controlManager.createJoystick(
-      joystickType: 'left',
+      joystickType: JoystickType.left,
       centerX: 0.15,
       centerY: 0.75,
       size: 0.12,
@@ -74,7 +75,7 @@ class _VirtualGamepadDemoPageState extends State<VirtualGamepadDemoPage> {
 
     // 创建右侧摇杆
     _controlManager.createJoystick(
-      joystickType: 'right',
+      joystickType: JoystickType.right,
       centerX: 0.85,
       centerY: 0.75,
       size: 0.12,

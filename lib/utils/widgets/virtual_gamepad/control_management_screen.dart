@@ -448,7 +448,7 @@ class _ControlManagementScreenState extends State<ControlManagementScreen> {
           leading: Icon(
               control.type == 'joystick' ? Icons.gamepad : (control.type == 'eightDirectionJoystick' ? Icons.navigation : (control.type == 'mouseModeButton' ? Icons.mouse : (control is ButtonControl && control.isMouseButton ? Icons.mouse : Icons.touch_app)))),
           title: Text(control.type == 'joystick'
-              ? '${(control as JoystickControl).joystickType == 'left' ? '左' : '右'}摇杆'
+              ? '${(control as JoystickControl).joystickType == JoystickType.left ? '左' : '右'}摇杆'
               : control.type == 'eightDirectionJoystick'
                   ? '角落跳转摇杆'
                   : control.type == 'mouseModeButton'
@@ -538,7 +538,7 @@ class _ControlManagementScreenState extends State<ControlManagementScreen> {
     final centerXController = TextEditingController(text: '0.2');
     final centerYController = TextEditingController(text: '0.8');
     final sizeController = TextEditingController(text: '0.1');
-    String selectedType = 'left';
+    JoystickType selectedType = JoystickType.left;
 
     showDialog(
       context: context,
@@ -575,15 +575,15 @@ class _ControlManagementScreenState extends State<ControlManagementScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                DropdownButtonFormField<String>(
+                DropdownButtonFormField<JoystickType>(
                   value: selectedType,
                   decoration: const InputDecoration(
                     labelText: '摇杆类型',
                     border: OutlineInputBorder(),
                   ),
                   items: const [
-                    DropdownMenuItem(value: 'left', child: Text('左摇杆')),
-                    DropdownMenuItem(value: 'right', child: Text('右摇杆')),
+                    DropdownMenuItem(value: JoystickType.left, child: Text('左摇杆')),
+                    DropdownMenuItem(value: JoystickType.right, child: Text('右摇杆')),
                   ],
                   onChanged: (value) {
                     if (value != null) {
@@ -1223,9 +1223,8 @@ class _ControlManagementScreenState extends State<ControlManagementScreen> {
     final labelController = TextEditingController(
         text: control is ButtonControl ? control.label : '');
     int? selectedKeyCode = control is ButtonControl ? control.keyCode : null;
-    bool showKeyboard = false;
-    String selectedType =
-        control is JoystickControl ? control.joystickType : 'left';
+    JoystickType selectedType =
+        control is JoystickControl ? control.joystickType : JoystickType.left;
     bool isGamepadButton =
         control is ButtonControl ? control.isGamepadButton : false;
     bool isMouseButton =
@@ -1528,15 +1527,15 @@ class _ControlManagementScreenState extends State<ControlManagementScreen> {
                       ),
                     ],
                   ] else if (control is JoystickControl) ...[
-                    DropdownButtonFormField<String>(
+                    DropdownButtonFormField<JoystickType>(
                       value: selectedType,
                       decoration: const InputDecoration(
                         labelText: '摇杆类型',
                         border: OutlineInputBorder(),
                       ),
                       items: const [
-                        DropdownMenuItem(value: 'left', child: Text('左摇杆')),
-                        DropdownMenuItem(value: 'right', child: Text('右摇杆')),
+                        DropdownMenuItem(value: JoystickType.left, child: Text('左摇杆')),
+                        DropdownMenuItem(value: JoystickType.right, child: Text('右摇杆')),
                       ],
                       onChanged: (value) {
                         if (value != null) {
@@ -1917,7 +1916,7 @@ class _ControlManagementScreenState extends State<ControlManagementScreen> {
 
   String _getControlTypeName(ControlBase control) {
     if (control is JoystickControl) {
-      return '${control.joystickType == 'left' ? '左' : '右'}摇杆';
+      return '${control.joystickType == JoystickType.left ? '左' : '右'}摇杆';
     } else if (control is ButtonControl) {
       if (control.isGamepadButton) {
         return '手柄按钮';

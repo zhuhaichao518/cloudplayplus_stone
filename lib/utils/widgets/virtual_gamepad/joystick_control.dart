@@ -1,12 +1,152 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'control_base.dart';
 import 'control_event.dart';
 import 'gamepad_keys.dart';
 import 'dart:math';
 import 'dart:async';
 
+// ============================================================================
+// 常量定义 - 避免魔法数字
+// ============================================================================
+class JoystickConstants {
+  static const double thumbRadiusRatio = 0.2;
+  static const double directionLineStartRatio = 0.3;
+  static const double directionLineEndRatio = 0.8;
+  static const double eightDirectionThresholdRatio = 0.4;
+  static const double clickThreshold = 0.01;
+  static const int clickButtonDelay = 32; // ms
+}
+
+// ============================================================================
+// 枚举定义 - 类型安全
+// ============================================================================
+enum JoystickType { left, right }
+
+extension JoystickTypeExtension on JoystickType {
+  String toStringValue() => name;
+  
+  static JoystickType fromString(String value) {
+    return JoystickType.values.firstWhere(
+      (e) => e.name == value,
+      orElse: () => JoystickType.left,
+    );
+  }
+}
+
+// ============================================================================
+// 摇杆控制器 - 分离业务逻辑
+// ============================================================================
+class JoystickController {
+  final ValueNotifier<Offset> offsetNotifier = ValueNotifier(Offset.zero);
+  final JoystickType type;
+  final void Function(ControlEvent) onEvent;
+  
+  Offset? _lastSentOffset;
+  bool _isActive = false;
+  
+  JoystickController({
+    required this.type,
+    required this.onEvent,
+  });
+  
+  void updatePosition(Offset offset, double radius) {
+    offsetNotifier.value = offset;
+    _sendJoystickEvent(offset, radius);
+  }
+  
+  void reset() {
+    offsetNotifier.value = Offset.zero;
+    if (_isActive) {
+      _sendResetEvent();
+      _isActive = false;
+    }
+  }
+  
+  void performClick() {
+    final button = type == JoystickType.left
+        ? GamepadKeys.LEFT_STICK_BUTTON
+        : GamepadKeys.RIGHT_STICK_BUTTON;
+    
+    // 触觉反馈
+    HapticFeedback.lightImpact();
+    
+    onEvent(ControlEvent(
+      eventType: ControlEventType.gamepad,
+      data: GamepadButtonEvent(keyCode: button, isDown: true),
+    ));
+    
+    Future.delayed(
+      const Duration(milliseconds: JoystickConstants.clickButtonDelay),
+      () {
+        onEvent(ControlEvent(
+          eventType: ControlEventType.gamepad,
+          data: GamepadButtonEvent(keyCode: button, isDown: false),
+        ));
+      },
+    );
+  }
+  
+  void _sendJoystickEvent(Offset offset, double radius) {
+    _isActive = true;
+    final xValue = offset.dx / radius;
+    final yValue = -offset.dy / radius;
+    
+    // 避免发送相同的值
+    if (_lastSentOffset != null && 
+        (_lastSentOffset!.dx - offset.dx).abs() < 0.001 &&
+        (_lastSentOffset!.dy - offset.dy).abs() < 0.001) {
+      return;
+    }
+    _lastSentOffset = offset;
+    
+    final xKey = type == JoystickType.left
+        ? GamepadKey.leftStickX
+        : GamepadKey.rightStickX;
+    final yKey = type == JoystickType.left
+        ? GamepadKey.leftStickY
+        : GamepadKey.rightStickY;
+    
+    onEvent(ControlEvent(
+      eventType: ControlEventType.gamepad,
+      data: GamepadAnalogEvent(key: xKey, value: xValue),
+    ));
+    onEvent(ControlEvent(
+      eventType: ControlEventType.gamepad,
+      data: GamepadAnalogEvent(key: yKey, value: yValue),
+    ));
+  }
+  
+  void _sendResetEvent() {
+    final xKey = type == JoystickType.left
+        ? GamepadKey.leftStickX
+        : GamepadKey.rightStickX;
+    final yKey = type == JoystickType.left
+        ? GamepadKey.leftStickY
+        : GamepadKey.rightStickY;
+    
+    onEvent(ControlEvent(
+      eventType: ControlEventType.gamepad,
+      data: GamepadAnalogEvent(key: xKey, value: 0.0),
+    ));
+    onEvent(ControlEvent(
+      eventType: ControlEventType.gamepad,
+      data: GamepadAnalogEvent(key: yKey, value: 0.0),
+    ));
+    
+    _lastSentOffset = null;
+  }
+  
+  void dispose() {
+    offsetNotifier.dispose();
+  }
+}
+
+// ============================================================================
+// 摇杆控件
+// ============================================================================
 class JoystickControl extends ControlBase {
-  final String joystickType; // 摇杆类型：left 或 right
+  final JoystickType joystickType;
 
   JoystickControl({
     required String id,
@@ -28,7 +168,9 @@ class JoystickControl extends ControlBase {
       centerX: map['centerX'],
       centerY: map['centerY'],
       size: map['size'],
-      joystickType: map['joystickType'] ?? 'left',
+      joystickType: JoystickTypeExtension.fromString(
+        map['joystickType'] ?? 'left',
+      ),
     );
   }
 
@@ -40,7 +182,7 @@ class JoystickControl extends ControlBase {
       'centerX': centerX,
       'centerY': centerY,
       'size': size,
-      'joystickType': joystickType,
+      'joystickType': joystickType.toStringValue(),
     };
   }
 
@@ -139,15 +281,19 @@ class _JoystickWidget extends StatefulWidget {
 }
 
 class _JoystickWidgetState extends State<_JoystickWidget> {
-  final ValueNotifier<Offset> _joystickOffsetNotifier = ValueNotifier(Offset.zero);
-  bool isClick = false;
+  late JoystickController _controller;
   late double _joystickRadius;
   late double _thumbRadius;
   late Offset _localCenter;
+  bool _isClick = false;
 
   @override
   void initState() {
     super.initState();
+    _controller = JoystickController(
+      type: widget.control.joystickType,
+      onEvent: widget.onEvent,
+    );
     _updateSizes();
   }
 
@@ -163,41 +309,50 @@ class _JoystickWidgetState extends State<_JoystickWidget> {
 
   @override
   void dispose() {
-    _joystickOffsetNotifier.dispose();
+    _controller.dispose();
     super.dispose();
   }
 
   void _updateSizes() {
     _joystickRadius = widget.screenWidth * widget.control.size / 2;
-    _thumbRadius = _joystickRadius * 0.2;
+    _thumbRadius = _joystickRadius * JoystickConstants.thumbRadiusRatio;
     _localCenter = Offset(_joystickRadius, _joystickRadius);
   }
 
-  void _updateJoystickPosition(Offset localPosition) {
-    // 计算偏移
-    final centerToTouch = localPosition - _localCenter;
-    final distance = centerToTouch.distance;
-    
-    // 限制在摇杆范围内
-    Offset newOffset;
+  Offset _constrainOffset(Offset offset) {
+    final distance = offset.distance;
     if (distance > _joystickRadius) {
-      newOffset = Offset(
-        centerToTouch.dx * _joystickRadius / distance,
-        centerToTouch.dy * _joystickRadius / distance,
+      return Offset(
+        offset.dx * _joystickRadius / distance,
+        offset.dy * _joystickRadius / distance,
       );
-    } else {
-      newOffset = centerToTouch;
+    }
+    return offset;
+  }
+
+  void _handlePanStart(DragStartDetails details) {
+    _isClick = true;
+    final offset = _constrainOffset(details.localPosition - _localCenter);
+    _controller.updatePosition(offset, _joystickRadius);
+  }
+
+  void _handlePanUpdate(DragUpdateDetails details) {
+    final offset = _constrainOffset(details.localPosition - _localCenter);
+    
+    // 检查是否移动足够取消点击
+    final normalized = offset / _joystickRadius;
+    if (normalized.distance > JoystickConstants.clickThreshold) {
+      _isClick = false;
     }
     
-    // 更新 ValueNotifier，只重绘需要的部分
-    _joystickOffsetNotifier.value = newOffset;
-    
-    // 检查是否有足够的移动来取消点击判定
-    final xValue = newOffset.dx / _joystickRadius;
-    final yValue = -newOffset.dy / _joystickRadius;
-    if (xValue.abs() > 0.01 || yValue.abs() > 0.01) {
-      isClick = false;
+    _controller.updatePosition(offset, _joystickRadius);
+  }
+
+  void _handlePanEnd(DragEndDetails details) {
+    if (_isClick) {
+      _controller.performClick();
     }
+    _controller.reset();
   }
 
   @override
@@ -205,153 +360,138 @@ class _JoystickWidgetState extends State<_JoystickWidget> {
     return Positioned(
       left: widget.screenWidth * widget.control.centerX - _joystickRadius,
       bottom: widget.screenHeight * (1 - widget.control.centerY) - _joystickRadius,
-      child: GestureDetector(
-        onPanStart: (details) {
-          isClick = true;
-          _updateJoystickPosition(details.localPosition);
-          _sendJoystickEvent();
-        },
-        onPanUpdate: (details) {
-          _updateJoystickPosition(details.localPosition);
-          _sendJoystickEvent();
-        },
-        onPanEnd: (_) {
-          // 重置摇杆位置
-          _joystickOffsetNotifier.value = Offset.zero;
-
-          //perform a click if user does not move.
-          if (isClick) {
-            widget.onEvent(ControlEvent(
-              eventType: ControlEventType.gamepad,
-              data: GamepadButtonEvent(
-                keyCode: widget.control.joystickType == 'left'
-                    ? GamepadKeys.LEFT_STICK_BUTTON
-                    : GamepadKeys.RIGHT_STICK_BUTTON,
-                isDown: true,
-              ),
-            ));
-            Future.delayed(const Duration(milliseconds: 32), () {
-              widget.onEvent(ControlEvent(
-                eventType: ControlEventType.gamepad,
-                data: GamepadButtonEvent(
-                  keyCode: widget.control.joystickType == 'left'
-                      ? GamepadKeys.LEFT_STICK_BUTTON
-                      : GamepadKeys.RIGHT_STICK_BUTTON,
-                  isDown: false,
-                ),
-              ));
-            });
-          }
-
-          // 发送归零事件
-          _sendJoystickResetEvent();
-        },
-        child: Container(
-          width: _joystickRadius * 2,
-          height: _joystickRadius * 2,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: Colors.grey.withOpacity(0.3),
-          ),
-          child: ValueListenableBuilder<Offset>(
-            valueListenable: _joystickOffsetNotifier,
-            builder: (context, offset, child) {
-              return Center(
-                child: Transform.translate(
-                  offset: offset,
-                  child: Container(
-                    width: _thumbRadius * 2,
-                    height: _thumbRadius * 2,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: Colors.blue.withOpacity(0.3),
+      child: RepaintBoundary( // 隔离重绘边界
+        child: GestureDetector(
+          onPanStart: _handlePanStart,
+          onPanUpdate: _handlePanUpdate,
+          onPanEnd: _handlePanEnd,
+          child: Container(
+            width: _joystickRadius * 2,
+            height: _joystickRadius * 2,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: Colors.grey.withOpacity(0.3),
+            ),
+            child: ValueListenableBuilder<Offset>(
+              valueListenable: _controller.offsetNotifier,
+              builder: (context, offset, child) {
+                return Center(
+                  child: Transform.translate(
+                    offset: offset,
+                    child: Container(
+                      width: _thumbRadius * 2,
+                      height: _thumbRadius * 2,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Colors.blue.withOpacity(0.3),
+                      ),
                     ),
                   ),
-                ),
-              );
-            },
+                );
+              },
+            ),
           ),
         ),
       ),
     );
   }
+}
 
-  // 发送摇杆事件的辅助方法
-  void _sendJoystickEvent() {
-    final offset = _joystickOffsetNotifier.value;
-    final xValue = offset.dx / _joystickRadius;
-    final yValue = -offset.dy / _joystickRadius; // 反转Y轴方向
+// ============================================================================
+// 八方向配置 - 配置驱动
+// ============================================================================
+@immutable
+class DirectionConfig {
+  final double minAngle;
+  final double maxAngle;
+  final Offset target;
+  final String name;
 
-    // 根据摇杆类型发送不同的事件
-    if (widget.control.joystickType == 'left') {
-      widget.onEvent(ControlEvent(
-        eventType: ControlEventType.gamepad,
-        data: GamepadAnalogEvent(
-          key: GamepadKey.leftStickX,
-          value: xValue,
-        ),
-      ));
-      widget.onEvent(ControlEvent(
-        eventType: ControlEventType.gamepad,
-        data: GamepadAnalogEvent(
-          key: GamepadKey.leftStickY,
-          value: yValue,
-        ),
-      ));
-    } else {
-      widget.onEvent(ControlEvent(
-        eventType: ControlEventType.gamepad,
-        data: GamepadAnalogEvent(
-          key: GamepadKey.rightStickX,
-          value: xValue,
-        ),
-      ));
-      widget.onEvent(ControlEvent(
-        eventType: ControlEventType.gamepad,
-        data: GamepadAnalogEvent(
-          key: GamepadKey.rightStickY,
-          value: yValue,
-        ),
-      ));
+  const DirectionConfig({
+    required this.minAngle,
+    required this.maxAngle,
+    required this.target,
+    required this.name,
+  });
+}
+
+// ============================================================================
+// 八方向控制器
+// ============================================================================
+class EightDirectionController {
+  static const List<DirectionConfig> _directions = [
+    DirectionConfig(minAngle: 337.5, maxAngle: 22.5, target: Offset(1, 0.5), name: '右'),
+    DirectionConfig(minAngle: 22.5, maxAngle: 67.5, target: Offset(1, 0), name: '右上'),
+    DirectionConfig(minAngle: 67.5, maxAngle: 112.5, target: Offset(0.5, 0), name: '上'),
+    DirectionConfig(minAngle: 112.5, maxAngle: 157.5, target: Offset(0, 0), name: '左上'),
+    DirectionConfig(minAngle: 157.5, maxAngle: 202.5, target: Offset(0, 0.5), name: '左'),
+    DirectionConfig(minAngle: 202.5, maxAngle: 247.5, target: Offset(0, 1), name: '左下'),
+    DirectionConfig(minAngle: 247.5, maxAngle: 292.5, target: Offset(0.5, 1), name: '下'),
+    DirectionConfig(minAngle: 292.5, maxAngle: 337.5, target: Offset(1, 1), name: '右下'),
+  ];
+
+  final ValueNotifier<Offset> offsetNotifier = ValueNotifier(Offset.zero);
+  final void Function(ControlEvent) onEvent;
+  
+  Offset? _lastTarget;
+  
+  EightDirectionController({required this.onEvent});
+  
+  void updatePosition(Offset offset, double threshold) {
+    offsetNotifier.value = offset;
+    
+    if (offset.distance > threshold) {
+      final target = _getDirectionTarget(offset);
+      if (target != _lastTarget) {
+        _lastTarget = target;
+        onEvent(ControlEvent(
+          eventType: ControlEventType.mouseMove,
+          data: MouseMoveEvent(
+            deltaX: target.dx,
+            deltaY: target.dy,
+            isAbsolute: true,
+          ),
+        ));
+      }
     }
   }
-
-  // 发送摇杆归零事件的辅助方法
-  void _sendJoystickResetEvent() {
-    if (widget.control.joystickType == 'left') {
-      widget.onEvent(ControlEvent(
-        eventType: ControlEventType.gamepad,
-        data: GamepadAnalogEvent(
-          key: GamepadKey.leftStickX,
-          value: 0.0,
-        ),
-      ));
-      widget.onEvent(ControlEvent(
-        eventType: ControlEventType.gamepad,
-        data: GamepadAnalogEvent(
-          key: GamepadKey.leftStickY,
-          value: 0.0,
-        ),
-      ));
-    } else {
-      widget.onEvent(ControlEvent(
-        eventType: ControlEventType.gamepad,
-        data: GamepadAnalogEvent(
-          key: GamepadKey.rightStickX,
-          value: 0.0,
-        ),
-      ));
-      widget.onEvent(ControlEvent(
-        eventType: ControlEventType.gamepad,
-        data: GamepadAnalogEvent(
-          key: GamepadKey.rightStickY,
-          value: 0.0,
-        ),
-      ));
+  
+  void reset() {
+    offsetNotifier.value = Offset.zero;
+    _lastTarget = null;
+    onEvent(ControlEvent(
+      eventType: ControlEventType.mouseMove,
+      data: MouseMoveEvent(deltaX: 0.5, deltaY: 0.5, isAbsolute: true),
+    ));
+  }
+  
+  Offset _getDirectionTarget(Offset offset) {
+    final angle = (atan2(-offset.dy, offset.dx) * 180 / pi + 360) % 360;
+    
+    for (final dir in _directions) {
+      if (dir.minAngle < dir.maxAngle) {
+        if (angle >= dir.minAngle && angle < dir.maxAngle) {
+          return dir.target;
+        }
+      } else {
+        // 跨越0度的情况（如右方向：337.5-22.5）
+        if (angle >= dir.minAngle || angle < dir.maxAngle) {
+          return dir.target;
+        }
+      }
     }
+    
+    return const Offset(0.5, 0.5);
+  }
+  
+  void dispose() {
+    offsetNotifier.dispose();
   }
 }
 
+// ============================================================================
+// 八方向摇杆 Widget
+// ============================================================================
 class _EightDirectionJoystickWidget extends StatefulWidget {
   final EightDirectionJoystickControl control;
   final double screenWidth;
@@ -370,9 +510,7 @@ class _EightDirectionJoystickWidget extends StatefulWidget {
 }
 
 class _EightDirectionJoystickWidgetState extends State<_EightDirectionJoystickWidget> {
-  final ValueNotifier<Offset> _joystickOffsetNotifier = ValueNotifier(Offset.zero);
-  double lastReportX = 0;
-  double lastReportY = 0;
+  late EightDirectionController _controller;
   late double _joystickRadius;
   late double _thumbRadius;
   late double _threshold;
@@ -381,6 +519,7 @@ class _EightDirectionJoystickWidgetState extends State<_EightDirectionJoystickWi
   @override
   void initState() {
     super.initState();
+    _controller = EightDirectionController(onEvent: widget.onEvent);
     _updateSizes();
   }
 
@@ -396,32 +535,26 @@ class _EightDirectionJoystickWidgetState extends State<_EightDirectionJoystickWi
 
   @override
   void dispose() {
-    _joystickOffsetNotifier.dispose();
+    _controller.dispose();
     super.dispose();
   }
 
   void _updateSizes() {
     _joystickRadius = widget.screenWidth * widget.control.size / 2;
-    _thumbRadius = _joystickRadius * 0.2;
-    _threshold = _joystickRadius * 0.4;
+    _thumbRadius = _joystickRadius * JoystickConstants.thumbRadiusRatio;
+    _threshold = _joystickRadius * JoystickConstants.eightDirectionThresholdRatio;
     _localCenter = Offset(_joystickRadius, _joystickRadius);
   }
 
-  void _updateJoystickPosition(Offset localPosition) {
-    final centerToTouch = localPosition - _localCenter;
-    final distance = centerToTouch.distance;
-    
-    Offset newOffset;
+  Offset _constrainOffset(Offset offset) {
+    final distance = offset.distance;
     if (distance > _joystickRadius) {
-      newOffset = Offset(
-        centerToTouch.dx * _joystickRadius / distance,
-        centerToTouch.dy * _joystickRadius / distance,
+      return Offset(
+        offset.dx * _joystickRadius / distance,
+        offset.dy * _joystickRadius / distance,
       );
-    } else {
-      newOffset = centerToTouch;
     }
-    
-    _joystickOffsetNotifier.value = newOffset;
+    return offset;
   }
 
   @override
@@ -429,162 +562,88 @@ class _EightDirectionJoystickWidgetState extends State<_EightDirectionJoystickWi
     return Positioned(
       left: widget.screenWidth * widget.control.centerX - _joystickRadius,
       bottom: widget.screenHeight * (1 - widget.control.centerY) - _joystickRadius,
-      child: GestureDetector(
-        onPanStart: (details) {
-          _updateJoystickPosition(details.localPosition);
-        },
-        onPanUpdate: (details) {
-          _updateJoystickPosition(details.localPosition);
-
-          // 检查是否超过阈值且未跳转
-          final offset = _joystickOffsetNotifier.value;
-          if (offset.distance > _threshold) {
-            
-            // 计算八方向
-            final xValue = offset.dx / _joystickRadius;
-            final yValue = -offset.dy / _joystickRadius; // 反转Y轴方向
-
-            // 计算角度
-            final angle = (atan2(yValue, xValue) * 180 / pi + 360) % 360;
-            
-            // 八方向映射到屏幕角落
-            double targetX = 0.5; // 默认屏幕中心
-            double targetY = 0.5;
-            
-            if (angle >= 337.5 || angle < 22.5) {
-              // 右
-              targetX = 1;
-              targetY = 0.5;
-            } else if (angle >= 22.5 && angle < 67.5) {
-              // 右上
-              targetX = 1;
-              targetY = 0;
-            } else if (angle >= 67.5 && angle < 112.5) {
-              // 上
-              targetX = 0.5;
-              targetY = 0;
-            } else if (angle >= 112.5 && angle < 157.5) {
-              // 左上
-              targetX = 0;
-              targetY = 0;
-            } else if (angle >= 157.5 && angle < 202.5) {
-              // 左
-              targetX = 0;
-              targetY = 0.5;
-            } else if (angle >= 202.5 && angle < 247.5) {
-              // 左下
-              targetX = 0;
-              targetY = 1;
-            } else if (angle >= 247.5 && angle < 292.5) {
-              // 下
-              targetX = 0.5;
-              targetY = 1;
-            } else if (angle >= 292.5 && angle < 337.5) {
-              // 右下
-              targetX = 1;
-              targetY = 1;
-            }
-
-            if (lastReportX == targetX && lastReportY == targetY) {
-              return;
-            }
-            lastReportX = targetX;
-            lastReportY = targetY;
-
-            // 发送鼠标绝对位置跳转事件
-            widget.onEvent(ControlEvent(
-              eventType: ControlEventType.mouseMove,
-              data: MouseMoveEvent(
-                deltaX: targetX,
-                deltaY: targetY,
-                isAbsolute: true, // 标记为绝对位置跳转
-              ),
-            ));
-          }
-        },
-        onPanEnd: (_) {
-          _joystickOffsetNotifier.value = Offset.zero;
-          lastReportX = 0.5;
-          lastReportY = 0.5;
-          widget.onEvent(ControlEvent(
-            eventType: ControlEventType.mouseMove,
-            data: MouseMoveEvent(
-              deltaX: 0.5,
-              deltaY: 0.5,
-              isAbsolute: true, // 标记为绝对位置跳转
+      child: RepaintBoundary( // 隔离重绘边界
+        child: GestureDetector(
+          onPanStart: (details) {
+            final offset = _constrainOffset(details.localPosition - _localCenter);
+            _controller.updatePosition(offset, _threshold);
+          },
+          onPanUpdate: (details) {
+            final offset = _constrainOffset(details.localPosition - _localCenter);
+            _controller.updatePosition(offset, _threshold);
+          },
+          onPanEnd: (_) => _controller.reset(),
+          child: Container(
+            width: _joystickRadius * 2,
+            height: _joystickRadius * 2,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: Colors.blue.withOpacity(0.3),
             ),
-          ));
-        },
-        child: Container(
-          width: _joystickRadius * 2,
-          height: _joystickRadius * 2,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: Colors.blue.withOpacity(0.3),
-            //border: Border.all(color: Colors.blue, width: 2),
-          ),
-          child: Stack(
-            clipBehavior: Clip.none, // 允许子组件超出边界
-            children: [
-              // 绘制阈值圆圈
-              Center(
-                child: Container(
-                  width: _threshold * 2,
-                  height: _threshold * 2,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: Colors.blue.withOpacity(0.2),
-                    border: Border.all(color: Colors.blue, width: 1),
+            child: Stack(
+              clipBehavior: Clip.none,
+              children: [
+                // 阈值圆圈
+                Center(
+                  child: Container(
+                    width: _threshold * 2,
+                    height: _threshold * 2,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: Colors.blue.withOpacity(0.2),
+                      border: Border.all(color: Colors.blue, width: 1),
+                    ),
                   ),
                 ),
-              ),
-              // 绘制八个方向的指示线
-              ...List.generate(8, (index) {
-                final angle = index * 45.0 * pi / 180;
-                final startX = _joystickRadius + cos(angle) * (_joystickRadius * 0.3);
-                final startY = _joystickRadius + sin(angle) * (_joystickRadius * 0.3);
-                final endX = _joystickRadius + cos(angle) * (_joystickRadius * 0.8);
-                final endY = _joystickRadius + sin(angle) * (_joystickRadius * 0.8);
-                
-                return Positioned(
-                  left: 0,
-                  top: 0,
-                  child: CustomPaint(
-                    size: Size(_joystickRadius * 2, _joystickRadius * 2),
-                    painter: DirectionLinePainter(
-                      startX: startX,
-                      startY: startY,
-                      endX: endX,
-                      endY: endY,
-                    ),
-                  ),
-                );
-              }),
-              // 中心摇杆 - 使用 ValueListenableBuilder 避免频繁 setState
-              ValueListenableBuilder<Offset>(
-                valueListenable: _joystickOffsetNotifier,
-                builder: (context, offset, child) {
-                  return Center(
-                    child: Transform.translate(
-                      offset: offset,
-                      child: Container(
-                        width: _thumbRadius * 2,
-                        height: _thumbRadius * 2,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: Colors.blue.withOpacity(0.5),
-                          //border: Border.all(color: Colors.orange, width: 2),
+                // 方向指示线
+                ..._buildDirectionLines(),
+                // 摇杆
+                ValueListenableBuilder<Offset>(
+                  valueListenable: _controller.offsetNotifier,
+                  builder: (context, offset, child) {
+                    return Center(
+                      child: Transform.translate(
+                        offset: offset,
+                        child: Container(
+                          width: _thumbRadius * 2,
+                          height: _thumbRadius * 2,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: Colors.blue.withOpacity(0.5),
+                          ),
                         ),
                       ),
-                    ),
-                  );
-                },
-              ),
-            ],
+                    );
+                  },
+                ),
+              ],
+            ),
           ),
         ),
       ),
     );
+  }
+
+  List<Widget> _buildDirectionLines() {
+    return List.generate(8, (index) {
+      final angle = index * 45.0 * pi / 180;
+      final startRatio = JoystickConstants.directionLineStartRatio;
+      final endRatio = JoystickConstants.directionLineEndRatio;
+      
+      return Positioned(
+        left: 0,
+        top: 0,
+        child: CustomPaint(
+          size: Size(_joystickRadius * 2, _joystickRadius * 2),
+          painter: DirectionLinePainter(
+            startX: _joystickRadius + cos(angle) * (_joystickRadius * startRatio),
+            startY: _joystickRadius + sin(angle) * (_joystickRadius * startRatio),
+            endX: _joystickRadius + cos(angle) * (_joystickRadius * endRatio),
+            endY: _joystickRadius + sin(angle) * (_joystickRadius * endRatio),
+          ),
+        ),
+      );
+    });
   }
 }
 
