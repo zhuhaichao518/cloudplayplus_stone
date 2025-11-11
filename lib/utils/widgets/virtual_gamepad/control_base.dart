@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'button_control.dart';
 import 'joystick_control.dart';
+import 'wasd_joystick_control.dart';
 import 'control_event.dart';
 
 abstract class ControlBase {
@@ -29,6 +30,8 @@ abstract class ControlBase {
         return JoystickControl.fromMap(map);
       case 'eightDirectionJoystick':
         return EightDirectionJoystickControl.fromMap(map);
+      case 'wasdJoystick':
+        return WASDJoystickControl.fromMap(map);
       case 'button':
         return ButtonControl.fromMap(map);
       case 'mouseModeButton':

@@ -81,6 +81,20 @@ class _VirtualGamepadDemoPageState extends State<VirtualGamepadDemoPage> {
       size: 0.12,
     );
 
+    // 创建WASD摇杆（支持长拉模式）
+    _controlManager.createWASDJoystick(
+      keyMapping: {
+        'up': 0x11,     // W键
+        'down': 0x1F,   // S键
+        'left': 0x1E,   // A键
+        'right': 0x20,  // D键
+      },
+      enableLongPull: true,
+      centerX: 0.5,
+      centerY: 0.75,
+      size: 0.12,
+    );
+
     // 创建A按钮
     _controlManager.createButton(
       label: 'A',

@@ -3,6 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'button_control.dart';
 import 'control_base.dart';
 import 'joystick_control.dart';
+import 'wasd_joystick_control.dart';
 import 'control_event.dart';
 import 'dart:convert';
 
@@ -151,6 +152,26 @@ class ControlManager {
     );
   }
 
+  // 创建并添加WASD摇杆
+  void createWASDJoystick({
+    required Map<String, int> keyMapping,
+    bool enableLongPull = false,
+    double centerX = 0.2,
+    double centerY = 0.8,
+    double size = 0.1,
+  }) {
+    addControl(
+      WASDJoystickControl(
+        id: _getNextId().toString(),
+        centerX: centerX,
+        centerY: centerY,
+        size: size,
+        keyMapping: keyMapping,
+        enableLongPull: enableLongPull,
+      ),
+    );
+  }
+
   // 创建并添加按钮
   void createButton({
     required String label,
@@ -233,6 +254,8 @@ class ControlManager {
     bool? isMouseButton,
     List<MouseMode>? enabledModes,
     ButtonShape? shape,
+    Map<String, int>? keyMapping,
+    bool? enableLongPull,
   }) {
     final index = _controls.indexWhere((c) => c.id == id);
     if (index != -1) {
@@ -273,6 +296,15 @@ class ControlManager {
           size: size ?? control.size,
           enabledModes: enabledModes ?? (control as dynamic).enabledModes,
           color: (control as dynamic).color,
+        );
+      } else if (control is WASDJoystickControl) {
+        _controls[index] = WASDJoystickControl(
+          id: control.id,
+          centerX: centerX ?? control.centerX,
+          centerY: centerY ?? control.centerY,
+          size: size ?? control.size,
+          keyMapping: keyMapping ?? control.keyMapping,
+          enableLongPull: enableLongPull ?? control.enableLongPull,
         );
       }
       _saveControls();
@@ -402,6 +434,15 @@ class ControlManager {
             size: control.size,
             enabledModes: (control as dynamic).enabledModes,
             color: (control as dynamic).color,
+          ));
+        } else if (control is WASDJoystickControl) {
+          _controls.add(WASDJoystickControl(
+            id: _getNextId().toString(),
+            centerX: control.centerX,
+            centerY: control.centerY,
+            size: control.size,
+            keyMapping: control.keyMapping,
+            enableLongPull: control.enableLongPull,
           ));
         }
       }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'control_base.dart';
 import 'button_control.dart';
 import 'joystick_control.dart';
+import 'wasd_joystick_control.dart';
 import 'control_manager.dart';
 import 'package:vk/vk.dart';
 import 'package:flutter/services.dart';
@@ -377,6 +378,20 @@ class _ControlManagementScreenState extends State<ControlManagementScreen> {
           ),
         ),
       );
+    } else if (control.type == 'wasdJoystick') {
+      preview = Container(
+        decoration: BoxDecoration(
+          color: Colors.green.withOpacity(0.6),
+          shape: BoxShape.circle,
+        ),
+        child: Center(
+          child: Icon(
+            Icons.keyboard,
+            color: Colors.white,
+            size: controlSize * 0.4,
+          ),
+        ),
+      );
     } else if (control.type == 'mouseModeButton') {
       preview = Container(
         decoration: BoxDecoration(
@@ -441,23 +456,25 @@ class _ControlManagementScreenState extends State<ControlManagementScreen> {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
                 content: Text(
-                    '${control.type == 'joystick' ? '摇杆' : (control.type == 'eightDirectionJoystick' ? '角落跳转摇杆' : (control.type == 'mouseModeButton' ? '鼠标模式切换按钮' : (control is ButtonControl && control.isGamepadButton ? '手柄按钮' : (control is ButtonControl && control.isMouseButton ? '鼠标按钮' : '键盘按键'))))}已删除')),
+                    '${control.type == 'joystick' ? '摇杆' : (control.type == 'eightDirectionJoystick' ? '角落跳转摇杆' : (control.type == 'wasdJoystick' ? 'WASD摇杆' : (control.type == 'mouseModeButton' ? '鼠标模式切换按钮' : (control is ButtonControl && control.isGamepadButton ? '手柄按钮' : (control is ButtonControl && control.isMouseButton ? '鼠标按钮' : '键盘按键')))))}已删除')),
           );
         },
         child: ListTile(
           leading: Icon(
-              control.type == 'joystick' ? Icons.gamepad : (control.type == 'eightDirectionJoystick' ? Icons.navigation : (control.type == 'mouseModeButton' ? Icons.mouse : (control is ButtonControl && control.isMouseButton ? Icons.mouse : Icons.touch_app)))),
+              control.type == 'joystick' ? Icons.gamepad : (control.type == 'eightDirectionJoystick' ? Icons.navigation : (control.type == 'wasdJoystick' ? Icons.keyboard : (control.type == 'mouseModeButton' ? Icons.mouse : (control is ButtonControl && control.isMouseButton ? Icons.mouse : Icons.touch_app))))),
           title: Text(control.type == 'joystick'
               ? '${(control as JoystickControl).joystickType == JoystickType.left ? '左' : '右'}摇杆'
               : control.type == 'eightDirectionJoystick'
                   ? '角落跳转摇杆'
-                  : control.type == 'mouseModeButton'
-                      ? '鼠标模式切换按钮'
-                      : (control is ButtonControl && control.isGamepadButton
-                          ? '手柄按钮：${GamepadKeys.getKeyName(control.keyCode)}'
-                          : control is ButtonControl && control.isMouseButton
-                              ? '鼠标按钮：${_getMouseButtonName(control.keyCode)}'
-                              : '键盘按键：${control is ButtonControl ? control.label : ''}')),
+                  : control.type == 'wasdJoystick'
+                      ? 'WASD摇杆'
+                      : control.type == 'mouseModeButton'
+                          ? '鼠标模式切换按钮'
+                          : (control is ButtonControl && control.isGamepadButton
+                              ? '手柄按钮：${GamepadKeys.getKeyName(control.keyCode)}'
+                              : control is ButtonControl && control.isMouseButton
+                                  ? '鼠标按钮：${_getMouseButtonName(control.keyCode)}'
+                                  : '键盘按键：${control is ButtonControl ? control.label : ''}')),
           subtitle: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -510,6 +527,15 @@ class _ControlManagementScreenState extends State<ControlManagementScreen> {
               onTap: () {
                 Navigator.pop(context);
                 _addEightDirectionJoystick();
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.keyboard),
+              title: const Text('WASD摇杆'),
+              subtitle: const Text('支持自定义按键映射和长拉模式'),
+              onTap: () {
+                Navigator.pop(context);
+                _addWASDJoystick();
               },
             ),
             ListTile(
@@ -625,6 +651,282 @@ class _ControlManagementScreenState extends State<ControlManagementScreen> {
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  void _addWASDJoystick() {
+    final centerXController = TextEditingController(text: '0.2');
+    final centerYController = TextEditingController(text: '0.8');
+    final sizeController = TextEditingController(text: '0.12');
+    
+    // 默认WASD按键映射
+    Map<String, int> keyMapping = {
+      'up': 0x11,     // W
+      'down': 0x1F,   // S
+      'left': 0x1E,   // A
+      'right': 0x20,  // D
+    };
+    bool enableLongPull = false;
+
+    showDialog(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDialogState) => Dialog.fullscreen(
+          child: Scaffold(
+            appBar: AppBar(
+              title: const Text('添加WASD摇杆'),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('取消'),
+                ),
+                TextButton(
+                  onPressed: () {
+                    widget.controlManager.createWASDJoystick(
+                      keyMapping: keyMapping,
+                      enableLongPull: enableLongPull,
+                      centerX: double.tryParse(centerXController.text) ?? 0.2,
+                      centerY: double.tryParse(centerYController.text) ?? 0.8,
+                      size: double.tryParse(sizeController.text) ?? 0.12,
+                    );
+                    widget.onControlsUpdated();
+                    Navigator.pop(context);
+                    setState(() {});
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('WASD摇杆已添加')),
+                    );
+                  },
+                  child: const Text('添加'),
+                ),
+              ],
+            ),
+            body: SingleChildScrollView(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'WASD摇杆说明:',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 8),
+                  const Text(
+                    '• 将摇杆方向映射到自定义按键\n'
+                    '• 支持8方向（包括对角线）\n'
+                    '• 长拉模式：拉得足够远后松手也不释放按键\n'
+                    '• 双击摇杆可强制释放所有按键',
+                    style: TextStyle(fontSize: 14),
+                  ),
+                  const SizedBox(height: 24),
+                  const Text(
+                    '按键映射配置:',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 16),
+                  _buildKeyMappingRow('上', 'up', keyMapping, setDialogState),
+                  const SizedBox(height: 8),
+                  _buildKeyMappingRow('下', 'down', keyMapping, setDialogState),
+                  const SizedBox(height: 8),
+                  _buildKeyMappingRow('左', 'left', keyMapping, setDialogState),
+                  const SizedBox(height: 8),
+                  _buildKeyMappingRow('右', 'right', keyMapping, setDialogState),
+                  const SizedBox(height: 24),
+                  SwitchListTile(
+                    title: const Text('启用长拉模式'),
+                    subtitle: const Text('拉动距离超过阈值后，松手不释放按键'),
+                    value: enableLongPull,
+                    onChanged: (value) {
+                      enableLongPull = value;
+                      setDialogState(() {});
+                    },
+                  ),
+                  const SizedBox(height: 24),
+                  const Text(
+                    '虚拟键盘（点击选择按键）:',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 16),
+                  Center(
+                    child: LayoutBuilder(
+                      builder: (context, constraints) {
+                        final maxWidth = constraints.maxWidth;
+                        final height = maxWidth / 2.6;
+                        return Container(
+                          width: maxWidth,
+                          child: VirtualKeyboard(
+                            type: VirtualKeyboardType.Hardware,
+                            keyPressedCallback: (keyCode, isDown) {
+                              if (isDown) {
+                                // 显示对话框让用户选择映射到哪个方向
+                                _showDirectionSelectionDialog(
+                                  context,
+                                  keyCode,
+                                  keyMapping,
+                                  setDialogState,
+                                );
+                              }
+                            },
+                            height: height,
+                            keyBackgroundColor: Colors.grey.withOpacity(0.5),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  const Text(
+                    '位置和大小:',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: centerXController,
+                    decoration: const InputDecoration(
+                      labelText: '中心X (0.0-1.0)',
+                      hintText: '0.0是左边，1.0是右边',
+                      border: OutlineInputBorder(),
+                    ),
+                    keyboardType: TextInputType.number,
+                  ),
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: centerYController,
+                    decoration: const InputDecoration(
+                      labelText: '中心Y (0.0-1.0)',
+                      hintText: '0.0是底部，1.0是顶部',
+                      border: OutlineInputBorder(),
+                    ),
+                    keyboardType: TextInputType.number,
+                  ),
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: sizeController,
+                    decoration: const InputDecoration(
+                      labelText: '大小 (0.0-1.0)',
+                      hintText: '相对于屏幕宽度',
+                      border: OutlineInputBorder(),
+                    ),
+                    keyboardType: TextInputType.number,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildKeyMappingRow(
+    String label,
+    String direction,
+    Map<String, int> keyMapping,
+    StateSetter setState,
+  ) {
+    return Row(
+      children: [
+        SizedBox(
+          width: 60,
+          child: Text(
+            '$label:',
+            style: const TextStyle(fontSize: 16),
+          ),
+        ),
+        Expanded(
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            decoration: BoxDecoration(
+              border: Border.all(color: Colors.grey),
+              borderRadius: BorderRadius.circular(4),
+            ),
+            child: Text(
+              '0x${keyMapping[direction]!.toRadixString(16).toUpperCase().padLeft(2, '0')}',
+              style: const TextStyle(fontFamily: 'monospace'),
+            ),
+          ),
+        ),
+        const SizedBox(width: 8),
+        IconButton(
+          icon: const Icon(Icons.clear),
+          onPressed: () {
+            // 重置为默认值
+            final defaults = {
+              'up': 0x11,
+              'down': 0x1F,
+              'left': 0x1E,
+              'right': 0x20,
+            };
+            keyMapping[direction] = defaults[direction]!;
+            setState(() {});
+          },
+          tooltip: '重置为默认',
+        ),
+      ],
+    );
+  }
+
+  void _showDirectionSelectionDialog(
+    BuildContext parentContext,
+    int keyCode,
+    Map<String, int> keyMapping,
+    StateSetter parentSetState,
+  ) {
+    showDialog(
+      context: parentContext,
+      builder: (context) => AlertDialog(
+        title: const Text('选择方向'),
+        content: const Text('将此按键映射到哪个方向？'),
+        actions: [
+          TextButton(
+            onPressed: () {
+              keyMapping['up'] = keyCode;
+              parentSetState(() {});
+              Navigator.pop(context);
+              ScaffoldMessenger.of(parentContext).showSnackBar(
+                SnackBar(content: Text('已将 0x${keyCode.toRadixString(16)} 映射到 上')),
+              );
+            },
+            child: const Text('上 ↑'),
+          ),
+          TextButton(
+            onPressed: () {
+              keyMapping['down'] = keyCode;
+              parentSetState(() {});
+              Navigator.pop(context);
+              ScaffoldMessenger.of(parentContext).showSnackBar(
+                SnackBar(content: Text('已将 0x${keyCode.toRadixString(16)} 映射到 下')),
+              );
+            },
+            child: const Text('下 ↓'),
+          ),
+          TextButton(
+            onPressed: () {
+              keyMapping['left'] = keyCode;
+              parentSetState(() {});
+              Navigator.pop(context);
+              ScaffoldMessenger.of(parentContext).showSnackBar(
+                SnackBar(content: Text('已将 0x${keyCode.toRadixString(16)} 映射到 左')),
+              );
+            },
+            child: const Text('左 ←'),
+          ),
+          TextButton(
+            onPressed: () {
+              keyMapping['right'] = keyCode;
+              parentSetState(() {});
+              Navigator.pop(context);
+              ScaffoldMessenger.of(parentContext).showSnackBar(
+                SnackBar(content: Text('已将 0x${keyCode.toRadixString(16)} 映射到 右')),
+              );
+            },
+            child: const Text('右 →'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('取消'),
+          ),
+        ],
       ),
     );
   }
@@ -1236,6 +1538,17 @@ class _ControlManagementScreenState extends State<ControlManagementScreen> {
     List<MouseMode> selectedModes = control.type == 'mouseModeButton' 
         ? (control as dynamic).enabledModes.cast<MouseMode>().toList()
         : [MouseMode.leftClick, MouseMode.rightClick, MouseMode.move];
+    
+    // 为 WASDJoystickControl 添加变量
+    Map<String, int> keyMapping = control is WASDJoystickControl
+        ? Map<String, int>.from(control.keyMapping)
+        : {
+            'up': 0x11,
+            'down': 0x1F,
+            'left': 0x1E,
+            'right': 0x20,
+          };
+    bool enableLongPull = control is WASDJoystickControl ? control.enableLongPull : false;
 
     showDialog(
       context: context,
@@ -1244,7 +1557,7 @@ class _ControlManagementScreenState extends State<ControlManagementScreen> {
           child: Scaffold(
             appBar: AppBar(
               title: Text(
-                  '编辑${control.type == 'joystick' ? '摇杆' : (control.type == 'eightDirectionJoystick' ? '角落跳转摇杆' : (control.type == 'mouseModeButton' ? '鼠标模式切换按钮' : (isGamepadButton ? '手柄按钮' : '键盘按键')))}'),
+                  '编辑${control.type == 'joystick' ? '摇杆' : (control.type == 'eightDirectionJoystick' ? '角落跳转摇杆' : (control.type == 'wasdJoystick' ? 'WASD摇杆' : (control.type == 'mouseModeButton' ? '鼠标模式切换按钮' : (isGamepadButton ? '手柄按钮' : '键盘按键'))))}'),
               actions: [
                 TextButton(
                   onPressed: () => Navigator.pop(context),
@@ -1301,6 +1614,15 @@ class _ControlManagementScreenState extends State<ControlManagementScreen> {
                         size: size,
                         enabledModes: selectedModes,
                       );
+                    } else if (control is WASDJoystickControl) {
+                      widget.controlManager.updateControl(
+                        control.id,
+                        centerX: centerX,
+                        centerY: centerY,
+                        size: size,
+                        keyMapping: keyMapping,
+                        enableLongPull: enableLongPull,
+                      );
                     }
 
                     widget.onControlsUpdated();
@@ -1309,7 +1631,7 @@ class _ControlManagementScreenState extends State<ControlManagementScreen> {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
                           content: Text(
-                              '${control.type == 'joystick' ? '摇杆' : (control.type == 'eightDirectionJoystick' ? '角落跳转摇杆' : (control.type == 'mouseModeButton' ? '鼠标模式切换按钮' : (isGamepadButton ? '手柄按钮' : (isMouseButton ? '鼠标按钮' : '键盘按键'))))}已更新')),
+                              '${control.type == 'joystick' ? '摇杆' : (control.type == 'eightDirectionJoystick' ? '角落跳转摇杆' : (control.type == 'wasdJoystick' ? 'WASD摇杆' : (control.type == 'mouseModeButton' ? '鼠标模式切换按钮' : (isGamepadButton ? '手柄按钮' : (isMouseButton ? '鼠标按钮' : '键盘按键')))))}已更新')),
                     );
                   },
                   child: const Text('保存'),
@@ -1555,6 +1877,61 @@ class _ControlManagementScreenState extends State<ControlManagementScreen> {
                       '• 拖动摇杆超过圆圈阈值时，鼠标会瞬间跳转到对应角落\n'
                       '• 松开摇杆后可以重新使用',
                       style: TextStyle(fontSize: 14),
+                    ),
+                  ] else if (control.type == 'wasdJoystick') ...[
+                    const Text(
+                      '按键映射配置:',
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 16),
+                    _buildKeyMappingRow('上', 'up', keyMapping, setDialogState),
+                    const SizedBox(height: 8),
+                    _buildKeyMappingRow('下', 'down', keyMapping, setDialogState),
+                    const SizedBox(height: 8),
+                    _buildKeyMappingRow('左', 'left', keyMapping, setDialogState),
+                    const SizedBox(height: 8),
+                    _buildKeyMappingRow('右', 'right', keyMapping, setDialogState),
+                    const SizedBox(height: 16),
+                    SwitchListTile(
+                      title: const Text('启用长拉模式'),
+                      subtitle: const Text('拉动距离超过阈值后，松手不释放按键'),
+                      value: enableLongPull,
+                      onChanged: (value) {
+                        enableLongPull = value;
+                        setDialogState(() {});
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    const Text(
+                      '虚拟键盘（点击选择按键）:',
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 16),
+                    Center(
+                      child: LayoutBuilder(
+                        builder: (context, constraints) {
+                          final maxWidth = constraints.maxWidth;
+                          final height = maxWidth / 2.6;
+                          return Container(
+                            width: maxWidth,
+                            child: VirtualKeyboard(
+                              type: VirtualKeyboardType.Hardware,
+                              keyPressedCallback: (keyCode, isDown) {
+                                if (isDown) {
+                                  _showDirectionSelectionDialog(
+                                    context,
+                                    keyCode,
+                                    keyMapping,
+                                    setDialogState,
+                                  );
+                                }
+                              },
+                              height: height,
+                              keyBackgroundColor: Colors.grey.withOpacity(0.5),
+                            ),
+                          );
+                        },
+                      ),
                     ),
                   ] else if (control.type == 'mouseModeButton') ...[
                     const Text(
@@ -1908,6 +2285,8 @@ class _ControlManagementScreenState extends State<ControlManagementScreen> {
       return control.isMouseButton ? Icons.mouse : Icons.touch_app;
     } else if (control.type == 'eightDirectionJoystick') {
       return Icons.navigation;
+    } else if (control.type == 'wasdJoystick') {
+      return Icons.keyboard;
     } else if (control.type == 'mouseModeButton') {
       return Icons.mouse;
     }
@@ -1927,6 +2306,8 @@ class _ControlManagementScreenState extends State<ControlManagementScreen> {
       }
     } else if (control.type == 'eightDirectionJoystick') {
       return '角落跳转摇杆';
+    } else if (control.type == 'wasdJoystick') {
+      return 'WASD摇杆';
     } else if (control.type == 'mouseModeButton') {
       return '鼠标模式切换按钮';
     }
