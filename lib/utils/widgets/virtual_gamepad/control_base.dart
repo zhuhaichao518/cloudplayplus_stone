@@ -10,6 +10,8 @@ abstract class ControlBase {
   final double centerY; // 位置比例 (0.0-1.0)
   final double size; // 大小比例 (0.0-1.0)
   final String type; // 控件类型标识
+  final double opacity; // 透明度 (0.0-1.0)
+  final Color color; // 颜色
 
   ControlBase({
     required this.id,
@@ -17,6 +19,8 @@ abstract class ControlBase {
     required this.centerY,
     required this.size,
     required this.type,
+    this.opacity = 0.5,
+    this.color = Colors.blue,
   });
 
   // 转换为Map用于序列化
@@ -55,7 +59,6 @@ abstract class ControlBase {
 
 class MouseModeButtonControl extends ControlBase {
   final List<MouseMode> enabledModes;
-  final Color color;
   MouseMode _currentMode;
   bool _isPressed = false; // 添加按下状态跟踪
 
@@ -65,7 +68,8 @@ class MouseModeButtonControl extends ControlBase {
     required super.centerY,
     required super.size,
     required this.enabledModes,
-    this.color = Colors.blue,
+    super.color = Colors.blue,
+    super.opacity = 0.5,
   }) : _currentMode = enabledModes.first,
        super(type: 'mouseModeButton');
 
@@ -143,7 +147,7 @@ class MouseModeButtonControl extends ControlBase {
           width: size * screenWidth,
           height: size * screenWidth,
           decoration: BoxDecoration(
-            color: _isPressed ? color.withOpacity(0.8) : color.withOpacity(0.5),
+            color: _isPressed ? color.withOpacity(opacity * 1.6) : color.withOpacity(opacity),
             shape: BoxShape.circle,
           ),
           child: Center(
@@ -182,6 +186,7 @@ class MouseModeButtonControl extends ControlBase {
       'size': size,
       'enabledModes': enabledModes.map((m) => m.toString()).toList(),
       'color': color.value,
+      'opacity': opacity,
     };
   }
 
@@ -196,7 +201,8 @@ class MouseModeButtonControl extends ControlBase {
               (e) => e.toString() == m,
               orElse: () => MouseMode.leftClick))
           .toList(),
-      color: Color(map['color'] as int),
+      color: Color(map['color'] as int? ?? Colors.blue.value),
+      opacity: map['opacity'] as double? ?? 0.5,
     );
   }
 }

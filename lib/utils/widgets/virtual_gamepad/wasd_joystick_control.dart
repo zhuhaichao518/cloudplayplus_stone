@@ -186,12 +186,16 @@ class WASDJoystickControl extends ControlBase {
     required double size,
     required this.keyMapping,
     this.enableLongPull = false,
+    Color color = Colors.green,
+    double opacity = 0.3,
   }) : super(
           id: id,
           centerX: centerX,
           centerY: centerY,
           size: size,
           type: 'wasdJoystick',
+          color: color,
+          opacity: opacity,
         );
 
   factory WASDJoystickControl.fromMap(Map<String, dynamic> map) {
@@ -208,6 +212,8 @@ class WASDJoystickControl extends ControlBase {
       size: map['size'],
       keyMapping: keyMapping,
       enableLongPull: map['enableLongPull'] ?? false,
+      color: Color(map['color'] as int? ?? Colors.green.value),
+      opacity: map['opacity'] as double? ?? 0.3,
     );
   }
 
@@ -221,6 +227,8 @@ class WASDJoystickControl extends ControlBase {
       'size': size,
       'keyMapping': keyMapping,
       'enableLongPull': enableLongPull,
+      'color': color.value,
+      'opacity': opacity,
     };
   }
 
@@ -317,6 +325,8 @@ class _WASDJoystickWidgetState extends State<_WASDJoystickWidget> {
   }
 
   void _handlePanStart(DragStartDetails details) {
+    // 强制重置（释放长拉状态）
+    _controller.forceReset();
     _startGlobalPosition = details.globalPosition;
     final offset = _constrainOffset(details.localPosition - _localCenter);
     _controller.updatePosition(
@@ -354,18 +364,18 @@ class _WASDJoystickWidgetState extends State<_WASDJoystickWidget> {
           onPanStart: _handlePanStart,
           onPanUpdate: _handlePanUpdate,
           onPanEnd: _handlePanEnd,
-          onDoubleTap: () {
-            // 双击强制重置（释放长拉状态）
+          /*onTapDown: (TapDownDetails details) {
+            // 强制重置（释放长拉状态）
             _controller.forceReset();
-          },
+          },*/
           child: Container(
             width: _joystickRadius * 2,
             height: _joystickRadius * 2,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: Colors.green.withOpacity(0.3),
+              color: widget.control.color.withOpacity(widget.control.opacity),
               border: Border.all(
-                color: Colors.green.withOpacity(0.6),
+                color: widget.control.color.withOpacity(widget.control.opacity * 2),
                 width: 2,
               ),
             ),
@@ -380,15 +390,15 @@ class _WASDJoystickWidgetState extends State<_WASDJoystickWidget> {
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         border: Border.all(
-                          color: Colors.orange.withOpacity(0.4),
+                          color: widget.control.color.withOpacity(widget.control.opacity * 1.33),
                           width: 1,
                           strokeAlign: BorderSide.strokeAlignOutside,
                         ),
                       ),
                     ),
                   ),
-                // 方向指示器
-                _buildDirectionIndicators(),
+                // TODO: 方向指示器显示文字
+                //_buildDirectionIndicators(),
                 // 摇杆
                 ValueListenableBuilder<Offset>(
                   valueListenable: _controller.offsetNotifier,
@@ -401,9 +411,9 @@ class _WASDJoystickWidgetState extends State<_WASDJoystickWidget> {
                           height: _thumbRadius * 2,
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            color: Colors.green.withOpacity(0.7),
+                            color: widget.control.color.withOpacity(widget.control.opacity * 2.33),
                             border: Border.all(
-                              color: Colors.white.withOpacity(0.8),
+                              color: Colors.white.withOpacity(widget.control.opacity * 2.67),
                               width: 2,
                             ),
                           ),
@@ -421,56 +431,64 @@ class _WASDJoystickWidgetState extends State<_WASDJoystickWidget> {
   }
 
   Widget _buildDirectionIndicators() {
+    // 计算标签的大小（基于摇杆半径）
+    final labelSize = _joystickRadius * 0.35;
+    final halfLabelSize = labelSize / 2;
+    
     return Stack(
       children: [
         // 上
         Positioned(
-          top: _joystickRadius * 0.1,
-          left: _joystickRadius - 10,
-          child: _buildDirectionLabel('↑'),
+          top: _joystickRadius * 0.15,
+          left: _joystickRadius - halfLabelSize,
+          child: _buildDirectionLabel('↑', labelSize),
         ),
         // 下
         Positioned(
-          bottom: _joystickRadius * 0.1,
-          left: _joystickRadius - 10,
-          child: _buildDirectionLabel('↓'),
+          bottom: _joystickRadius * 0.15,
+          left: _joystickRadius - halfLabelSize,
+          child: _buildDirectionLabel('↓', labelSize),
         ),
         // 左
         Positioned(
-          left: _joystickRadius * 0.1,
-          top: _joystickRadius - 10,
-          child: _buildDirectionLabel('←'),
+          left: _joystickRadius * 0.15,
+          top: _joystickRadius - halfLabelSize,
+          child: _buildDirectionLabel('←', labelSize),
         ),
         // 右
         Positioned(
-          right: _joystickRadius * 0.1,
-          top: _joystickRadius - 10,
-          child: _buildDirectionLabel('→'),
+          right: _joystickRadius * 0.15,
+          top: _joystickRadius - halfLabelSize,
+          child: _buildDirectionLabel('→', labelSize),
         ),
       ],
     );
   }
 
-  Widget _buildDirectionLabel(String label) {
-    return Container(
-      width: 20,
-      height: 20,
-      decoration: BoxDecoration(
-        color: Colors.green.withOpacity(0.5),
-        shape: BoxShape.circle,
-      ),
+  Widget _buildDirectionLabel(String label, double size) {
+    return SizedBox(
+      width: size,
+      height: size,
       child: Center(
         child: Text(
           label,
-          style: const TextStyle(
-            color: Colors.white,
-            fontSize: 12,
+          style: TextStyle(
+            color: widget.control.color.withOpacity(widget.control.opacity * 2.5),
+            fontSize: size * 0.6,
             fontWeight: FontWeight.bold,
+            shadows: [
+              Shadow(
+                offset: const Offset(0, 1),
+                blurRadius: 2,
+                color: Colors.black.withOpacity(0.5),
+              ),
+            ],
           ),
         ),
       ),
     );
   }
 }
+
 
 

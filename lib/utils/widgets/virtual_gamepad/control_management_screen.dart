@@ -1549,6 +1549,10 @@ class _ControlManagementScreenState extends State<ControlManagementScreen> {
             'right': 0x20,
           };
     bool enableLongPull = control is WASDJoystickControl ? control.enableLongPull : false;
+    
+    // 颜色和透明度变量
+    Color selectedColor = control.color;
+    double selectedOpacity = control.opacity;
 
     showDialog(
       context: context,
@@ -1589,6 +1593,8 @@ class _ControlManagementScreenState extends State<ControlManagementScreen> {
                         isGamepadButton: isGamepadButton,
                         isMouseButton: isMouseButton,
                         shape: selectedShape,
+                        color: selectedColor,
+                        opacity: selectedOpacity,
                       );
                     } else if (control is JoystickControl) {
                       widget.controlManager.updateControl(
@@ -1597,6 +1603,8 @@ class _ControlManagementScreenState extends State<ControlManagementScreen> {
                         centerY: centerY,
                         size: size,
                         joystickType: selectedType,
+                        color: selectedColor,
+                        opacity: selectedOpacity,
                       );
                     } else if (control.type == 'eightDirectionJoystick') {
                       widget.controlManager.updateControl(
@@ -1604,6 +1612,8 @@ class _ControlManagementScreenState extends State<ControlManagementScreen> {
                         centerX: centerX,
                         centerY: centerY,
                         size: size,
+                        color: selectedColor,
+                        opacity: selectedOpacity,
                       );
                     } else if (control.type == 'mouseModeButton') {
                       // 对于鼠标模式按钮，使用 updateControl 方法
@@ -1613,6 +1623,8 @@ class _ControlManagementScreenState extends State<ControlManagementScreen> {
                         centerY: centerY,
                         size: size,
                         enabledModes: selectedModes,
+                        color: selectedColor,
+                        opacity: selectedOpacity,
                       );
                     } else if (control is WASDJoystickControl) {
                       widget.controlManager.updateControl(
@@ -1622,6 +1634,8 @@ class _ControlManagementScreenState extends State<ControlManagementScreen> {
                         size: size,
                         keyMapping: keyMapping,
                         enableLongPull: enableLongPull,
+                        color: selectedColor,
+                        opacity: selectedOpacity,
                       );
                     }
 
@@ -1979,6 +1993,127 @@ class _ControlManagementScreenState extends State<ControlManagementScreen> {
                       },
                     ),
                   ],
+                  const SizedBox(height: 16),
+                  const Text(
+                    '外观设置:',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      const Text('颜色:', style: TextStyle(fontSize: 16)),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Container(
+                          height: 50,
+                          decoration: BoxDecoration(
+                            color: selectedColor.withOpacity(selectedOpacity),
+                            border: Border.all(color: Colors.grey),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Material(
+                            color: Colors.transparent,
+                            child: InkWell(
+                              onTap: () async {
+                                // 显示颜色选择器
+                                await showDialog(
+                                  context: context,
+                                  builder: (BuildContext context) {
+                                    return AlertDialog(
+                                      title: const Text('选择颜色'),
+                                      content: SingleChildScrollView(
+                                        child: Wrap(
+                                          spacing: 8,
+                                          runSpacing: 8,
+                                          children: [
+                                            Colors.red,
+                                            Colors.pink,
+                                            Colors.purple,
+                                            Colors.deepPurple,
+                                            Colors.indigo,
+                                            Colors.blue,
+                                            Colors.lightBlue,
+                                            Colors.cyan,
+                                            Colors.teal,
+                                            Colors.green,
+                                            Colors.lightGreen,
+                                            Colors.lime,
+                                            Colors.yellow,
+                                            Colors.amber,
+                                            Colors.orange,
+                                            Colors.deepOrange,
+                                            Colors.brown,
+                                            Colors.grey,
+                                            Colors.blueGrey,
+                                            Colors.black,
+                                          ].map((color) {
+                                            return GestureDetector(
+                                              onTap: () {
+                                                selectedColor = color;
+                                                setDialogState(() {});
+                                                Navigator.pop(context);
+                                              },
+                                              child: Container(
+                                                width: 50,
+                                                height: 50,
+                                                decoration: BoxDecoration(
+                                                  color: color,
+                                                  border: Border.all(
+                                                    color: selectedColor == color
+                                                        ? Colors.white
+                                                        : Colors.transparent,
+                                                    width: 3,
+                                                  ),
+                                                  borderRadius: BorderRadius.circular(8),
+                                                ),
+                                              ),
+                                            );
+                                          }).toList(),
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                );
+                              },
+                              child: const Center(
+                                child: Text(
+                                  '点击选择颜色',
+                                  style: TextStyle(color: Colors.white),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      const Text('透明度:', style: TextStyle(fontSize: 16)),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Slider(
+                          value: selectedOpacity,
+                          min: 0.1,
+                          max: 1.0,
+                          divisions: 9,
+                          label: '${(selectedOpacity * 100).toInt()}%',
+                          onChanged: (value) {
+                            selectedOpacity = value;
+                            setDialogState(() {});
+                          },
+                        ),
+                      ),
+                      SizedBox(
+                        width: 50,
+                        child: Text(
+                          '${(selectedOpacity * 100).toInt()}%',
+                          style: const TextStyle(fontSize: 16),
+                        ),
+                      ),
+                    ],
+                  ),
                   const SizedBox(height: 16),
                   const Text(
                     '位置和大小:',

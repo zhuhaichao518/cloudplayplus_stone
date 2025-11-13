@@ -124,6 +124,8 @@ class ControlManager {
     double centerX = 0.2,
     double centerY = 0.8,
     double size = 0.1,
+    Color color = Colors.grey,
+    double opacity = 0.3,
   }) {
     addControl(
       JoystickControl(
@@ -132,6 +134,8 @@ class ControlManager {
         centerY: centerY,
         size: size,
         joystickType: joystickType,
+        color: color,
+        opacity: opacity,
       ),
     );
   }
@@ -141,6 +145,8 @@ class ControlManager {
     double centerX = 0.2,
     double centerY = 0.8,
     double size = 0.1,
+    Color color = Colors.blue,
+    double opacity = 0.3,
   }) {
     addControl(
       EightDirectionJoystickControl(
@@ -148,6 +154,8 @@ class ControlManager {
         centerX: centerX,
         centerY: centerY,
         size: size,
+        color: color,
+        opacity: opacity,
       ),
     );
   }
@@ -159,6 +167,8 @@ class ControlManager {
     double centerX = 0.2,
     double centerY = 0.8,
     double size = 0.1,
+    Color color = Colors.green,
+    double opacity = 0.3,
   }) {
     addControl(
       WASDJoystickControl(
@@ -168,6 +178,8 @@ class ControlManager {
         size: size,
         keyMapping: keyMapping,
         enableLongPull: enableLongPull,
+        color: color,
+        opacity: opacity,
       ),
     );
   }
@@ -180,6 +192,7 @@ class ControlManager {
     double centerY = 0.8,
     double size = 0.1,
     Color color = Colors.blue,
+    double opacity = 0.4,
     bool isGamepadButton = false,
     bool isMouseButton = false,
     ButtonShape shape = ButtonShape.circle,
@@ -193,6 +206,7 @@ class ControlManager {
         label: label,
         keyCode: keyCode,
         color: color,
+        opacity: opacity,
         isGamepadButton: isGamepadButton,
         isMouseButton: isMouseButton,
         shape: shape,
@@ -207,6 +221,7 @@ class ControlManager {
     double centerY = 0.8,
     double size = 0.1,
     Color color = Colors.blue,
+    double opacity = 0.5,
   }) {
     addControl(
       MouseModeButtonControl(
@@ -216,6 +231,7 @@ class ControlManager {
         size: size,
         enabledModes: enabledModes,
         color: color,
+        opacity: opacity,
       ),
     );
   }
@@ -249,6 +265,8 @@ class ControlManager {
     double? size,
     String? label,
     int? keyCode,
+    Color? color,
+    double? opacity,
     JoystickType? joystickType,
     bool? isGamepadButton,
     bool? isMouseButton,
@@ -267,6 +285,8 @@ class ControlManager {
           centerY: centerY ?? control.centerY,
           size: size ?? control.size,
           joystickType: joystickType ?? control.joystickType,
+          color: color ?? control.color,
+          opacity: opacity ?? control.opacity,
         );
       } else if (control is EightDirectionJoystickControl) {
         _controls[index] = EightDirectionJoystickControl(
@@ -274,6 +294,8 @@ class ControlManager {
           centerX: centerX ?? control.centerX,
           centerY: centerY ?? control.centerY,
           size: size ?? control.size,
+          color: color ?? control.color,
+          opacity: opacity ?? control.opacity,
         );
       } else if (control is ButtonControl) {
         _controls[index] = ButtonControl(
@@ -283,7 +305,8 @@ class ControlManager {
           size: size ?? control.size,
           label: label ?? control.label,
           keyCode: keyCode ?? control.keyCode,
-          color: control.color,
+          color: color ?? control.color,
+          opacity: opacity ?? control.opacity,
           isGamepadButton: isGamepadButton ?? control.isGamepadButton,
           isMouseButton: isMouseButton ?? control.isMouseButton,
           shape: shape ?? control.shape,
@@ -295,7 +318,8 @@ class ControlManager {
           centerY: centerY ?? control.centerY,
           size: size ?? control.size,
           enabledModes: enabledModes ?? (control as dynamic).enabledModes,
-          color: (control as dynamic).color,
+          color: color ?? (control as dynamic).color,
+          opacity: opacity ?? control.opacity,
         );
       } else if (control is WASDJoystickControl) {
         _controls[index] = WASDJoystickControl(
@@ -305,6 +329,8 @@ class ControlManager {
           size: size ?? control.size,
           keyMapping: keyMapping ?? control.keyMapping,
           enableLongPull: enableLongPull ?? control.enableLongPull,
+          color: color ?? control.color,
+          opacity: opacity ?? control.opacity,
         );
       }
       _saveControls();
@@ -405,6 +431,8 @@ class ControlManager {
             centerY: control.centerY,
             size: control.size,
             joystickType: control.joystickType,
+            color: control.color,
+            opacity: control.opacity,
           ));
         } else if (control is EightDirectionJoystickControl) {
           _controls.add(EightDirectionJoystickControl(
@@ -412,6 +440,8 @@ class ControlManager {
             centerX: control.centerX,
             centerY: control.centerY,
             size: control.size,
+            color: control.color,
+            opacity: control.opacity,
           ));
         } else if (control is ButtonControl) {
           _controls.add(ButtonControl(
@@ -422,6 +452,7 @@ class ControlManager {
             label: control.label,
             keyCode: control.keyCode,
             color: control.color,
+            opacity: control.opacity,
             isGamepadButton: control.isGamepadButton,
             isMouseButton: control.isMouseButton,
             shape: control.shape,
@@ -434,6 +465,7 @@ class ControlManager {
             size: control.size,
             enabledModes: (control as dynamic).enabledModes,
             color: (control as dynamic).color,
+            opacity: control.opacity,
           ));
         } else if (control is WASDJoystickControl) {
           _controls.add(WASDJoystickControl(
@@ -443,6 +475,8 @@ class ControlManager {
             size: control.size,
             keyMapping: control.keyMapping,
             enableLongPull: control.enableLongPull,
+            color: control.color,
+            opacity: control.opacity,
           ));
         }
       }

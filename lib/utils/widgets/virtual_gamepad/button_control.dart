@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'control_base.dart';
 import 'control_event.dart';
-import 'gamepad_keys.dart';
 
 enum ButtonShape {
   circle,
@@ -10,7 +9,6 @@ enum ButtonShape {
 
 class ButtonControl extends ControlBase {
   final String label;
-  final Color color;
   final int keyCode; // 按键码
   final bool isGamepadButton; // 是否是手柄按钮
   final bool isMouseButton; // 是否是鼠标按钮
@@ -23,7 +21,8 @@ class ButtonControl extends ControlBase {
     required super.size,
     required this.label,
     required this.keyCode,
-    this.color = Colors.blue,
+    super.color = Colors.blue,
+    super.opacity = 0.4,
     this.isGamepadButton = false, // 默认为键盘按钮
     this.isMouseButton = false, // 默认为非鼠标按钮
     this.shape = ButtonShape.circle, // 默认为圆形
@@ -40,6 +39,7 @@ class ButtonControl extends ControlBase {
       label: map['label'] ?? 'Button',
       keyCode: map['keyCode'] ?? 0,
       color: Color(map['color'] ?? Colors.blue.value),
+      opacity: map['opacity'] as double? ?? 0.4,
       isGamepadButton: map['isGamepadButton'] ?? false,
       isMouseButton: map['isMouseButton'] ?? false,
       shape: map['shape'] == 'square' ? ButtonShape.square : ButtonShape.circle,
@@ -57,6 +57,7 @@ class ButtonControl extends ControlBase {
       'label': label,
       'keyCode': keyCode,
       'color': color.value,
+      'opacity': opacity,
       'isGamepadButton': isGamepadButton,
       'isMouseButton': isMouseButton,
       'shape': shape == ButtonShape.square ? 'square' : 'circle',
@@ -206,7 +207,7 @@ class _ButtonWidgetState extends State<_ButtonWidget> {
           width: diameter,
           height: diameter,
           decoration: BoxDecoration(
-            color: widget.control.color.withOpacity(_isPressed ? 0.7 : 0.4),
+            color: widget.control.color.withOpacity(_isPressed ? widget.control.opacity * 1.75 : widget.control.opacity),
             borderRadius: widget.control.shape == ButtonShape.circle 
                 ? BorderRadius.circular(diameter / 2)
                 : BorderRadius.circular(diameter * 0.1), // 方形时使用较小的圆角

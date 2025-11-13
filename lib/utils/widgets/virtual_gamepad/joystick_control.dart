@@ -154,12 +154,16 @@ class JoystickControl extends ControlBase {
     required double centerY,
     required double size,
     required this.joystickType,
+    Color color = Colors.grey,
+    double opacity = 0.3,
   }) : super(
           id: id,
           centerX: centerX,
           centerY: centerY,
           size: size,
           type: 'joystick',
+          color: color,
+          opacity: opacity,
         );
 
   factory JoystickControl.fromMap(Map<String, dynamic> map) {
@@ -171,6 +175,8 @@ class JoystickControl extends ControlBase {
       joystickType: JoystickTypeExtension.fromString(
         map['joystickType'] ?? 'left',
       ),
+      color: Color(map['color'] as int? ?? Colors.grey.value),
+      opacity: map['opacity'] as double? ?? 0.3,
     );
   }
 
@@ -183,6 +189,8 @@ class JoystickControl extends ControlBase {
       'centerY': centerY,
       'size': size,
       'joystickType': joystickType.toStringValue(),
+      'color': color.value,
+      'opacity': opacity,
     };
   }
 
@@ -214,12 +222,16 @@ class EightDirectionJoystickControl extends ControlBase {
     required double centerX,
     required double centerY,
     required double size,
+    Color color = Colors.blue,
+    double opacity = 0.3,
   }) : super(
           id: id,
           centerX: centerX,
           centerY: centerY,
           size: size,
           type: 'eightDirectionJoystick',
+          color: color,
+          opacity: opacity,
         );
 
   factory EightDirectionJoystickControl.fromMap(Map<String, dynamic> map) {
@@ -228,6 +240,8 @@ class EightDirectionJoystickControl extends ControlBase {
       centerX: map['centerX'],
       centerY: map['centerY'],
       size: map['size'],
+      color: Color(map['color'] as int? ?? Colors.blue.value),
+      opacity: map['opacity'] as double? ?? 0.3,
     );
   }
 
@@ -239,6 +253,8 @@ class EightDirectionJoystickControl extends ControlBase {
       'centerX': centerX,
       'centerY': centerY,
       'size': size,
+      'color': color.value,
+      'opacity': opacity,
     };
   }
 
@@ -370,7 +386,7 @@ class _JoystickWidgetState extends State<_JoystickWidget> {
             height: _joystickRadius * 2,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: Colors.grey.withOpacity(0.3),
+              color: widget.control.color.withOpacity(widget.control.opacity),
             ),
             child: ValueListenableBuilder<Offset>(
               valueListenable: _controller.offsetNotifier,
@@ -383,7 +399,7 @@ class _JoystickWidgetState extends State<_JoystickWidget> {
                       height: _thumbRadius * 2,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color: Colors.blue.withOpacity(0.3),
+                        color: widget.control.color.withOpacity(widget.control.opacity * 2),
                       ),
                     ),
                   ),
@@ -578,7 +594,7 @@ class _EightDirectionJoystickWidgetState extends State<_EightDirectionJoystickWi
             height: _joystickRadius * 2,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: Colors.blue.withOpacity(0.3),
+              color: widget.control.color.withOpacity(widget.control.opacity),
             ),
             child: Stack(
               clipBehavior: Clip.none,
@@ -590,8 +606,8 @@ class _EightDirectionJoystickWidgetState extends State<_EightDirectionJoystickWi
                     height: _threshold * 2,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: Colors.blue.withOpacity(0.2),
-                      border: Border.all(color: Colors.blue, width: 1),
+                      color: widget.control.color.withOpacity(widget.control.opacity * 0.67),
+                      border: Border.all(color: widget.control.color.withOpacity(widget.control.opacity * 3.33), width: 1),
                     ),
                   ),
                 ),
@@ -609,7 +625,7 @@ class _EightDirectionJoystickWidgetState extends State<_EightDirectionJoystickWi
                           height: _thumbRadius * 2,
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            color: Colors.blue.withOpacity(0.5),
+                            color: widget.control.color.withOpacity(widget.control.opacity * 1.67),
                           ),
                         ),
                       ),
@@ -640,6 +656,8 @@ class _EightDirectionJoystickWidgetState extends State<_EightDirectionJoystickWi
             startY: _joystickRadius + sin(angle) * (_joystickRadius * startRatio),
             endX: _joystickRadius + cos(angle) * (_joystickRadius * endRatio),
             endY: _joystickRadius + sin(angle) * (_joystickRadius * endRatio),
+            color: widget.control.color,
+            opacity: widget.control.opacity,
           ),
         ),
       );
@@ -652,18 +670,22 @@ class DirectionLinePainter extends CustomPainter {
   final double startY;
   final double endX;
   final double endY;
+  final Color color;
+  final double opacity;
 
   DirectionLinePainter({
     required this.startX,
     required this.startY,
     required this.endX,
     required this.endY,
+    required this.color,
+    required this.opacity,
   });
 
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = Colors.blue.withOpacity(0.5)
+      ..color = color.withOpacity(opacity * 1.67)
       ..strokeWidth = 1;
     canvas.drawLine(Offset(startX, startY), Offset(endX, endY), paint);
   }
