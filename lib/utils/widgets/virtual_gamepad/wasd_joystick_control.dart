@@ -50,15 +50,14 @@ class WASDJoystickController {
   }
   
   void reset() {
-    offsetNotifier.value = Offset.zero;
-    
-    // 如果是长拉模式且已触发，不释放按键
+    // 如果是长拉模式且已触发，不释放按键，也不重置摇杆位置
     if (_isLongPulled && enableLongPull) {
-      // 保持按键按下状态，不做任何操作
+      // 保持按键按下状态和摇杆位置，不做任何操作
       return;
     }
     
-    // 否则释放所有按键
+    // 否则重置摇杆位置并释放所有按键
+    offsetNotifier.value = Offset.zero;
     _releaseAllKeys();
   }
   
