@@ -665,6 +665,11 @@ class _DeviceDetailPageState extends State<DeviceDetailPage> {
                                     : Colors.green,
                               ),
                               child: Text(
+                                AppPlatform.isWeb?
+                                ApplicationInfo.connectable
+                                    ? '不允许本设备被观看'
+                                    : '允许本设备被观看'
+                                :
                                 ApplicationInfo.connectable
                                     ? '不允许本设备被连接'
                                     : '允许本设备被连接',
