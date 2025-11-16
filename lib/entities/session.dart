@@ -819,6 +819,12 @@ class StreamingSession {
         case LP_TOUCH_BUTTON:
           inputController?.handleTouchButton(message);
           break;
+        case LP_PEN_EVENT:
+          inputController?.handlePenEvent(message);
+          break;
+        case LP_PEN_MOVE:
+          inputController?.handlePenMove(message);
+          break;
         case LP_KEYPRESSED:
           inputController?.handleKeyEvent(message);
           break;

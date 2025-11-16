@@ -370,6 +370,76 @@ class InputController {
     HardwareSimulator.performTouchMove(x, y, id, screenId);
   }
 
+  void requestPenEvent(double x, double y, bool isDown, bool hasButton, double pressure, double rotation, double tilt) async {
+    ByteData byteData = ByteData(23);
+    byteData.setUint8(0, LP_PEN_EVENT);
+    byteData.setFloat32(1, x, Endian.little);
+    byteData.setFloat32(5, y, Endian.little);
+    byteData.setUint8(9, isDown ? 1 : 0);
+    byteData.setUint8(10, hasButton ? 1 : 0);
+    byteData.setFloat32(11, pressure, Endian.little);
+    byteData.setFloat32(15, rotation, Endian.little);
+    byteData.setFloat32(19, tilt, Endian.little);
+
+    Uint8List buffer = byteData.buffer.asUint8List();
+    channel.send(RTCDataChannelMessage.fromBinary(buffer));
+
+    if (sendEmptyPacket) {
+      for (int i = 0; i < resendCount; i++) {
+        channel.send(emptyMessage);
+      }
+    }
+  }
+
+  void handlePenEvent(RTCDataChannelMessage message) {
+    if (!AppPlatform.isWindows) return;
+    Uint8List buffer = message.binary;
+    ByteData byteData = ByteData.sublistView(buffer);
+    double x = byteData.getFloat32(1, Endian.little);
+    double y = byteData.getFloat32(5, Endian.little);
+    bool isDown = byteData.getUint8(9) == 1;
+    bool hasButton = byteData.getUint8(10) == 1;
+    double pressure = byteData.getFloat32(11, Endian.little);
+    double rotation = byteData.getFloat32(15, Endian.little);
+    double tilt = byteData.getFloat32(19, Endian.little);
+
+    HardwareSimulator.performPenEvent(x, y, isDown, hasButton, pressure, rotation, tilt, screenId);
+  }
+
+  void requestPenMove(double x, double y, bool hasButton, double pressure, double rotation, double tilt) async {
+    ByteData byteData = ByteData(22);
+    byteData.setUint8(0, LP_PEN_MOVE);
+    byteData.setFloat32(1, x, Endian.little);
+    byteData.setFloat32(5, y, Endian.little);
+    byteData.setUint8(9, hasButton ? 1 : 0);
+    byteData.setFloat32(10, pressure, Endian.little);
+    byteData.setFloat32(14, rotation, Endian.little);
+    byteData.setFloat32(18, tilt, Endian.little);
+
+    Uint8List buffer = byteData.buffer.asUint8List();
+    channel.send(RTCDataChannelMessage.fromBinary(buffer));
+
+    if (sendEmptyPacket) {
+      for (int i = 0; i < resendCount / 2; i++) {
+        channel.send(emptyMessage);
+      }
+    }
+  }
+
+  void handlePenMove(RTCDataChannelMessage message) {
+    if (!AppPlatform.isWindows) return;
+    Uint8List buffer = message.binary;
+    ByteData byteData = ByteData.sublistView(buffer);
+    double x = byteData.getFloat32(1, Endian.little);
+    double y = byteData.getFloat32(5, Endian.little);
+    bool hasButton = byteData.getUint8(9) == 1;
+    double pressure = byteData.getFloat32(10, Endian.little);
+    double rotation = byteData.getFloat32(14, Endian.little);
+    double tilt = byteData.getFloat32(18, Endian.little);
+
+    HardwareSimulator.performPenMove(x, y, hasButton, pressure, rotation, tilt, screenId);
+  }
+
   void requestKeyEvent(int? keyCode, bool isDown) async {
     if (keyCode == null) return;
     // VLOG0("sending key event code {$keyCode} isDown {$isDown}");

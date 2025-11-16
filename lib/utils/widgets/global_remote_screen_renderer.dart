@@ -59,6 +59,10 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
   double _lastxPercent = 0;
   double _lastyPercent = 0;
 
+  bool _penDown = false;
+  double _lastPenOrientation = 0.0;
+  double _lastPenTilt = 0.0;
+
   final Offset _virtualMousePosition = const Offset(100, 100);
 
   /*bool _hasAudio = false;
@@ -177,6 +181,67 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
     WebrtcService.currentRenderingSession?.inputController
         ?.requestMoveMouseAbsl(pos.xPercent, pos.yPercent,
             WebrtcService.currentRenderingSession!.screenId);
+  }
+
+  void _handleStylusDown(PointerDownEvent event) {
+    final pos = _calculatePositionPercent(event.position);
+    if (pos == null) return;
+
+    _penDown = true;
+    _lastPenOrientation = event.orientation;
+    _lastPenTilt = event.tilt;
+
+    bool hasButton = (event.buttons & kSecondaryMouseButton) != 0;
+
+    WebrtcService.currentRenderingSession?.inputController?.requestPenEvent(
+      pos.xPercent,
+      pos.yPercent,
+      true, // isDown
+      hasButton,
+      event.pressure,
+      event.orientation * 180.0 / 3.14159,
+      event.tilt * 180.0 / 3.14159,
+    );
+  }
+
+  void _handleStylusUp(PointerUpEvent event) {
+    final pos = _calculatePositionPercent(event.position);
+    if (pos == null) return;
+
+    _penDown = false;
+    
+    bool hasButton = (event.buttons & kSecondaryMouseButton) != 0;
+
+    WebrtcService.currentRenderingSession?.inputController?.requestPenEvent(
+      pos.xPercent,
+      pos.yPercent,
+      false, // isDown
+      hasButton,
+      0.0, // 抬起时压力为0
+      _lastPenOrientation * 180.0 / 3.14159,
+      _lastPenTilt * 180.0 / 3.14159,
+    );
+  }
+
+  void _handleStylusMove(PointerMoveEvent event) {
+    final pos = _calculatePositionPercent(event.position);
+    if (pos == null) return;
+
+    _lastPenOrientation = event.orientation;
+    _lastPenTilt = event.tilt;
+
+    bool hasButton = (event.buttons & kSecondaryMouseButton) != 0;
+
+    if (_penDown) {
+      WebrtcService.currentRenderingSession?.inputController?.requestPenMove(
+        pos.xPercent,
+        pos.yPercent,
+        hasButton,
+        event.pressure,
+        event.orientation * 180.0 / 3.14159,
+        event.tilt * 180.0 / 3.14159,
+      );
+    }
   }
 
   //Special case for ios mouse cursor.
@@ -481,6 +546,8 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
                     
                     if (event.kind == PointerDeviceKind.touch) {
                       _handleTouchDown(event);
+                    } else if (event.kind == PointerDeviceKind.stylus) {
+                      _handleStylusDown(event);
                     } else if (event.kind == PointerDeviceKind.mouse) {
                       // For IOS we use on_screen_remote_mouse_cursor.
                       if (AppPlatform.isMobile) return;
@@ -492,6 +559,8 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
                     
                     if (event.kind == PointerDeviceKind.touch) {
                       _handleTouchUp(event);
+                    } else if (event.kind == PointerDeviceKind.stylus) {
+                      _handleStylusUp(event);
                     } else if (event.kind == PointerDeviceKind.mouse) {
                       if (AppPlatform.isMobile) {
                         //legacy impl for mouse on IOS. Used when user does not want on screen cursor.
@@ -513,6 +582,8 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
 
                     if (event.kind == PointerDeviceKind.touch) {
                       _handleTouchMove(event);
+                    } else if (event.kind == PointerDeviceKind.stylus) {
+                      _handleStylusMove(event);
                     } else {
                       if (AppPlatform.isMobile) return;
                       _handleMousePositionUpdate(event.position);
