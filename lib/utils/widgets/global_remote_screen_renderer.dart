@@ -79,6 +79,106 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
             dx, dy, WebrtcService.currentRenderingSession!.screenId);
   }
 
+  ({double xPercent, double yPercent})? _calculatePositionPercent(Offset globalPosition) {
+    if (renderBox == null) return null;
+    final Offset localPosition = renderBox!.globalToLocal(globalPosition);
+    final double xPercent = (localPosition.dx / widgetSize.width).clamp(0.0, 1.0);
+    final double yPercent = (localPosition.dy / widgetSize.height).clamp(0.0, 1.0);
+    return (xPercent: xPercent, yPercent: yPercent);
+  }
+
+  bool get _isUsingTouchMode => 
+      StreamingSettings.useTouchForTouch &&
+      WebrtcService.currentRenderingSession?.controlled.devicetype == 'Windows';
+
+  void _handleTouchDown(PointerDownEvent event) {
+    final pos = _calculatePositionPercent(event.position);
+    if (pos == null) return;
+
+    if (_isUsingTouchMode) {
+      _handleTouchModeDown(pos.xPercent, pos.yPercent, event.pointer % 9 + 1);
+    } else {
+      _handleMouseModeDown(pos.xPercent, pos.yPercent);
+    }
+  }
+
+  void _handleTouchUp(PointerUpEvent event) {
+    if (_isUsingTouchMode) {
+      _handleTouchModeUp(event.pointer % 9 + 1);
+    } else {
+      _handleMouseModeUp();
+    }
+  }
+
+  void _handleTouchMove(PointerMoveEvent event) {
+    final pos = _calculatePositionPercent(event.position);
+    if (pos == null) return;
+
+    if (_isUsingTouchMode) {
+      _handleTouchModeMove(pos.xPercent, pos.yPercent, event.pointer % 9 + 1);
+    } else {
+      _handleMousePositionUpdate(event.position);
+    }
+  }
+
+  void _handleTouchModeDown(double xPercent, double yPercent, int pointerId) {
+    _leftButtonDown = true;
+    _lastxPercent = xPercent;
+    _lastyPercent = yPercent;
+    WebrtcService.currentRenderingSession?.inputController
+        ?.requestTouchButton(xPercent, yPercent, pointerId, true);
+  }
+
+  void _handleTouchModeUp(int pointerId) {
+    _leftButtonDown = false;
+    WebrtcService.currentRenderingSession?.inputController
+        ?.requestTouchButton(_lastxPercent, _lastyPercent, pointerId, false);
+  }
+
+  void _handleTouchModeMove(double xPercent, double yPercent, int pointerId) {
+    _lastxPercent = xPercent;
+    _lastyPercent = yPercent;
+    WebrtcService.currentRenderingSession?.inputController
+        ?.requestTouchMove(xPercent, yPercent, pointerId);
+  }
+
+  void _handleMouseModeDown(double xPercent, double yPercent) {
+    WebrtcService.currentRenderingSession?.inputController
+        ?.requestMoveMouseAbsl(xPercent, yPercent,
+            WebrtcService.currentRenderingSession!.screenId);
+    
+    if (_mouseTouchMode == MouseMode.leftClick) {
+      _leftButtonDown = true;
+      WebrtcService.currentRenderingSession?.inputController
+          ?.requestMouseClick(1, _leftButtonDown);
+    } else if (_mouseTouchMode == MouseMode.rightClick) {
+      _rightButtonDown = true;
+      WebrtcService.currentRenderingSession?.inputController
+          ?.requestMouseClick(3, _rightButtonDown);
+    }
+  }
+
+  void _handleMouseModeUp() {
+    if (_mouseTouchMode == MouseMode.leftClick) {
+      _leftButtonDown = false;
+      WebrtcService.currentRenderingSession?.inputController
+          ?.requestMouseClick(1, _leftButtonDown);
+    } else if (_mouseTouchMode == MouseMode.rightClick) {
+      _rightButtonDown = false;
+      WebrtcService.currentRenderingSession?.inputController
+          ?.requestMouseClick(3, _rightButtonDown);
+    }
+  }
+
+  void _handleMousePositionUpdate(Offset globalPosition) {
+    final pos = _calculatePositionPercent(globalPosition);
+    if (pos == null) return;
+
+    WebrtcService.currentRenderingSession?.inputController
+        ?.requestMoveMouseAbsl(pos.xPercent, pos.yPercent,
+            WebrtcService.currentRenderingSession!.screenId);
+  }
+
   //Special case for ios mouse cursor.
   //IOS only specify the button id without other button infos.
   void _syncMouseButtonStateUP(PointerEvent event) {
@@ -377,43 +477,10 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
                   },
                   onPointerDown: (PointerDownEvent event) {
                     focusNode.requestFocus();
-                    if (renderBox == null ||
-                        WebrtcService.currentRenderingSession == null) return;
+                    if (WebrtcService.currentRenderingSession == null) return;
+                    
                     if (event.kind == PointerDeviceKind.touch) {
-                      final Offset localPosition =
-                          renderBox!.globalToLocal(event.position);
-                      final double xPercent =
-                          (localPosition.dx / widgetSize.width).clamp(0.0, 1.0);
-                      final double yPercent =
-                          (localPosition.dy / widgetSize.height)
-                              .clamp(0.0, 1.0);
-                      if (StreamingSettings.useTouchForTouch &&
-                          WebrtcService.currentRenderingSession?.controlled
-                                  .devicetype ==
-                              'Windows') {
-                        _leftButtonDown = true;
-                        _lastxPercent = xPercent;
-                        _lastyPercent = yPercent;
-                        WebrtcService.currentRenderingSession?.inputController
-                            ?.requestTouchButton(xPercent, yPercent,
-                                event.pointer % 9 + 1, true);
-                      } else {
-                        WebrtcService.currentRenderingSession?.inputController
-                            ?.requestMoveMouseAbsl(
-                                xPercent,
-                                yPercent,
-                                WebrtcService
-                                    .currentRenderingSession!.screenId);
-                        if (_mouseTouchMode == MouseMode.leftClick) {
-                          _leftButtonDown = true;
-                          WebrtcService.currentRenderingSession?.inputController
-                            ?.requestMouseClick(1, _leftButtonDown);
-                        } else if (_mouseTouchMode == MouseMode.rightClick) {
-                          _rightButtonDown = true;
-                          WebrtcService.currentRenderingSession?.inputController
-                              ?.requestMouseClick(3, _rightButtonDown);
-                        }
-                      }
+                      _handleTouchDown(event);
                     } else if (event.kind == PointerDeviceKind.mouse) {
                       // For IOS we use on_screen_remote_mouse_cursor.
                       if (AppPlatform.isMobile) return;
@@ -421,30 +488,11 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
                     }
                   },
                   onPointerUp: (PointerUpEvent event) {
-                    if (renderBox == null ||
-                        WebrtcService.currentRenderingSession == null) return;
+                    if (WebrtcService.currentRenderingSession == null) return;
+                    
                     if (event.kind == PointerDeviceKind.touch) {
-                      if (StreamingSettings.useTouchForTouch &&
-                          WebrtcService.currentRenderingSession?.controlled
-                                  .devicetype ==
-                              'Windows') {
-                        _leftButtonDown = false;
-                        WebrtcService.currentRenderingSession?.inputController
-                            ?.requestTouchButton(_lastxPercent, _lastyPercent,
-                                event.pointer % 9 + 1, false);
-                      } else {
-                        if (_mouseTouchMode == MouseMode.leftClick) {
-                          _leftButtonDown = false;
-                          WebrtcService.currentRenderingSession?.inputController
-                              ?.requestMouseClick(1, _leftButtonDown);
-                        } else if (_mouseTouchMode == MouseMode.rightClick) {
-                          _rightButtonDown = false;
-                          WebrtcService.currentRenderingSession?.inputController
-                              ?.requestMouseClick(3, _rightButtonDown);
-                        }
-                      }
+                      _handleTouchUp(event);
                     } else if (event.kind == PointerDeviceKind.mouse) {
-                      if (AppPlatform.isMobile) return;
                       if (AppPlatform.isMobile) {
                         //legacy impl for mouse on IOS. Used when user does not want on screen cursor.
                         _syncMouseButtonStateUP(event);
@@ -454,60 +502,28 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
                     }
                   },
                   onPointerMove: (PointerMoveEvent event) {
-                    if (renderBox == null ||
-                        WebrtcService.currentRenderingSession == null) return;
+                    if (WebrtcService.currentRenderingSession == null) return;
+                    
                     if (_mouseTouchMode == MouseMode.leftClick) {
-                        _syncMouseButtonState(event);
+                      _syncMouseButtonState(event);
                     }
-                    // When cursor is locked, we dont' need to handle mouse move events here.
+                    
+                    // When cursor is locked, we don't need to handle mouse move events here.
                     if (InputController.isCursorLocked && event.kind == PointerDeviceKind.mouse) return;
-                    final Offset localPosition =
-                        renderBox!.globalToLocal(event.position);
-                    final double xPercent =
-                        (localPosition.dx / widgetSize.width).clamp(0.0, 1.0);
-                    final double yPercent =
-                        (localPosition.dy / widgetSize.height).clamp(0.0, 1.0);
 
                     if (event.kind == PointerDeviceKind.touch) {
-                      if (StreamingSettings.useTouchForTouch &&
-                          WebrtcService.currentRenderingSession?.controlled
-                                  .devicetype ==
-                              'Windows') {
-                        _lastxPercent = xPercent;
-                        _lastyPercent = yPercent;
-                        WebrtcService.currentRenderingSession?.inputController
-                            ?.requestTouchMove(
-                                xPercent, yPercent, event.pointer % 9 + 1);
-                      } else {
-                        //if (AppPlatform.isIOS) return;
-                        WebrtcService.currentRenderingSession?.inputController
-                            ?.requestMoveMouseAbsl(
-                                xPercent,
-                                yPercent,
-                                WebrtcService
-                                    .currentRenderingSession!.screenId);
-                      }
+                      _handleTouchMove(event);
                     } else {
                       if (AppPlatform.isMobile) return;
-                      WebrtcService.currentRenderingSession?.inputController
-                          ?.requestMoveMouseAbsl(xPercent, yPercent,
-                              WebrtcService.currentRenderingSession!.screenId);
+                      _handleMousePositionUpdate(event.position);
                     }
                   },
                   onPointerHover: (PointerHoverEvent event) {
                     if (AppPlatform.isMobile) return;
-                    if (InputController.isCursorLocked ||
-                        renderBox == null ||
+                    if (InputController.isCursorLocked || 
                         WebrtcService.currentRenderingSession == null) return;
-                    final Offset localPosition =
-                        renderBox!.globalToLocal(event.position);
-                    final double xPercent =
-                        (localPosition.dx / widgetSize.width).clamp(0.0, 1.0);
-                    final double yPercent =
-                        (localPosition.dy / widgetSize.height).clamp(0.0, 1.0);
-                    WebrtcService.currentRenderingSession!.inputController
-                        ?.requestMoveMouseAbsl(xPercent, yPercent,
-                            WebrtcService.currentRenderingSession!.screenId);
+                    
+                    _handleMousePositionUpdate(event.position);
                   },
                   child: FocusScope(
                     node: _fsnode,
