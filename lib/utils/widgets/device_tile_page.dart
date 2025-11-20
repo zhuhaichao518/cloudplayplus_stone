@@ -286,7 +286,7 @@ class _DeviceDetailPageState extends State<DeviceDetailPage> {
                 ),
                 if (!AppPlatform.isAndroidTV) FloatingMenuPanel(
                   panelIcon: AppIcons.mainIcon,
-                  backgroundColor: const Color(0xff00b0cb).withValues(alpha: 0.4),
+                  backgroundColor: const Color.fromARGB(255, 10, 26, 28).withValues(alpha: 0.4),
                   contentColor: Colors.white.withValues(alpha: 0.6),
                   onPressed: (index) async {
                     if (index == 0) {

@@ -145,6 +145,18 @@ class _VirtualGamepadDemoPageState extends State<VirtualGamepadDemoPage> {
       centerY: 0.3,
       size: 0.1,
     );
+
+    // 创建FPS开火按钮（右下角，鼠标左键）
+    _controlManager.createButton(
+      label: '🔫',
+      keyCode: 1, // 鼠标左键
+      centerX: 0.9,
+      centerY: 0.85,
+      size: 0.1,
+      color: Colors.orange,
+      isMouseButton: true,
+      isFpsFireButton: true, // 启用FPS开火模式
+    );
   }
 
   void _handleControlEvent(ControlEvent event) {
@@ -334,6 +346,7 @@ class _VirtualGamepadDemoPageState extends State<VirtualGamepadDemoPage> {
                       '• 点击右上角设置按钮进入编辑模式\n'
                       '• 可以添加、移动、删除虚拟按键\n'
                       '• 支持摇杆、按钮等多种控件类型\n'
+                      '• 🔫按钮是FPS开火按键，按下后移动手指可调整瞄准\n'
                       '• 控件配置会自动保存',
                       style: Theme.of(context).textTheme.bodyMedium,
                     ),

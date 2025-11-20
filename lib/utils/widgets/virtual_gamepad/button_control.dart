@@ -13,6 +13,7 @@ class ButtonControl extends ControlBase {
   final bool isGamepadButton; // 是否是手柄按钮
   final bool isMouseButton; // 是否是鼠标按钮
   final ButtonShape shape; // 按钮形状
+  final bool isFpsFireButton; // 是否是FPS开火按键（按下后手指移动会触发鼠标移动事件）
 
   ButtonControl({
     required super.id,
@@ -26,6 +27,7 @@ class ButtonControl extends ControlBase {
     this.isGamepadButton = false, // 默认为键盘按钮
     this.isMouseButton = false, // 默认为非鼠标按钮
     this.shape = ButtonShape.circle, // 默认为圆形
+    this.isFpsFireButton = false, // 默认不是FPS开火按键
   }) : super(
           type: 'button',
         );
@@ -43,6 +45,7 @@ class ButtonControl extends ControlBase {
       isGamepadButton: map['isGamepadButton'] ?? false,
       isMouseButton: map['isMouseButton'] ?? false,
       shape: map['shape'] == 'square' ? ButtonShape.square : ButtonShape.circle,
+      isFpsFireButton: map['isFpsFireButton'] ?? false,
     );
   }
 
@@ -61,6 +64,7 @@ class ButtonControl extends ControlBase {
       'isGamepadButton': isGamepadButton,
       'isMouseButton': isMouseButton,
       'shape': shape == ButtonShape.square ? 'square' : 'circle',
+      'isFpsFireButton': isFpsFireButton,
     };
   }
 
@@ -78,6 +82,7 @@ class ButtonControl extends ControlBase {
       onEvent: onEvent,
       isGamepadButton: isGamepadButton,
       isMouseButton: isMouseButton,
+      isFpsFireButton: isFpsFireButton,
     );
   }
 
@@ -94,6 +99,7 @@ class _ButtonWidget extends StatefulWidget {
   final Function(ControlEvent) onEvent;
   final bool isGamepadButton;
   final bool isMouseButton;
+  final bool isFpsFireButton;
 
   const _ButtonWidget({
     required this.control,
@@ -102,6 +108,7 @@ class _ButtonWidget extends StatefulWidget {
     required this.onEvent,
     required this.isGamepadButton,
     required this.isMouseButton,
+    required this.isFpsFireButton,
   });
 
   @override
@@ -110,6 +117,102 @@ class _ButtonWidget extends StatefulWidget {
 
 class _ButtonWidgetState extends State<_ButtonWidget> {
   bool _isPressed = false;
+  Offset? _lastPosition; // 记录上一次的位置，用于FPS开火按键的移动事件
+  double _moveSensitivity = 1.0; // FPS开火按键的移动灵敏度
+
+  void _handleDown(Offset position) {
+    setState(() => _isPressed = true);
+    
+    // 如果是FPS开火按键，记录初始位置
+    if (widget.isFpsFireButton) {
+      _lastPosition = position;
+    }
+    
+    // 触发按键按下事件
+    if (widget.isMouseButton) {
+      widget.onEvent(ControlEvent(
+        eventType: ControlEventType.mouseButton,
+        data: MouseButtonEvent(
+          buttonId: widget.control.keyCode,
+          isDown: true,
+        ),
+      ));
+    } else if (widget.isGamepadButton) {
+      widget.onEvent(ControlEvent(
+        eventType: ControlEventType.gamepad,
+        data: GamepadButtonEvent(
+          keyCode: widget.control.keyCode,
+          isDown: true,
+        ),
+      ));
+    } else {
+      widget.onEvent(ControlEvent(
+        eventType: ControlEventType.keyboard,
+        data: KeyboardEvent(
+          keyCode: widget.control.keyCode,
+          isDown: true,
+        ),
+      ));
+    }
+  }
+
+  void _handleMove(Offset position) {
+    // 只有当按键按下且是FPS开火按键时才处理移动
+    if (!_isPressed || !widget.isFpsFireButton || _lastPosition == null) {
+      return;
+    }
+
+    // 计算位移增量
+    final deltaX = (position.dx - _lastPosition!.dx) * _moveSensitivity;
+    final deltaY = (position.dy - _lastPosition!.dy) * _moveSensitivity;
+
+    // 只有当移动距离足够大时才触发事件（避免过于灵敏）
+    if (deltaX.abs() > 0.5 || deltaY.abs() > 0.5) {
+      widget.onEvent(ControlEvent(
+        eventType: ControlEventType.mouseMove,
+        data: MouseMoveEvent(
+          deltaX: deltaX,
+          deltaY: deltaY,
+          isAbsolute: false,
+        ),
+      ));
+
+      // 更新最后位置
+      _lastPosition = position;
+    }
+  }
+
+  void _handleUp() {
+    setState(() => _isPressed = false);
+    _lastPosition = null; // 清除位置记录
+
+    // 触发按键松开事件
+    if (widget.isMouseButton) {
+      widget.onEvent(ControlEvent(
+        eventType: ControlEventType.mouseButton,
+        data: MouseButtonEvent(
+          buttonId: widget.control.keyCode,
+          isDown: false,
+        ),
+      ));
+    } else if (widget.isGamepadButton) {
+      widget.onEvent(ControlEvent(
+        eventType: ControlEventType.gamepad,
+        data: GamepadButtonEvent(
+          keyCode: widget.control.keyCode,
+          isDown: false,
+        ),
+      ));
+    } else {
+      widget.onEvent(ControlEvent(
+        eventType: ControlEventType.keyboard,
+        data: KeyboardEvent(
+          keyCode: widget.control.keyCode,
+          isDown: false,
+        ),
+      ));
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -118,91 +221,11 @@ class _ButtonWidgetState extends State<_ButtonWidget> {
     return Positioned(
       left: widget.screenWidth * widget.control.centerX - diameter / 2,
       bottom: widget.screenHeight * (1 - widget.control.centerY) - diameter / 2,
-      child: GestureDetector(
-        onTapDown: (_) {
-          setState(() => _isPressed = true);
-          if (widget.isMouseButton) {
-            widget.onEvent(ControlEvent(
-              eventType: ControlEventType.mouseButton,
-              data: MouseButtonEvent(
-                buttonId: widget.control.keyCode,
-                isDown: true,
-              ),
-            ));
-          } else if (widget.isGamepadButton) {
-            widget.onEvent(ControlEvent(
-              eventType: ControlEventType.gamepad,
-              data: GamepadButtonEvent(
-                keyCode: widget.control.keyCode,
-                isDown: true,
-              ),
-            ));
-          } else {
-            widget.onEvent(ControlEvent(
-              eventType: ControlEventType.keyboard,
-              data: KeyboardEvent(
-                keyCode: widget.control.keyCode,
-                isDown: true,
-              ),
-            ));
-          }
-        },
-        onTapUp: (_) {
-          setState(() => _isPressed = false);
-          if (widget.isMouseButton) {
-            widget.onEvent(ControlEvent(
-              eventType: ControlEventType.mouseButton,
-              data: MouseButtonEvent(
-                buttonId: widget.control.keyCode,
-                isDown: false,
-              ),
-            ));
-          } else if (widget.isGamepadButton) {
-            widget.onEvent(ControlEvent(
-              eventType: ControlEventType.gamepad,
-              data: GamepadButtonEvent(
-                keyCode: widget.control.keyCode,
-                isDown: false,
-              ),
-            ));
-          } else {
-            widget.onEvent(ControlEvent(
-              eventType: ControlEventType.keyboard,
-              data: KeyboardEvent(
-                keyCode: widget.control.keyCode,
-                isDown: false,
-              ),
-            ));
-          }
-        },
-        onTapCancel: () {
-          setState(() => _isPressed = false);
-          if (widget.isMouseButton) {
-            widget.onEvent(ControlEvent(
-              eventType: ControlEventType.mouseButton,
-              data: MouseButtonEvent(
-                buttonId: widget.control.keyCode,
-                isDown: false,
-              ),
-            ));
-          } else if (widget.isGamepadButton) {
-            widget.onEvent(ControlEvent(
-              eventType: ControlEventType.gamepad,
-              data: GamepadButtonEvent(
-                keyCode: widget.control.keyCode,
-                isDown: false,
-              ),
-            ));
-          } else {
-            widget.onEvent(ControlEvent(
-              eventType: ControlEventType.keyboard,
-              data: KeyboardEvent(
-                keyCode: widget.control.keyCode,
-                isDown: false,
-              ),
-            ));
-          }
-        },
+      child: Listener(
+        onPointerDown: (event) => _handleDown(event.localPosition),
+        onPointerMove: (event) => _handleMove(event.localPosition),
+        onPointerUp: (_) => _handleUp(),
+        onPointerCancel: (_) => _handleUp(),
         child: Container(
           width: diameter,
           height: diameter,
@@ -216,9 +239,9 @@ class _ButtonWidgetState extends State<_ButtonWidget> {
             child: Text(
               widget.control.label,
               style: TextStyle(
-                color: /*Theme.of(context).textTheme.bodyLarge?.color ?? */
-                    Colors.white,
+                color: Colors.white,
                 fontSize: diameter * 0.3,
+                fontWeight: widget.isFpsFireButton ? FontWeight.bold : FontWeight.normal,
               ),
             ),
           ),

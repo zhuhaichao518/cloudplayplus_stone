@@ -196,6 +196,7 @@ class ControlManager {
     bool isGamepadButton = false,
     bool isMouseButton = false,
     ButtonShape shape = ButtonShape.circle,
+    bool isFpsFireButton = false,
   }) {
     addControl(
       ButtonControl(
@@ -210,6 +211,7 @@ class ControlManager {
         isGamepadButton: isGamepadButton,
         isMouseButton: isMouseButton,
         shape: shape,
+        isFpsFireButton: isFpsFireButton,
       ),
     );
   }
@@ -274,6 +276,7 @@ class ControlManager {
     ButtonShape? shape,
     Map<String, int>? keyMapping,
     bool? enableLongPull,
+    bool? isFpsFireButton,
   }) {
     final index = _controls.indexWhere((c) => c.id == id);
     if (index != -1) {
@@ -310,6 +313,7 @@ class ControlManager {
           isGamepadButton: isGamepadButton ?? control.isGamepadButton,
           isMouseButton: isMouseButton ?? control.isMouseButton,
           shape: shape ?? control.shape,
+          isFpsFireButton: isFpsFireButton ?? control.isFpsFireButton,
         );
       } else if (control.type == 'mouseModeButton') {
         _controls[index] = MouseModeButtonControl(
@@ -456,6 +460,7 @@ class ControlManager {
             isGamepadButton: control.isGamepadButton,
             isMouseButton: control.isMouseButton,
             shape: control.shape,
+            isFpsFireButton: control.isFpsFireButton,
           ));
         } else if (control.type == 'mouseModeButton') {
           _controls.add(MouseModeButtonControl(
