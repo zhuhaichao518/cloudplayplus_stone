@@ -80,7 +80,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               //if (!AppPlatform.isMobile)
               SettingsTile.navigation(
                 leading: const Icon(Icons.mouse),
-                title: const Text('键鼠设置'),
+                title: const Text('键鼠/触摸设置'),
                 onPressed: (context) {
                   Navigation.navigateTo(
                     context: context,
@@ -103,7 +103,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 },
               ),
               if (AppPlatform.isWindows)SettingsTile.navigation(
-                leading: const Icon(Icons.gamepad),
+                leading: const Icon(Icons.monitor),
                 title: const Text('虚拟显示器设置'),
                 onPressed: (context) {
                   Navigation.navigateTo(
@@ -1011,7 +1011,7 @@ class _CursorSettingsScreenState extends State<CursorSettingsScreen> {
   bool autoHideLocalCursor = true;
   bool _renderRemoteCursor = false;
   bool _switchCmdCtrl = false;
-  bool _useTouchForTouch = true;
+  int _touchInputMode = TouchInputMode.touch.index;  // 触控模式：0=触摸(默认), 1=触控板, 2=鼠标
   double _cursorScale = 50.0;
   final List<double> _scaleValues = [12.5, 25, 50, 75, 100, 125, 150, 200, 250, 300, 400, 500];
 
@@ -1045,7 +1045,7 @@ class _CursorSettingsScreenState extends State<CursorSettingsScreen> {
     _renderRemoteCursor =
         SharedPreferencesManager.getBool('renderRemoteCursor') ?? false;
     _switchCmdCtrl = StreamingSettings.switchCmdCtrl;
-    _useTouchForTouch = StreamingSettings.useTouchForTouch;
+    _touchInputMode = StreamingSettings.touchInputMode;
     // 加载保存的缩放值，默认值为100
     double savedValue = StreamingSettings.cursorScale;
     // 找到最接近的预设值
@@ -1071,7 +1071,7 @@ class _CursorSettingsScreenState extends State<CursorSettingsScreen> {
           applicationType: ApplicationType.cupertino,
           sections: [
             SettingsSection(
-              title: const Text('自动隐藏本地鼠标'),
+              title: const Text('键鼠设置'),
               tiles: [
                 SettingsTile.switchTile(
                   title: const Text('反转鼠标滚轮'),
@@ -1124,20 +1124,104 @@ class _CursorSettingsScreenState extends State<CursorSettingsScreen> {
                     });
                   },
                 ),
-                SettingsTile.switchTile(
-                  title: const Text('使用触摸而不是鼠标消息(触摸设备控制windows)'),
-                  leading: const Icon(Icons.touch_app),
-                  initialValue: _useTouchForTouch,
-                  onToggle: (bool value) {
-                    setState(() {
-                      _useTouchForTouch = value;
-                      SharedPreferencesManager.setBool(
-                          'useTouchForTouch', value);
-                      StreamingSettings.useTouchForTouch = value;
-                    });
-                  },
+              ],
+            ),
+            // 触控模式设置（独立的 Section）
+            SettingsSection(
+              title: const Text('触控模式 (Windows)'),
+              tiles: [
+                CustomSettingsTile(
+                  child: Material(
+                    color: Colors.transparent,
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            '选择触摸输入控制Windows设备时的行为',
+                            style: TextStyle(
+                              color: Colors.grey,
+                              fontSize: 13,
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          Center(
+                            child: ToggleButtons(
+                              isSelected: [
+                                _touchInputMode == TouchInputMode.touch.index,
+                                _touchInputMode == TouchInputMode.touchpad.index,
+                                _touchInputMode == TouchInputMode.mouse.index,
+                              ],
+                              onPressed: (int index) {
+                                int newMode;
+                                if (index == 0) {
+                                  newMode = TouchInputMode.touch.index;
+                                } else if (index == 1) {
+                                  newMode = TouchInputMode.touchpad.index;
+                                } else {
+                                  newMode = TouchInputMode.mouse.index;
+                                }
+                                setState(() {
+                                  _touchInputMode = newMode;
+                                  SharedPreferencesManager.setInt('touchInputMode', newMode);
+                                  StreamingSettings.touchInputMode = newMode;
+                                });
+                              },
+                              children: const <Widget>[
+                                Padding(
+                                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                  child: Column(
+                                    children: [
+                                      Text('触摸'),
+                                    ],
+                                  ),
+                                ),
+                                Padding(
+                                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                  child: Column(
+                                    children: [
+                                      Text('触控板'),
+                                    ],
+                                  ),
+                                ),
+                                Padding(
+                                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                  child: Column(
+                                    children: [
+                                      Text('鼠标'),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          Center(
+                            child: Text(
+                              _touchInputMode == TouchInputMode.touch.index
+                                  ? '模拟触摸事件'
+                                  : _touchInputMode == TouchInputMode.touchpad.index
+                                      ? '相对移动光标（类似笔记本触控板）'
+                                      : '绝对定位（触摸位置映射到屏幕坐标）',
+                              style: TextStyle(
+                                color: Theme.of(context).primaryColor,
+                                fontSize: 12,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
                 ),
-                if (AppPlatform.isMobile)
+              ],
+            ),
+            // 指针缩放设置
+            if (AppPlatform.isMobile)
+            SettingsSection(
+              tiles: [
                 CustomSettingsTile(
                   child: Material(
                     child: Padding(

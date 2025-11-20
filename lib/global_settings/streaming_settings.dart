@@ -3,6 +3,14 @@ import 'package:cloudplayplus/controller/screen_controller.dart';
 import 'package:cloudplayplus/services/app_info_service.dart';
 import 'package:cloudplayplus/services/shared_preferences_manager.dart';
 
+// 触控模式枚举：用于Windows设备的触控输入
+// 顺序：触摸(默认) -> 触控板 -> 鼠标
+enum TouchInputMode {
+  touch,      // 0: 触摸模式 - 模拟触摸事件（默认）
+  touchpad,   // 1: 触控板模式 - 相对移动
+  mouse,      // 2: 鼠标模式 - 绝对定位
+}
+
 var officialStun1 = {
   'urls': "stun:stun.l.google.com:19302",
 };
@@ -46,8 +54,9 @@ class StreamingSettings {
 
   static bool useClipBoard = true;
 
-  //if input is touch, then simulate touch on target device.
-  static bool useTouchForTouch = true;
+  // 触控模式：0=触摸(默认), 1=触控板, 2=鼠标
+  // 仅对触摸输入控制Windows设备有效
+  static int touchInputMode = TouchInputMode.touch.index;
 
   // 指针缩放倍率
   static double cursorScale = 50.0;
@@ -132,8 +141,17 @@ class StreamingSettings {
     switchCmdCtrl = SharedPreferencesManager.getBool('switchCmdCtrl') ??
         AppPlatform.isMacos;
 
-    useTouchForTouch =
-        SharedPreferencesManager.getBool('useTouchForTouch') ?? true;
+    // 兼容旧的 bool 配置，转换为新的 int 配置
+    // TODO：2.0版本需要删除这个兼容代码
+    bool? oldUseTouchForTouch = SharedPreferencesManager.getBool('useTouchForTouch');
+    if (oldUseTouchForTouch != null) {
+      // 迁移旧配置：true -> touch(0), false -> mouse(2)
+      touchInputMode = oldUseTouchForTouch ? TouchInputMode.touch.index : TouchInputMode.mouse.index;
+      // 保存新配置
+      SharedPreferencesManager.setInt('touchInputMode', touchInputMode);
+    } else {
+      touchInputMode = SharedPreferencesManager.getInt('touchInputMode') ?? TouchInputMode.touch.index;
+    }
 
     cursorScale = SharedPreferencesManager.getDouble('cursorScale') ?? (AppPlatform.isAndroidTV? 100.0:50.0);
 

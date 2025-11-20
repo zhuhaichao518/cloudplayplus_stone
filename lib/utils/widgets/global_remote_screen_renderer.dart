@@ -64,6 +64,9 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
   double _lastPenTilt = 0.0;
 
   final Offset _virtualMousePosition = const Offset(100, 100);
+  
+  // 触控板模式：跟踪上一次触摸位置用于计算相对移动
+  Offset? _lastTouchpadPosition;
 
   /*bool _hasAudio = false;
 
@@ -91,9 +94,16 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
     return (xPercent: xPercent, yPercent: yPercent);
   }
 
-  bool get _isUsingTouchMode => 
-      StreamingSettings.useTouchForTouch &&
-      WebrtcService.currentRenderingSession?.controlled.devicetype == 'Windows';
+  // 获取当前触控输入模式
+  TouchInputMode get _currentTouchInputMode {
+    if (WebrtcService.currentRenderingSession?.controlled.devicetype != 'Windows') {
+      return TouchInputMode.mouse; // 非Windows设备默认鼠标模式
+    }
+    return TouchInputMode.values[StreamingSettings.touchInputMode];
+  }
+
+  bool get _isUsingTouchMode => _currentTouchInputMode == TouchInputMode.touch;
+  bool get _isUsingTouchpadMode => _currentTouchInputMode == TouchInputMode.touchpad;
 
   void _handleTouchDown(PointerDownEvent event) {
     final pos = _calculatePositionPercent(event.position);
@@ -101,6 +111,8 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
 
     if (_isUsingTouchMode) {
       _handleTouchModeDown(pos.xPercent, pos.yPercent, event.pointer % 9 + 1);
+    } else if (_isUsingTouchpadMode) {
+      _handleTouchpadDown(event);
     } else {
       _handleMouseModeDown(pos.xPercent, pos.yPercent);
     }
@@ -109,6 +121,8 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
   void _handleTouchUp(PointerUpEvent event) {
     if (_isUsingTouchMode) {
       _handleTouchModeUp(event.pointer % 9 + 1);
+    } else if (_isUsingTouchpadMode) {
+      _handleTouchpadUp(event);
     } else {
       _handleMouseModeUp();
     }
@@ -120,6 +134,8 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
 
     if (_isUsingTouchMode) {
       _handleTouchModeMove(pos.xPercent, pos.yPercent, event.pointer % 9 + 1);
+    } else if (_isUsingTouchpadMode) {
+      _handleTouchpadMove(event);
     } else {
       _handleMousePositionUpdate(event.position);
     }
@@ -157,6 +173,62 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
           ?.requestMouseClick(1, _leftButtonDown);
     } else if (_mouseTouchMode == MouseMode.rightClick) {
       _rightButtonDown = true;
+      WebrtcService.currentRenderingSession?.inputController
+          ?.requestMouseClick(3, _rightButtonDown);
+    }
+  }
+
+  // 触控板模式处理方法
+  void _handleTouchpadDown(PointerDownEvent event) {
+    _lastTouchpadPosition = event.position;
+    
+    // 触控板模式下的点击：根据当前鼠标模式决定
+    if (_mouseTouchMode == MouseMode.leftClick) {
+      _leftButtonDown = true;
+      WebrtcService.currentRenderingSession?.inputController
+          ?.requestMouseClick(1, _leftButtonDown);
+    } else if (_mouseTouchMode == MouseMode.rightClick) {
+      _rightButtonDown = true;
+      WebrtcService.currentRenderingSession?.inputController
+          ?.requestMouseClick(3, _rightButtonDown);
+    }
+  }
+
+  void _handleTouchpadMove(PointerMoveEvent event) {
+    if (_lastTouchpadPosition == null) {
+      _lastTouchpadPosition = event.position;
+      return;
+    }
+    
+    // 计算相对移动距离（以像素为单位）
+    double deltaX = event.position.dx - _lastTouchpadPosition!.dx;
+    double deltaY = event.position.dy - _lastTouchpadPosition!.dy;
+    
+    // 更新上次位置
+    _lastTouchpadPosition = event.position;
+    
+    // 灵敏度调节（可以后续加入设置）
+    const double sensitivity = 1.0;
+    deltaX *= sensitivity;
+    deltaY *= sensitivity;
+    
+    // 发送相对移动指令
+    WebrtcService.currentRenderingSession?.inputController
+        ?.requestMoveMouseRelative(
+            deltaX, deltaY, 
+            WebrtcService.currentRenderingSession!.screenId);
+  }
+
+  void _handleTouchpadUp(PointerUpEvent event) {
+    _lastTouchpadPosition = null;
+    
+    // 释放按钮
+    if (_mouseTouchMode == MouseMode.leftClick && _leftButtonDown) {
+      _leftButtonDown = false;
+      WebrtcService.currentRenderingSession?.inputController
+          ?.requestMouseClick(1, _leftButtonDown);
+    } else if (_mouseTouchMode == MouseMode.rightClick && _rightButtonDown) {
+      _rightButtonDown = false;
       WebrtcService.currentRenderingSession?.inputController
           ?.requestMouseClick(3, _rightButtonDown);
     }
