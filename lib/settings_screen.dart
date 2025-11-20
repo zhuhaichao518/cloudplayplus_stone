@@ -1012,8 +1012,10 @@ class _CursorSettingsScreenState extends State<CursorSettingsScreen> {
   bool _renderRemoteCursor = false;
   bool _switchCmdCtrl = false;
   int _touchInputMode = TouchInputMode.touch.index;  // 触控模式：0=触摸(默认), 1=触控板, 2=鼠标
+  double _touchpadSensitivity = 1.0;  // 触控板灵敏度
   double _cursorScale = 50.0;
   final List<double> _scaleValues = [12.5, 25, 50, 75, 100, 125, 150, 200, 250, 300, 400, 500];
+  final List<double> _sensitivityValues = [0.1, 0.25, 0.5, 0.75, 1.0, 1.25, 1.5, 2.0, 2.5, 3.0, 4.0, 5.0];
 
   // 将实际值映射到滑块位置（0-1之间）
   double _mapValueToPosition(double value) {
@@ -1031,6 +1033,24 @@ class _CursorSettingsScreenState extends State<CursorSettingsScreen> {
   double _mapPositionToValue(double position) {
     int index = (position * (_scaleValues.length - 1)).round();
     return _scaleValues[index];
+  }
+
+  // 将灵敏度值映射到滑块位置（0-1之间）
+  double _mapSensitivityValueToPosition(double value) {
+    int index = _sensitivityValues.indexOf(value);
+    if (index == -1) {
+      // 如果值不在列表中，找到最接近的值
+      index = _sensitivityValues.indexWhere((v) => v > value) - 1;
+      if (index < 0) index = 0;
+      if (index >= _sensitivityValues.length - 1) index = _sensitivityValues.length - 2;
+    }
+    return index / (_sensitivityValues.length - 1);
+  }
+
+  // 将滑块位置（0-1之间）映射回灵敏度值
+  double _mapSensitivityPositionToValue(double position) {
+    int index = (position * (_sensitivityValues.length - 1)).round();
+    return _sensitivityValues[index];
   }
 
   @override
@@ -1051,6 +1071,10 @@ class _CursorSettingsScreenState extends State<CursorSettingsScreen> {
     // 找到最接近的预设值
     _cursorScale = _scaleValues.reduce((a, b) => 
       (a - savedValue).abs() < (b - savedValue).abs() ? a : b);
+    // 加载触控板灵敏度
+    double savedSensitivity = StreamingSettings.touchpadSensitivity;
+    _touchpadSensitivity = _sensitivityValues.reduce((a, b) => 
+      (a - savedSensitivity).abs() < (b - savedSensitivity).abs() ? a : b);
     setState(() {});
   }
 
@@ -1209,6 +1233,65 @@ class _CursorSettingsScreenState extends State<CursorSettingsScreen> {
                                 fontSize: 12,
                               ),
                               textAlign: TextAlign.center,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            // 触控板灵敏度设置（只在触控板模式下显示）
+            if (_touchInputMode == TouchInputMode.touchpad.index)
+            SettingsSection(
+              title: const Text('触控板灵敏度'),
+              tiles: [
+                CustomSettingsTile(
+                  child: Material(
+                    color: Colors.transparent,
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const Text(
+                                '移动灵敏度',
+                                style: TextStyle(fontWeight: FontWeight.bold),
+                              ),
+                              Text(
+                                '${_touchpadSensitivity.toStringAsFixed(2)}x',
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.blue,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 8.0),
+                          CupertinoSlider(
+                            value: _mapSensitivityValueToPosition(_touchpadSensitivity),
+                            min: 0.0,
+                            max: 1.0,
+                            divisions: _sensitivityValues.length - 1,
+                            onChanged: (position) {
+                              double newValue = _mapSensitivityPositionToValue(position);
+                              setState(() {
+                                _touchpadSensitivity = newValue;
+                                SharedPreferencesManager.setDouble(
+                                    'touchpadSensitivity', newValue);
+                                StreamingSettings.touchpadSensitivity = newValue;
+                              });
+                            },
+                          ),
+                          const Text(
+                            '较低的灵敏度适合精细操作，较高的灵敏度适合快速移动',
+                            style: TextStyle(
+                              color: Colors.grey,
+                              fontSize: 12,
                             ),
                           ),
                         ],

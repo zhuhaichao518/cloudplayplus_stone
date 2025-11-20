@@ -58,6 +58,9 @@ class StreamingSettings {
   // 仅对触摸输入控制Windows设备有效
   static int touchInputMode = TouchInputMode.touch.index;
 
+  // 触控板灵敏度：范围 0.1 - 5.0，默认 1.0
+  static double touchpadSensitivity = 1.0;
+
   // 指针缩放倍率
   static double cursorScale = 50.0;
 
@@ -154,6 +157,8 @@ class StreamingSettings {
     }
 
     cursorScale = SharedPreferencesManager.getDouble('cursorScale') ?? (AppPlatform.isAndroidTV? 100.0:50.0);
+
+    touchpadSensitivity = SharedPreferencesManager.getDouble('touchpadSensitivity') ?? 1.0;
 
     if (AppPlatform.isDeskTop) {
       useClipBoard = SharedPreferencesManager.getBool('useClipBoard') ?? true;

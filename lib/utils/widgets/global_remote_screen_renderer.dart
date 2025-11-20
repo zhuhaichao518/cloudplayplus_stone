@@ -122,7 +122,7 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
     if (_isUsingTouchMode) {
       _handleTouchModeUp(event.pointer % 9 + 1);
     } else if (_isUsingTouchpadMode) {
-      _handleTouchpadUp(event);
+      _handleTouchpadUp();
     } else {
       _handleMouseModeUp();
     }
@@ -181,17 +181,7 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
   // 触控板模式处理方法
   void _handleTouchpadDown(PointerDownEvent event) {
     _lastTouchpadPosition = event.position;
-    
-    // 触控板模式下的点击：根据当前鼠标模式决定
-    if (_mouseTouchMode == MouseMode.leftClick) {
-      _leftButtonDown = true;
-      WebrtcService.currentRenderingSession?.inputController
-          ?.requestMouseClick(1, _leftButtonDown);
-    } else if (_mouseTouchMode == MouseMode.rightClick) {
-      _rightButtonDown = true;
-      WebrtcService.currentRenderingSession?.inputController
-          ?.requestMouseClick(3, _rightButtonDown);
-    }
+    return;
   }
 
   void _handleTouchpadMove(PointerMoveEvent event) {
@@ -200,38 +190,25 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
       return;
     }
     
-    // 计算相对移动距离（以像素为单位）
     double deltaX = event.position.dx - _lastTouchpadPosition!.dx;
     double deltaY = event.position.dy - _lastTouchpadPosition!.dy;
-    
-    // 更新上次位置
+
     _lastTouchpadPosition = event.position;
-    
-    // 灵敏度调节（可以后续加入设置）
-    const double sensitivity = 1.0;
+
+    // 使用设置中的灵敏度
+    double sensitivity = StreamingSettings.touchpadSensitivity;
     deltaX *= sensitivity;
     deltaY *= sensitivity;
-    
-    // 发送相对移动指令
-    WebrtcService.currentRenderingSession?.inputController
-        ?.requestMoveMouseRelative(
-            deltaX, deltaY, 
-            WebrtcService.currentRenderingSession!.screenId);
+    if (InputController.isCursorLocked) {
+      WebrtcService.currentRenderingSession?.inputController
+          ?.requestMoveMouseRelative(deltaX, deltaY, 0);
+    } else {
+      InputController.mouseController.moveDelta(deltaX, deltaY);
+    }
   }
 
-  void _handleTouchpadUp(PointerUpEvent event) {
-    _lastTouchpadPosition = null;
-    
-    // 释放按钮
-    if (_mouseTouchMode == MouseMode.leftClick && _leftButtonDown) {
-      _leftButtonDown = false;
-      WebrtcService.currentRenderingSession?.inputController
-          ?.requestMouseClick(1, _leftButtonDown);
-    } else if (_mouseTouchMode == MouseMode.rightClick && _rightButtonDown) {
-      _rightButtonDown = false;
-      WebrtcService.currentRenderingSession?.inputController
-          ?.requestMouseClick(3, _rightButtonDown);
-    }
+  void _handleTouchpadUp() {
+    return;
   }
 
   void _handleMouseModeUp() {
@@ -640,6 +617,67 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
                       } else {
                         _syncMouseButtonState(event);
                       }
+                    }
+                  },
+                  onPointerCancel: (PointerCancelEvent event) {
+                    if (WebrtcService.currentRenderingSession == null) return;
+                    
+                    // 根据不同的输入设备类型，调用相应的 up 处理
+                    if (event.kind == PointerDeviceKind.touch) {
+                      if (_isUsingTouchMode) {
+                        _handleTouchModeUp(event.pointer % 9 + 1);
+                      } else if (_isUsingTouchpadMode) {
+                        _handleTouchpadUp();
+                      } else {
+                        _handleMouseModeUp();
+                      }
+                    } else if (event.kind == PointerDeviceKind.stylus) {
+                      // 手写笔取消时，发送笔抬起事件
+                      final pos = _calculatePositionPercent(event.position);
+                      if (pos != null) {
+                        _penDown = false;
+                        WebrtcService.currentRenderingSession?.inputController?.requestPenEvent(
+                          pos.xPercent,
+                          pos.yPercent,
+                          false, // isDown
+                          false, // hasButton
+                          0.0, // 压力为0
+                          _lastPenOrientation * 180.0 / 3.14159,
+                          _lastPenTilt * 180.0 / 3.14159,
+                        );
+                      }
+                    } else if (event.kind == PointerDeviceKind.mouse) {
+                      // 鼠标取消时，释放所有按钮
+                      if (_leftButtonDown) {
+                        _leftButtonDown = false;
+                        WebrtcService.currentRenderingSession?.inputController
+                            ?.requestMouseClick(1, false);
+                      }
+                      if (_rightButtonDown) {
+                        _rightButtonDown = false;
+                        WebrtcService.currentRenderingSession?.inputController
+                            ?.requestMouseClick(3, false);
+                      }
+                      if (_middleButtonDown) {
+                        _middleButtonDown = false;
+                        WebrtcService.currentRenderingSession?.inputController
+                            ?.requestMouseClick(2, false);
+                      }
+                      if (_backButtonDown) {
+                        _backButtonDown = false;
+                        WebrtcService.currentRenderingSession?.inputController
+                            ?.requestMouseClick(4, false);
+                      }
+                      if (_forwardButtonDown) {
+                        _forwardButtonDown = false;
+                        WebrtcService.currentRenderingSession?.inputController
+                            ?.requestMouseClick(5, false);
+                      }
+                    }
+                    
+                    // 清理触控板状态
+                    if (_isUsingTouchpadMode) {
+                      _lastTouchpadPosition = null;
                     }
                   },
                   onPointerMove: (PointerMoveEvent event) {
