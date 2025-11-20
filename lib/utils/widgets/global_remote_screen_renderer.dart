@@ -196,12 +196,12 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
     _lastTouchpadPosition = event.position;
 
     // 使用设置中的灵敏度
-    double sensitivity = StreamingSettings.touchpadSensitivity;
+    double sensitivity = StreamingSettings.touchpadSensitivity * 10;
     deltaX *= sensitivity;
     deltaY *= sensitivity;
     if (InputController.isCursorLocked) {
       WebrtcService.currentRenderingSession?.inputController
-          ?.requestMoveMouseRelative(deltaX, deltaY, 0);
+          ?.requestMoveMouseRelative(deltaX  * 10, deltaY  * 10, 0);
     } else {
       InputController.mouseController.moveDelta(deltaX, deltaY);
     }
@@ -485,8 +485,9 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
               ?.requestMoveMouseAbsl(mouseMoveEvent.deltaX, mouseMoveEvent.deltaY, WebrtcService.currentRenderingSession!.screenId);
         } else {
           // 相对移动
+          double sensitivity = StreamingSettings.touchpadSensitivity * 10;
           WebrtcService.currentRenderingSession?.inputController
-              ?.requestMoveMouseRelative(mouseMoveEvent.deltaX, mouseMoveEvent.deltaY, WebrtcService.currentRenderingSession!.screenId);
+              ?.requestMoveMouseRelative(mouseMoveEvent.deltaX * sensitivity, mouseMoveEvent.deltaY * sensitivity, WebrtcService.currentRenderingSession!.screenId);
         }
       }
     }
