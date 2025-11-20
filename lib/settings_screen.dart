@@ -1013,6 +1013,8 @@ class _CursorSettingsScreenState extends State<CursorSettingsScreen> {
   bool _switchCmdCtrl = false;
   int _touchInputMode = TouchInputMode.touch.index;  // 触控模式：0=触摸(默认), 1=触控板, 2=鼠标
   double _touchpadSensitivity = 1.0;  // 触控板灵敏度
+  bool _touchpadTwoFingerScroll = true;  // 双指滚动
+  bool _touchpadTwoFingerZoom = true;    // 双指缩放
   double _cursorScale = 50.0;
   final List<double> _scaleValues = [12.5, 25, 50, 75, 100, 125, 150, 200, 250, 300, 400, 500];
   final List<double> _sensitivityValues = [0.1, 0.25, 0.5, 0.75, 1.0, 1.25, 1.5, 2.0, 2.5, 3.0, 4.0, 5.0];
@@ -1075,6 +1077,9 @@ class _CursorSettingsScreenState extends State<CursorSettingsScreen> {
     double savedSensitivity = StreamingSettings.touchpadSensitivity;
     _touchpadSensitivity = _sensitivityValues.reduce((a, b) => 
       (a - savedSensitivity).abs() < (b - savedSensitivity).abs() ? a : b);
+    // 加载触控板手势开关
+    _touchpadTwoFingerScroll = StreamingSettings.touchpadTwoFingerScroll;
+    _touchpadTwoFingerZoom = StreamingSettings.touchpadTwoFingerZoom;
     setState(() {});
   }
 
@@ -1194,7 +1199,7 @@ class _CursorSettingsScreenState extends State<CursorSettingsScreen> {
                               },
                               children: const <Widget>[
                                 Padding(
-                                  padding: EdgeInsets.symmetric(horizontal: 16),
+                                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                                   child: Column(
                                     children: [
                                       Text('触摸'),
@@ -1202,7 +1207,7 @@ class _CursorSettingsScreenState extends State<CursorSettingsScreen> {
                                   ),
                                 ),
                                 Padding(
-                                  padding: EdgeInsets.symmetric(horizontal: 16),
+                                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                                   child: Column(
                                     children: [
                                       Text('触控板'),
@@ -1210,7 +1215,7 @@ class _CursorSettingsScreenState extends State<CursorSettingsScreen> {
                                   ),
                                 ),
                                 Padding(
-                                  padding: EdgeInsets.symmetric(horizontal: 16),
+                                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                                   child: Column(
                                     children: [
                                       Text('鼠标'),
@@ -1298,6 +1303,41 @@ class _CursorSettingsScreenState extends State<CursorSettingsScreen> {
                       ),
                     ),
                   ),
+                ),
+              ],
+            ),
+            // 触控板手势设置（只在触控板模式下显示）
+            if (_touchInputMode == TouchInputMode.touchpad.index)
+            SettingsSection(
+              title: const Text('触控板手势'),
+              tiles: [
+                SettingsTile.switchTile(
+                  title: const Text('双指滚动'),
+                  description: const Text('使用两根手指上下滑动时滚动页面'),
+                  leading: const Icon(Icons.swipe_vertical),
+                  initialValue: _touchpadTwoFingerScroll,
+                  onToggle: (bool value) {
+                    setState(() {
+                      _touchpadTwoFingerScroll = value;
+                      SharedPreferencesManager.setBool(
+                          'touchpadTwoFingerScroll', value);
+                      StreamingSettings.touchpadTwoFingerScroll = value;
+                    });
+                  },
+                ),
+                SettingsTile.switchTile(
+                  title: const Text('双指缩放'),
+                  description: const Text('使用两根手指捏合缩放视频画面'),
+                  leading: const Icon(Icons.pinch),
+                  initialValue: _touchpadTwoFingerZoom,
+                  onToggle: (bool value) {
+                    setState(() {
+                      _touchpadTwoFingerZoom = value;
+                      SharedPreferencesManager.setBool(
+                          'touchpadTwoFingerZoom', value);
+                      StreamingSettings.touchpadTwoFingerZoom = value;
+                    });
+                  },
                 ),
               ],
             ),
