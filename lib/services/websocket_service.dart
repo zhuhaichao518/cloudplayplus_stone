@@ -22,16 +22,18 @@ import 'secure_storage_manager.dart';
 
 enum WebSocketConnectionState {
   none,
-  connecting, // 请求连接中
-  connected, // 已连接
-  disconnected, // 断开
+  connecting,
+  connected,
+  disconnected,
 }
 
 // This class manages the connection state of the client to the CloudPlayPlus server.
 class WebSocketService {
   static SimpleWebSocket? _socket;
   static String _baseUrl = 'wss://www.cloudplayplus.com/ws/';
-  static Timer? _reconnectTimer; // 添加定时器变量
+  static Timer? _reconnectTimer;
+  static Timer? _heartbeatTimer;
+  static Timer? _pongTimeoutTimer;
 
   static const JsonEncoder _encoder = JsonEncoder();
   static const JsonDecoder _decoder = JsonDecoder();
@@ -108,8 +110,8 @@ class WebSocketService {
 
     _socket?.onClose = (code, message) async {
       onDisConnected();
+      _stopHeartbeat();
       if (should_be_connected) {
-        // 确保旧的定时器被清理
         _reconnectTimer?.cancel();
         _reconnectTimer =
             Timer.periodic(const Duration(seconds: 30), (Timer timer) async {
@@ -146,9 +148,9 @@ class WebSocketService {
     should_be_connected = true;
     _socket?.close();
     _socket = null;
-    // 确保旧的定时器被清理
     _reconnectTimer?.cancel();
     _reconnectTimer = null;
+    _stopHeartbeat();
     init();
   }
 
@@ -156,9 +158,9 @@ class WebSocketService {
     should_be_connected = false;
     _socket?.close();
     _socket = null;
-    // 确保定时器被清理
     _reconnectTimer?.cancel();
     _reconnectTimer = null;
+    _stopHeartbeat();
   }
 
   static Future<void> onMessage(message) async {
@@ -229,6 +231,10 @@ class WebSocketService {
           StreamedManager.onCandidateReceived(
               data['source_connectionid'], data['candidate']);
         }
+      case 'pong':
+        {
+          _handlePong();
+        }
       default:
         {
           VLOG0("warning:get unknown message from server");
@@ -246,6 +252,59 @@ class WebSocketService {
       /*'appid': ApplicationInfo.appId,*/
       'connective': ApplicationInfo.connectable
     });*/
+    if (AppPlatform.isDeskTop) {
+      _startHeartbeat();
+    }
+  }
+
+  static void _startHeartbeat() {
+    if (!AppPlatform.isDeskTop) {
+      return;
+    }
+    _heartbeatTimer?.cancel();
+    _pongTimeoutTimer?.cancel();
+    
+    _sendPing();
+    
+    _heartbeatTimer = Timer.periodic(const Duration(minutes: 5), (Timer timer) {
+      if (connectionState != WebSocketConnectionState.connected || !AppPlatform.isDeskTop) {
+        timer.cancel();
+        _heartbeatTimer = null;
+        return;
+      }
+      _sendPing();
+    });
+  }
+
+  static void _sendPing() {
+    if (!AppPlatform.isDeskTop || connectionState != WebSocketConnectionState.connected) {
+      return;
+    }
+    VLOG0("sending ping");
+    send('ping', {});
+    
+    _pongTimeoutTimer?.cancel();
+    
+    _pongTimeoutTimer = Timer(const Duration(seconds: 10), () {
+      VLOG0("no pong received within 10 seconds, reconnecting");
+      _pongTimeoutTimer = null;
+      if (connectionState == WebSocketConnectionState.connected && AppPlatform.isDeskTop) {
+        reconnect();
+      }
+    });
+  }
+
+  static void _handlePong() {
+    VLOG0("received pong");
+    _pongTimeoutTimer?.cancel();
+    _pongTimeoutTimer = null;
+  }
+
+  static void _stopHeartbeat() {
+    _heartbeatTimer?.cancel();
+    _heartbeatTimer = null;
+    _pongTimeoutTimer?.cancel();
+    _pongTimeoutTimer = null;
   }
 
   static void send(event, data) {

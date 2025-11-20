@@ -977,12 +977,6 @@ class _AppLifecycleObserver extends WidgetsBindingObserver {
           HardwareSimulator.lockCursor();
         });
       }
-      // Reconnect WS on Resume.
-      if (AppPlatform.isMobile/* &&
-          WebSocketService.connectionState ==
-              WebSocketConnectionState.disconnected*/) {
-        WebSocketService.reconnect();
-      }
     }
   }
 }

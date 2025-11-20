@@ -17,12 +17,13 @@ class MainScreen extends StatefulWidget {
   State<MainScreen> createState() => _MainScreenState();
 }
 
-class _MainScreenState extends State<MainScreen> {
+class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
   int _currentIndex = 0;
 
   @override
   initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     WebSocketService.init();
     _children = [
       DevicesPage(),
@@ -40,6 +41,19 @@ class _MainScreenState extends State<MainScreen> {
       if (!AppPlatform.isAndroidTV)
         const SettingsScreen(), //GamesPage(),
     ];
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed && AppPlatform.isMobile) {
+      WebSocketService.reconnect();
+    }
   }
 
   void onTabTapped(int index) {
