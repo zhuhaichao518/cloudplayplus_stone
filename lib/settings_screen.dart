@@ -1194,7 +1194,7 @@ class _CursorSettingsScreenState extends State<CursorSettingsScreen> {
                               },
                               children: const <Widget>[
                                 Padding(
-                                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                  padding: EdgeInsets.symmetric(horizontal: 16),
                                   child: Column(
                                     children: [
                                       Text('触摸'),
@@ -1202,7 +1202,7 @@ class _CursorSettingsScreenState extends State<CursorSettingsScreen> {
                                   ),
                                 ),
                                 Padding(
-                                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                  padding: EdgeInsets.symmetric(horizontal: 16),
                                   child: Column(
                                     children: [
                                       Text('触控板'),
@@ -1210,7 +1210,7 @@ class _CursorSettingsScreenState extends State<CursorSettingsScreen> {
                                   ),
                                 ),
                                 Padding(
-                                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                  padding: EdgeInsets.symmetric(horizontal: 16),
                                   child: Column(
                                     children: [
                                       Text('鼠标'),

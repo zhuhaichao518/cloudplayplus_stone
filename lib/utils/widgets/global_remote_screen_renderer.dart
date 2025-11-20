@@ -196,7 +196,7 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
     _lastTouchpadPosition = event.position;
 
     // 使用设置中的灵敏度
-    double sensitivity = StreamingSettings.touchpadSensitivity * 10;
+    double sensitivity = StreamingSettings.touchpadSensitivity;
     deltaX *= sensitivity;
     deltaY *= sensitivity;
     if (InputController.isCursorLocked) {
@@ -684,7 +684,7 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
                   onPointerMove: (PointerMoveEvent event) {
                     if (WebrtcService.currentRenderingSession == null) return;
                     
-                    if (_mouseTouchMode == MouseMode.leftClick) {
+                    if (_mouseTouchMode == MouseMode.leftClick && event.kind == PointerDeviceKind.mouse) {
                       _syncMouseButtonState(event);
                     }
                     
