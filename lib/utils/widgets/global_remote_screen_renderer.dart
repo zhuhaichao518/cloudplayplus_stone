@@ -67,6 +67,11 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
   
   // 触控板模式：跟踪上一次触摸位置用于计算相对移动
   Offset? _lastTouchpadPosition;
+  
+  // 多点触控跟踪（用于双指手势）
+  Map<int, Offset> _touchpadPointers = {};
+  double? _lastPinchDistance; // 上一次双指距离（用于缩放）
+  bool _isTwoFingerScrolling = false; // 是否正在双指滚动
 
   /*bool _hasAudio = false;
 
@@ -122,7 +127,7 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
     if (_isUsingTouchMode) {
       _handleTouchModeUp(event.pointer % 9 + 1);
     } else if (_isUsingTouchpadMode) {
-      _handleTouchpadUp();
+      _handleTouchpadUp(event);
     } else {
       _handleMouseModeUp();
     }
@@ -180,11 +185,64 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
 
   // 触控板模式处理方法
   void _handleTouchpadDown(PointerDownEvent event) {
-    _lastTouchpadPosition = event.position;
-    return;
+    // 记录触摸点
+    _touchpadPointers[event.pointer] = event.position;
+    
+    if (_touchpadPointers.length == 1) {
+      // 单指：记录初始位置
+      _lastTouchpadPosition = event.position;
+    } else if (_touchpadPointers.length == 2) {
+      // 双指：重置状态，准备手势识别
+      _lastTouchpadPosition = null;
+      _lastPinchDistance = _calculatePinchDistance();
+      
+      // 计算双指中心点作为初始位置
+      List<Offset> positions = _touchpadPointers.values.toList();
+      _lastTouchpadPosition = Offset(
+        (positions[0].dx + positions[1].dx) / 2,
+        (positions[0].dy + positions[1].dy) / 2,
+      );
+      
+      // 开始双指滚动（复用 PanZoom 的 startScroll）
+      _scrollController.startScroll();
+      _isTwoFingerScrolling = true;
+    }
   }
 
   void _handleTouchpadMove(PointerMoveEvent event) {
+    // 更新触摸点位置
+    _touchpadPointers[event.pointer] = event.position;
+    
+    if (_touchpadPointers.length == 1) {
+      // 单指：光标移动
+      _handleSingleFingerMove(event);
+    } else if (_touchpadPointers.length == 2) {
+      // 双指：滚动或缩放
+      _handleTwoFingerGesture(event);
+    }
+  }
+
+  void _handleTouchpadUp(PointerEvent event) {
+    _touchpadPointers.remove(event.pointer);
+    
+    // 如果从双指变成单指或零指，结束双指滚动
+    if (_isTwoFingerScrolling && _touchpadPointers.length < 2) {
+      _scrollController.startFling(); // 启动惯性滚动
+      _isTwoFingerScrolling = false;
+    }
+    
+    if (_touchpadPointers.isEmpty) {
+      _lastTouchpadPosition = null;
+      _lastPinchDistance = null;
+    } else if (_touchpadPointers.length == 1) {
+      // 从双指回到单指，重新初始化单指模式
+      _lastTouchpadPosition = _touchpadPointers.values.first;
+      _lastPinchDistance = null;
+    }
+  }
+
+  // 单指移动：光标移动
+  void _handleSingleFingerMove(PointerMoveEvent event) {
     if (_lastTouchpadPosition == null) {
       _lastTouchpadPosition = event.position;
       return;
@@ -199,16 +257,72 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
     double sensitivity = StreamingSettings.touchpadSensitivity;
     deltaX *= sensitivity;
     deltaY *= sensitivity;
+    
     if (InputController.isCursorLocked) {
       WebrtcService.currentRenderingSession?.inputController
-          ?.requestMoveMouseRelative(deltaX  * 10, deltaY  * 10, 0);
+          ?.requestMoveMouseRelative(deltaX * 10, deltaY * 10, 0);
     } else {
       InputController.mouseController.moveDelta(deltaX, deltaY);
     }
   }
 
-  void _handleTouchpadUp() {
-    return;
+  // 双指手势：滚动和缩放
+  void _handleTwoFingerGesture(PointerMoveEvent event) {
+    if (_touchpadPointers.length != 2) return;
+    
+    List<Offset> positions = _touchpadPointers.values.toList();
+    
+    // 计算双指中心点
+    Offset center = Offset(
+      (positions[0].dx + positions[1].dx) / 2,
+      (positions[0].dy + positions[1].dy) / 2,
+    );
+    
+    // 计算当前双指距离
+    double currentDistance = _calculatePinchDistance();
+    
+    if (_lastTouchpadPosition != null && _lastPinchDistance != null) {
+      // 检测缩放（双指距离变化）
+      double distanceDelta = currentDistance - _lastPinchDistance!;
+      
+      // 如果距离变化明显，则认为是缩放手势
+      if (distanceDelta.abs() > 20.0) {
+        _handlePinchZoom(distanceDelta);
+      } else {
+        // 否则是滚动手势（计算中心点移动）
+        double scrollDeltaX = center.dx - _lastTouchpadPosition!.dx;
+        double scrollDeltaY = center.dy - _lastTouchpadPosition!.dy;
+        _handleTwoFingerScroll(scrollDeltaX, scrollDeltaY);
+      }
+    }
+    
+    _lastTouchpadPosition = center;
+    _lastPinchDistance = currentDistance;
+  }
+
+  // 计算两个触摸点之间的距离
+  double _calculatePinchDistance() {
+    if (_touchpadPointers.length != 2) return 0.0;
+    List<Offset> positions = _touchpadPointers.values.toList();
+    return (positions[0] - positions[1]).distance;
+  }
+
+  // 双指滚动（复用 PanZoom 的滚动逻辑）
+  void _handleTwoFingerScroll(double deltaX, double deltaY) {
+    // 直接使用 _scrollController 的逻辑，包括惯性效果
+    _scrollController.doScroll(-deltaX, deltaY);
+  }
+
+  // 双指缩放（通过 Ctrl + 滚轮实现）
+  void _handlePinchZoom(double distanceDelta) {
+    // 缩放转换为滚轮事件
+    //double zoomAmount = distanceDelta * StreamingSettings.touchpadSensitivity * 0.5;
+    
+    // 模拟 Ctrl + 滚轮（很多应用支持这种缩放方式）
+    // 这里可以发送键盘事件 Ctrl + 滚轮
+    // 或者直接发送滚轮事件，应用程序自己决定如何处理
+    //WebrtcService.currentRenderingSession?.inputController
+    //    ?.requestMouseScroll(0, zoomAmount);
   }
 
   void _handleMouseModeUp() {
@@ -628,7 +742,7 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
                       if (_isUsingTouchMode) {
                         _handleTouchModeUp(event.pointer % 9 + 1);
                       } else if (_isUsingTouchpadMode) {
-                        _handleTouchpadUp();
+                        _handleTouchpadUp(event);
                       } else {
                         _handleMouseModeUp();
                       }
