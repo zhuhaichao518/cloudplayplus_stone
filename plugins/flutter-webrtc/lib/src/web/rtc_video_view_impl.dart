@@ -17,6 +17,8 @@ class RTCVideoView extends StatefulWidget {
     this.filterQuality = FilterQuality.low,
     this.placeholderBuilder,
     this.onRenderBoxUpdated,
+    this.scale = 1.0,
+    this.offset = Offset.zero,
   });
 
   final RTCVideoRenderer _renderer;
@@ -26,6 +28,8 @@ class RTCVideoView extends StatefulWidget {
   final WidgetBuilder? placeholderBuilder;
   final Function(double)? setAspectRatio;
   final Function(RenderBox)? onRenderBoxUpdated;
+  final double scale;
+  final Offset offset;
 
   @override
   RTCVideoViewState createState() => RTCVideoViewState();
