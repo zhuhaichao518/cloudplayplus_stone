@@ -935,6 +935,7 @@ class InputController {
       }
       return;
     }
+    //non mobile platforms
     if (buffer[0] == LP_MOUSECURSOR_CHANGED_WITHBUFFER) {
       //cursor hash: 0 + size + hash + data
       int width = 0;

@@ -1027,6 +1027,7 @@ class _ControlManagementScreenState extends State<ControlManagementScreen> {
     int? selectedKeyCode;
     bool isGamepadButton = false;
     bool isMouseButton = false;
+    bool isFpsFireButton = false;
     bool hasSelectedKey = false;
     ButtonShape selectedShape = ButtonShape.circle;
 
@@ -1066,6 +1067,7 @@ class _ControlManagementScreenState extends State<ControlManagementScreen> {
                       isGamepadButton: isGamepadButton,
                       isMouseButton: isMouseButton,
                       shape: selectedShape,
+                      isFpsFireButton: isFpsFireButton,
                     );
                     widget.onControlsUpdated();
                     Navigator.pop(context);
@@ -1127,6 +1129,17 @@ class _ControlManagementScreenState extends State<ControlManagementScreen> {
                         },
                       ),
                     ],
+                  ),
+                  const SizedBox(height: 16),
+                  SwitchListTile(
+                    title: const Text('FPS开火按键'),
+                    subtitle: const Text('按下后，手指移动会触发鼠标移动事件（适用于FPS游戏）'),
+                    value: isFpsFireButton,
+                    onChanged: (bool value) {
+                      setDialogState(() {
+                        isFpsFireButton = value;
+                      });
+                    },
                   ),
                   const SizedBox(height: 16),
                   TextField(
@@ -1531,6 +1544,8 @@ class _ControlManagementScreenState extends State<ControlManagementScreen> {
         control is ButtonControl ? control.isGamepadButton : false;
     bool isMouseButton =
         control is ButtonControl ? control.isMouseButton : false;
+    bool isFpsFireButton =
+        control is ButtonControl ? control.isFpsFireButton : false;
     bool hasSelectedKey = false;
     ButtonShape selectedShape = control is ButtonControl ? control.shape : ButtonShape.circle;
     
@@ -1595,6 +1610,7 @@ class _ControlManagementScreenState extends State<ControlManagementScreen> {
                         shape: selectedShape,
                         color: selectedColor,
                         opacity: selectedOpacity,
+                        isFpsFireButton: isFpsFireButton,
                       );
                     } else if (control is JoystickControl) {
                       widget.controlManager.updateControl(
@@ -1709,6 +1725,17 @@ class _ControlManagementScreenState extends State<ControlManagementScreen> {
                           },
                         ),
                       ],
+                    ),
+                    const SizedBox(height: 16),
+                    SwitchListTile(
+                      title: const Text('FPS开火按键'),
+                      subtitle: const Text('按下后，手指移动会触发鼠标移动事件（适用于FPS游戏）'),
+                      value: isFpsFireButton,
+                      onChanged: (bool value) {
+                        setDialogState(() {
+                          isFpsFireButton = value;
+                        });
+                      },
                     ),
                     const SizedBox(height: 16),
                     if (isGamepadButton) ...[

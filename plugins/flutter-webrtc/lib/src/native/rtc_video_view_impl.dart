@@ -16,6 +16,8 @@ class RTCVideoView extends StatelessWidget {
     this.filterQuality = FilterQuality.low,
     this.placeholderBuilder,
     this.onRenderBoxUpdated,
+    this.scale = 1.0,
+    this.offset = Offset.zero,
   });
 
   final RTCVideoRenderer _renderer;
@@ -25,6 +27,8 @@ class RTCVideoView extends StatelessWidget {
   final WidgetBuilder? placeholderBuilder;
   final Function(double)? setAspectRatio;
   final Function(RenderBox)? onRenderBoxUpdated;
+  final double scale;
+  final Offset offset;
 
   RTCVideoRenderer get videoRenderer => _renderer;
 
@@ -66,7 +70,10 @@ class RTCVideoView extends StatelessWidget {
                 );
               },
               child: Transform(
-                transform: Matrix4.identity()..rotateY(mirror ? -pi : 0.0),
+                transform: Matrix4.identity()
+                  ..translate(offset.dx, offset.dy)
+                  ..scale(scale, scale)
+                  ..rotateY(mirror ? -pi : 0.0),
                 alignment: FractionalOffset.center,
                 child: videoRenderer.renderVideo
                     ? Texture(

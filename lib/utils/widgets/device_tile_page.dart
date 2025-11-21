@@ -286,6 +286,8 @@ class _DeviceDetailPageState extends State<DeviceDetailPage> {
                 ),
                 if (!AppPlatform.isAndroidTV) FloatingMenuPanel(
                   panelIcon: AppIcons.mainIcon,
+                  backgroundColor: Color(0xff00b0cb).withValues(alpha: 0.4),
+                  contentColor: Colors.white.withValues(alpha: 0.6),
                   onPressed: (index) async {
                     if (index == 0) {
                       await ScreenController.setIsFullScreen(
