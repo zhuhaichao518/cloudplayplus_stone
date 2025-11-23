@@ -97,7 +97,13 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
 
   ({double xPercent, double yPercent})? _calculatePositionPercent(Offset globalPosition) {
     if (renderBox == null) return null;
-    final Offset localPosition = renderBox!.globalToLocal(globalPosition);
+    Offset localPosition = renderBox!.globalToLocal(globalPosition);
+    
+    if (_videoScale != 1.0 || _videoOffset != Offset.zero) {
+      Offset viewCenter = Offset(widgetSize.width / 2, widgetSize.height / 2);
+      localPosition = viewCenter + (localPosition - viewCenter - _videoOffset) / _videoScale;
+    }
+    
     final double xPercent = (localPosition.dx / widgetSize.width).clamp(0.0, 1.0);
     final double yPercent = (localPosition.dy / widgetSize.height).clamp(0.0, 1.0);
     return (xPercent: xPercent, yPercent: yPercent);
