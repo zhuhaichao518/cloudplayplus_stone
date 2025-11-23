@@ -296,7 +296,7 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
           (currentDistance - _initialPinchDistance!).abs() / _initialPinchDistance!;
         double cumulativeCenterMovement = (center - _initialTwoFingerCenter!).distance;
         
-        if (cumulativeDistanceChangeRatio > 1.3 || cumulativeDistanceChangeRatio < 0.7) {
+        if (cumulativeDistanceChangeRatio > 0.2 || cumulativeDistanceChangeRatio < -0.1) {
           _twoFingerGestureType = TwoFingerGestureType.zoom;
         } else if (cumulativeCenterMovement > 15) {
           _twoFingerGestureType = TwoFingerGestureType.scroll;
