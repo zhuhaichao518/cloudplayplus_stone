@@ -75,6 +75,7 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
   double _videoScale = 1.0;
   Offset _videoOffset = Offset.zero;
   Offset? _pinchFocalPoint;
+  Offset? _lastPinchFocalPoint;
   TwoFingerGestureType _twoFingerGestureType = TwoFingerGestureType.undecided;
 
   /*bool _hasAudio = false;
@@ -212,6 +213,7 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
       _lastPinchDistance = _initialPinchDistance;
       _lastTouchpadPosition = center;
       _pinchFocalPoint = center;
+      _lastPinchFocalPoint = null;
       _twoFingerGestureType = TwoFingerGestureType.undecided;
       
       _scrollController.startScroll();
@@ -243,6 +245,7 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
       _initialPinchDistance = null;
       _initialTwoFingerCenter = null;
       _pinchFocalPoint = null;
+      _lastPinchFocalPoint = null;
       _twoFingerGestureType = TwoFingerGestureType.undecided;
     } else if (_touchpadPointers.length == 1) {
       _lastTouchpadPosition = _touchpadPointers.values.first;
@@ -250,6 +253,7 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
       _initialPinchDistance = null;
       _initialTwoFingerCenter = null;
       _pinchFocalPoint = null;
+      _lastPinchFocalPoint = null;
       _twoFingerGestureType = TwoFingerGestureType.undecided;
     }
   }
@@ -341,11 +345,21 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
         Offset viewCenter = Offset(renderBox!.size.width / 2, renderBox!.size.height / 2);
         
         Offset videoPoint = viewCenter + (localFocal - viewCenter - _videoOffset) / _videoScale;
-        _videoOffset = localFocal - viewCenter - (videoPoint - viewCenter) * newScale;
+        Offset newOffset = localFocal - viewCenter - (videoPoint - viewCenter) * newScale;
+        
+        if (_lastPinchFocalPoint != null) {
+          Offset lastLocalFocal = renderBox!.globalToLocal(_lastPinchFocalPoint!);
+          Offset focalDelta = localFocal - lastLocalFocal;
+          newOffset += focalDelta;
+        }
+        
+        _videoOffset = newOffset;
         _videoScale = newScale;
       } else {
         _videoScale = newScale;
       }
+      
+      _lastPinchFocalPoint = _pinchFocalPoint;
     });
   }
 
