@@ -271,6 +271,8 @@ class ControlManager {
 
   void clearControls() {
     _controls.clear();
+    // 将当前配置名称重置为临时值，避免意外覆盖现有配置
+    _currentConfigName = '未命名配置';
     _saveControls();
   }
 
