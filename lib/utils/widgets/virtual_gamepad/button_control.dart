@@ -14,6 +14,7 @@ class ButtonControl extends ControlBase {
   final bool isMouseButton; // 是否是鼠标按钮
   final ButtonShape shape; // 按钮形状
   final bool isFpsFireButton; // 是否是FPS开火按键（按下后手指移动会触发鼠标移动事件）
+  final bool isToggleMode; // 是否是切换模式（按下时按下，再按一次松开）
 
   ButtonControl({
     required super.id,
@@ -28,6 +29,7 @@ class ButtonControl extends ControlBase {
     this.isMouseButton = false, // 默认为非鼠标按钮
     this.shape = ButtonShape.circle, // 默认为圆形
     this.isFpsFireButton = false, // 默认不是FPS开火按键
+    this.isToggleMode = false, // 默认为按下松开模式
   }) : super(
           type: 'button',
         );
@@ -46,6 +48,7 @@ class ButtonControl extends ControlBase {
       isMouseButton: map['isMouseButton'] ?? false,
       shape: map['shape'] == 'square' ? ButtonShape.square : ButtonShape.circle,
       isFpsFireButton: map['isFpsFireButton'] ?? false,
+      isToggleMode: map['isToggleMode'] ?? false,
     );
   }
 
@@ -65,6 +68,7 @@ class ButtonControl extends ControlBase {
       'isMouseButton': isMouseButton,
       'shape': shape == ButtonShape.square ? 'square' : 'circle',
       'isFpsFireButton': isFpsFireButton,
+      'isToggleMode': isToggleMode,
     };
   }
 
@@ -83,6 +87,7 @@ class ButtonControl extends ControlBase {
       isGamepadButton: isGamepadButton,
       isMouseButton: isMouseButton,
       isFpsFireButton: isFpsFireButton,
+      isToggleMode: isToggleMode,
     );
   }
 
@@ -100,6 +105,7 @@ class _ButtonWidget extends StatefulWidget {
   final bool isGamepadButton;
   final bool isMouseButton;
   final bool isFpsFireButton;
+  final bool isToggleMode;
 
   const _ButtonWidget({
     required this.control,
@@ -109,6 +115,7 @@ class _ButtonWidget extends StatefulWidget {
     required this.isGamepadButton,
     required this.isMouseButton,
     required this.isFpsFireButton,
+    required this.isToggleMode,
   });
 
   @override
@@ -116,25 +123,40 @@ class _ButtonWidget extends StatefulWidget {
 }
 
 class _ButtonWidgetState extends State<_ButtonWidget> {
-  bool _isPressed = false;
+  bool _isPressed = false; // UI显示状态
+  bool _isKeyDown = false; // 实际按键状态（用于切换模式）
   Offset? _lastPosition; // 记录上一次的位置，用于FPS开火按键的移动事件
   double _moveSensitivity = 1.0; // FPS开火按键的移动灵敏度
 
   void _handleDown(Offset position) {
-    setState(() => _isPressed = true);
+    // 如果是切换模式
+    if (widget.isToggleMode) {
+      // 切换按键状态
+      _isKeyDown = !_isKeyDown;
+      setState(() => _isPressed = _isKeyDown);
+      
+      // 发送对应的按键事件
+      _sendKeyEvent(_isKeyDown);
+    } else {
+      // 普通模式：按下时发送按下事件
+      setState(() => _isPressed = true);
+      _isKeyDown = true;
+      _sendKeyEvent(true);
+    }
     
     // 如果是FPS开火按键，记录初始位置
     if (widget.isFpsFireButton) {
       _lastPosition = position;
     }
-    
-    // 触发按键按下事件
+  }
+
+  void _sendKeyEvent(bool isDown) {
     if (widget.isMouseButton) {
       widget.onEvent(ControlEvent(
         eventType: ControlEventType.mouseButton,
         data: MouseButtonEvent(
           buttonId: widget.control.keyCode,
-          isDown: true,
+          isDown: isDown,
         ),
       ));
     } else if (widget.isGamepadButton) {
@@ -142,7 +164,7 @@ class _ButtonWidgetState extends State<_ButtonWidget> {
         eventType: ControlEventType.gamepad,
         data: GamepadButtonEvent(
           keyCode: widget.control.keyCode,
-          isDown: true,
+          isDown: isDown,
         ),
       ));
     } else {
@@ -150,7 +172,7 @@ class _ButtonWidgetState extends State<_ButtonWidget> {
         eventType: ControlEventType.keyboard,
         data: KeyboardEvent(
           keyCode: widget.control.keyCode,
-          isDown: true,
+          isDown: isDown,
         ),
       ));
     }
@@ -183,35 +205,20 @@ class _ButtonWidgetState extends State<_ButtonWidget> {
   }
 
   void _handleUp() {
-    setState(() => _isPressed = false);
-    _lastPosition = null; // 清除位置记录
-
-    // 触发按键松开事件
-    if (widget.isMouseButton) {
-      widget.onEvent(ControlEvent(
-        eventType: ControlEventType.mouseButton,
-        data: MouseButtonEvent(
-          buttonId: widget.control.keyCode,
-          isDown: false,
-        ),
-      ));
-    } else if (widget.isGamepadButton) {
-      widget.onEvent(ControlEvent(
-        eventType: ControlEventType.gamepad,
-        data: GamepadButtonEvent(
-          keyCode: widget.control.keyCode,
-          isDown: false,
-        ),
-      ));
+    // 如果是切换模式，松开时只更新UI显示，不发送事件
+    if (widget.isToggleMode) {
+      // 切换模式下，松开时只更新UI显示（如果当前是按下状态，保持按下显示）
+      setState(() => _isPressed = _isKeyDown);
     } else {
-      widget.onEvent(ControlEvent(
-        eventType: ControlEventType.keyboard,
-        data: KeyboardEvent(
-          keyCode: widget.control.keyCode,
-          isDown: false,
-        ),
-      ));
+      // 普通模式：松开时发送松开事件
+      setState(() {
+        _isPressed = false;
+        _isKeyDown = false;
+      });
+      _sendKeyEvent(false);
     }
+    
+    _lastPosition = null; // 清除位置记录
   }
 
   @override
@@ -234,6 +241,9 @@ class _ButtonWidgetState extends State<_ButtonWidget> {
             borderRadius: widget.control.shape == ButtonShape.circle 
                 ? BorderRadius.circular(diameter / 2)
                 : BorderRadius.circular(diameter * 0.1), // 方形时使用较小的圆角
+            border: widget.isToggleMode && _isKeyDown
+                ? Border.all(color: Colors.white, width: 2)
+                : null, // 切换模式下，如果按键处于按下状态，显示边框
           ),
           child: Center(
             child: Text(

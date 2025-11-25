@@ -1028,6 +1028,7 @@ class _ControlManagementScreenState extends State<ControlManagementScreen> {
     bool isGamepadButton = false;
     bool isMouseButton = false;
     bool isFpsFireButton = false;
+    bool isToggleMode = false;
     bool hasSelectedKey = false;
     ButtonShape selectedShape = ButtonShape.circle;
 
@@ -1068,6 +1069,7 @@ class _ControlManagementScreenState extends State<ControlManagementScreen> {
                       isMouseButton: isMouseButton,
                       shape: selectedShape,
                       isFpsFireButton: isFpsFireButton,
+                      isToggleMode: isToggleMode,
                     );
                     widget.onControlsUpdated();
                     Navigator.pop(context);
@@ -1138,6 +1140,17 @@ class _ControlManagementScreenState extends State<ControlManagementScreen> {
                     onChanged: (bool value) {
                       setDialogState(() {
                         isFpsFireButton = value;
+                      });
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                  SwitchListTile(
+                    title: const Text('切换模式'),
+                    subtitle: const Text('按下时按下，再按一次松开（默认：按下时按下，松开时松开）'),
+                    value: isToggleMode,
+                    onChanged: (bool value) {
+                      setDialogState(() {
+                        isToggleMode = value;
                       });
                     },
                   ),
@@ -1546,6 +1559,8 @@ class _ControlManagementScreenState extends State<ControlManagementScreen> {
         control is ButtonControl ? control.isMouseButton : false;
     bool isFpsFireButton =
         control is ButtonControl ? control.isFpsFireButton : false;
+    bool isToggleMode =
+        control is ButtonControl ? control.isToggleMode : false;
     bool hasSelectedKey = false;
     ButtonShape selectedShape = control is ButtonControl ? control.shape : ButtonShape.circle;
     
@@ -1611,6 +1626,7 @@ class _ControlManagementScreenState extends State<ControlManagementScreen> {
                         color: selectedColor,
                         opacity: selectedOpacity,
                         isFpsFireButton: isFpsFireButton,
+                        isToggleMode: isToggleMode,
                       );
                     } else if (control is JoystickControl) {
                       widget.controlManager.updateControl(
@@ -1734,6 +1750,17 @@ class _ControlManagementScreenState extends State<ControlManagementScreen> {
                       onChanged: (bool value) {
                         setDialogState(() {
                           isFpsFireButton = value;
+                        });
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    SwitchListTile(
+                      title: const Text('切换模式'),
+                      subtitle: const Text('按下时按下，再按一次松开（默认：按下时按下，松开时松开）'),
+                      value: isToggleMode,
+                      onChanged: (bool value) {
+                        setDialogState(() {
+                          isToggleMode = value;
                         });
                       },
                     ),
