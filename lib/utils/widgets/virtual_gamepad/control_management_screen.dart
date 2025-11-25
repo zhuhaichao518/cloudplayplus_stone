@@ -219,10 +219,13 @@ class _ControlManagementScreenState extends State<ControlManagementScreen> {
             // 拖拽结束时，将最终位置保存到ControlManager
             final finalPosition = _dragPositions[control.id];
             if (finalPosition != null) {
+              // 四舍五入到三位小数
+              final roundedX = (finalPosition.dx * 1000).round() / 1000.0;
+              final roundedY = (finalPosition.dy * 1000).round() / 1000.0;
               widget.controlManager.updateControl(
                 control.id,
-                centerX: finalPosition.dx,
-                centerY: finalPosition.dy,
+                centerX: roundedX,
+                centerY: roundedY,
               );
               widget.onControlsUpdated();
             }
@@ -662,12 +665,18 @@ class _ControlManagementScreenState extends State<ControlManagementScreen> {
     
     // 默认WASD按键映射
     Map<String, int> keyMapping = {
-      'up': 0x11,     // W
-      'down': 0x1F,   // S
-      'left': 0x1E,   // A
-      'right': 0x20,  // D
+      'up': 0x57,     // W
+      'down': 0x53,   // S
+      'left': 0x41,   // A
+      'right': 0x44,  // D
     };
     bool enableLongPull = false;
+    int? sneakKeyCode;
+    int? sprintKeyCode;
+    final sneakThresholdController = TextEditingController(text: '0.3');
+    final sprintThresholdController = TextEditingController(text: '0.8');
+    bool enableArcadeMode = false;
+    final arcadeThresholdController = TextEditingController(text: '0.5');
 
     showDialog(
       context: context,
@@ -686,6 +695,12 @@ class _ControlManagementScreenState extends State<ControlManagementScreen> {
                     widget.controlManager.createWASDJoystick(
                       keyMapping: keyMapping,
                       enableLongPull: enableLongPull,
+                      sneakKeyCode: sneakKeyCode,
+                      sprintKeyCode: sprintKeyCode,
+                      sneakThreshold: double.tryParse(sneakThresholdController.text) ?? 0.3,
+                      sprintThreshold: double.tryParse(sprintThresholdController.text) ?? 0.8,
+                      enableArcadeMode: enableArcadeMode,
+                      arcadeThreshold: double.tryParse(arcadeThresholdController.text) ?? 0.5,
                       centerX: double.tryParse(centerXController.text) ?? 0.2,
                       centerY: double.tryParse(centerYController.text) ?? 0.8,
                       size: double.tryParse(sizeController.text) ?? 0.12,
@@ -742,9 +757,140 @@ class _ControlManagementScreenState extends State<ControlManagementScreen> {
                     },
                   ),
                   const SizedBox(height: 24),
+                  const Divider(),
+                  const SizedBox(height: 16),
+                  const Text(
+                    '静步键和奔跑键配置:',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 8),
+                  const Text(
+                    '• 静步键：拖动距离小于阈值时自动按下\n'
+                    '• 奔跑键：拖动距离大于阈值时自动按下',
+                    style: TextStyle(fontSize: 14),
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          controller: sneakThresholdController,
+                          decoration: const InputDecoration(
+                            labelText: '静步阈值 (0.0-1.0)',
+                            hintText: '默认0.3',
+                            border: OutlineInputBorder(),
+                          ),
+                          keyboardType: TextInputType.number,
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                          decoration: BoxDecoration(
+                            border: Border.all(color: Colors.grey),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Text(
+                            sneakKeyCode != null
+                                ? '0x${sneakKeyCode!.toRadixString(16).toUpperCase().padLeft(2, '0')}'
+                                : '未设置',
+                            style: const TextStyle(fontFamily: 'monospace'),
+                          ),
+                        ),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.clear),
+                        onPressed: () {
+                          sneakKeyCode = null;
+                          setDialogState(() {});
+                        },
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          controller: sprintThresholdController,
+                          decoration: const InputDecoration(
+                            labelText: '奔跑阈值 (0.0-1.0)',
+                            hintText: '默认0.8',
+                            border: OutlineInputBorder(),
+                          ),
+                          keyboardType: TextInputType.number,
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                          decoration: BoxDecoration(
+                            border: Border.all(color: Colors.grey),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Text(
+                            sprintKeyCode != null
+                                ? '0x${sprintKeyCode!.toRadixString(16).toUpperCase().padLeft(2, '0')}'
+                                : '未设置',
+                            style: const TextStyle(fontFamily: 'monospace'),
+                          ),
+                        ),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.clear),
+                        onPressed: () {
+                          sprintKeyCode = null;
+                          setDialogState(() {});
+                        },
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+                  const Divider(),
+                  const SizedBox(height: 16),
+                  const Text(
+                    '街机模式（双击模式）:',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 8),
+                  const Text(
+                    '当拖动超过阈值时，如果左或右方向键被按下，会触发松开再按下一次（模拟双击效果）',
+                    style: TextStyle(fontSize: 14),
+                  ),
+                  const SizedBox(height: 16),
+                  SwitchListTile(
+                    title: const Text('启用街机模式'),
+                    value: enableArcadeMode,
+                    onChanged: (value) {
+                      enableArcadeMode = value;
+                      setDialogState(() {});
+                    },
+                  ),
+                  if (enableArcadeMode) ...[
+                    const SizedBox(height: 16),
+                    TextField(
+                      controller: arcadeThresholdController,
+                      decoration: const InputDecoration(
+                        labelText: '街机模式阈值 (0.0-1.0)',
+                        hintText: '默认0.5',
+                        border: OutlineInputBorder(),
+                      ),
+                      keyboardType: TextInputType.number,
+                    ),
+                  ],
+                  const SizedBox(height: 24),
                   const Text(
                     '虚拟键盘（点击选择按键）:',
                     style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 8),
+                  const Text(
+                    '• 点击虚拟键盘上的按键，然后选择要映射的功能\n'
+                    '• 可以选择映射到方向键、静步键或奔跑键\n'
+                    '• 静步键和奔跑键是可选的，可以不配置',
+                    style: TextStyle(fontSize: 12, color: Colors.grey),
                   ),
                   const SizedBox(height: 16),
                   Center(
@@ -758,11 +904,17 @@ class _ControlManagementScreenState extends State<ControlManagementScreen> {
                             type: VirtualKeyboardType.Hardware,
                             keyPressedCallback: (keyCode, isDown) {
                               if (isDown) {
-                                // 显示对话框让用户选择映射到哪个方向
-                                _showDirectionSelectionDialog(
+                                // 显示对话框让用户选择映射到哪个方向或功能
+                                _showWASDKeySelectionDialog(
                                   context,
                                   keyCode,
                                   keyMapping,
+                                  (sneak) {
+                                    sneakKeyCode = sneak;
+                                  },
+                                  (sprint) {
+                                    sprintKeyCode = sprint;
+                                  },
                                   setDialogState,
                                 );
                               }
@@ -921,6 +1073,95 @@ class _ControlManagementScreenState extends State<ControlManagementScreen> {
               );
             },
             child: const Text('右 →'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('取消'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showWASDKeySelectionDialog(
+    BuildContext parentContext,
+    int keyCode,
+    Map<String, int> keyMapping,
+    void Function(int?) setSneakKey,
+    void Function(int?) setSprintKey,
+    StateSetter parentSetState,
+  ) {
+    showDialog(
+      context: parentContext,
+      builder: (context) => AlertDialog(
+        title: const Text('选择功能'),
+        content: const Text('将此按键映射到哪个功能？'),
+        actions: [
+          TextButton(
+            onPressed: () {
+              keyMapping['up'] = keyCode;
+              parentSetState(() {});
+              Navigator.pop(context);
+              ScaffoldMessenger.of(parentContext).showSnackBar(
+                SnackBar(content: Text('已将 0x${keyCode.toRadixString(16)} 映射到 上')),
+              );
+            },
+            child: const Text('上 ↑'),
+          ),
+          TextButton(
+            onPressed: () {
+              keyMapping['down'] = keyCode;
+              parentSetState(() {});
+              Navigator.pop(context);
+              ScaffoldMessenger.of(parentContext).showSnackBar(
+                SnackBar(content: Text('已将 0x${keyCode.toRadixString(16)} 映射到 下')),
+              );
+            },
+            child: const Text('下 ↓'),
+          ),
+          TextButton(
+            onPressed: () {
+              keyMapping['left'] = keyCode;
+              parentSetState(() {});
+              Navigator.pop(context);
+              ScaffoldMessenger.of(parentContext).showSnackBar(
+                SnackBar(content: Text('已将 0x${keyCode.toRadixString(16)} 映射到 左')),
+              );
+            },
+            child: const Text('左 ←'),
+          ),
+          TextButton(
+            onPressed: () {
+              keyMapping['right'] = keyCode;
+              parentSetState(() {});
+              Navigator.pop(context);
+              ScaffoldMessenger.of(parentContext).showSnackBar(
+                SnackBar(content: Text('已将 0x${keyCode.toRadixString(16)} 映射到 右')),
+              );
+            },
+            child: const Text('右 →'),
+          ),
+          TextButton(
+            onPressed: () {
+              setSneakKey(keyCode);
+              parentSetState(() {});
+              Navigator.pop(context);
+              ScaffoldMessenger.of(parentContext).showSnackBar(
+                SnackBar(content: Text('已将 0x${keyCode.toRadixString(16)} 设置为静步键')),
+              );
+            },
+            child: const Text('静步键'),
+          ),
+          TextButton(
+            onPressed: () {
+              setSprintKey(keyCode);
+              parentSetState(() {});
+              Navigator.pop(context);
+              ScaffoldMessenger.of(parentContext).showSnackBar(
+                SnackBar(content: Text('已将 0x${keyCode.toRadixString(16)} 设置为奔跑键')),
+              );
+            },
+            child: const Text('奔跑键'),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context),
@@ -1579,6 +1820,18 @@ class _ControlManagementScreenState extends State<ControlManagementScreen> {
             'right': 0x20,
           };
     bool enableLongPull = control is WASDJoystickControl ? control.enableLongPull : false;
+    int? sneakKeyCode = control is WASDJoystickControl ? control.sneakKeyCode : null;
+    int? sprintKeyCode = control is WASDJoystickControl ? control.sprintKeyCode : null;
+    final sneakThresholdController = TextEditingController(
+      text: (control is WASDJoystickControl ? control.sneakThreshold : 0.3).toStringAsFixed(2),
+    );
+    final sprintThresholdController = TextEditingController(
+      text: (control is WASDJoystickControl ? control.sprintThreshold : 0.8).toStringAsFixed(2),
+    );
+    bool enableArcadeMode = control is WASDJoystickControl ? control.enableArcadeMode : false;
+    final arcadeThresholdController = TextEditingController(
+      text: (control is WASDJoystickControl ? control.arcadeThreshold : 0.5).toStringAsFixed(2),
+    );
     
     // 颜色和透明度变量
     Color selectedColor = control.color;
@@ -1666,6 +1919,12 @@ class _ControlManagementScreenState extends State<ControlManagementScreen> {
                         size: size,
                         keyMapping: keyMapping,
                         enableLongPull: enableLongPull,
+                        sneakKeyCode: sneakKeyCode,
+                        sprintKeyCode: sprintKeyCode,
+                        sneakThreshold: double.tryParse(sneakThresholdController.text) ?? 0.3,
+                        sprintThreshold: double.tryParse(sprintThresholdController.text) ?? 0.8,
+                        enableArcadeMode: enableArcadeMode,
+                        arcadeThreshold: double.tryParse(arcadeThresholdController.text) ?? 0.5,
                         color: selectedColor,
                         opacity: selectedOpacity,
                       );
@@ -1969,10 +2228,140 @@ class _ControlManagementScreenState extends State<ControlManagementScreen> {
                         setDialogState(() {});
                       },
                     ),
+                    const SizedBox(height: 24),
+                    const Divider(),
                     const SizedBox(height: 16),
+                    const Text(
+                      '静步键和奔跑键配置:',
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 8),
+                    const Text(
+                      '• 静步键：拖动距离小于阈值时自动按下\n'
+                      '• 奔跑键：拖动距离大于阈值时自动按下',
+                      style: TextStyle(fontSize: 14),
+                    ),
+                    const SizedBox(height: 16),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: TextField(
+                            controller: sneakThresholdController,
+                            decoration: const InputDecoration(
+                              labelText: '静步阈值 (0.0-1.0)',
+                              hintText: '默认0.3',
+                              border: OutlineInputBorder(),
+                            ),
+                            keyboardType: TextInputType.number,
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                            decoration: BoxDecoration(
+                              border: Border.all(color: Colors.grey),
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: Text(
+                              sneakKeyCode != null
+                                  ? '0x${sneakKeyCode!.toRadixString(16).toUpperCase().padLeft(2, '0')}'
+                                  : '未设置',
+                              style: const TextStyle(fontFamily: 'monospace'),
+                            ),
+                          ),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.clear),
+                          onPressed: () {
+                            sneakKeyCode = null;
+                            setDialogState(() {});
+                          },
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: TextField(
+                            controller: sprintThresholdController,
+                            decoration: const InputDecoration(
+                              labelText: '奔跑阈值 (0.0-1.0)',
+                              hintText: '默认0.8',
+                              border: OutlineInputBorder(),
+                            ),
+                            keyboardType: TextInputType.number,
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                            decoration: BoxDecoration(
+                              border: Border.all(color: Colors.grey),
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: Text(
+                              sprintKeyCode != null
+                                  ? '0x${sprintKeyCode!.toRadixString(16).toUpperCase().padLeft(2, '0')}'
+                                  : '未设置',
+                              style: const TextStyle(fontFamily: 'monospace'),
+                            ),
+                          ),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.clear),
+                          onPressed: () {
+                            sprintKeyCode = null;
+                            setDialogState(() {});
+                          },
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 24),
+                    const Divider(),
+                    const SizedBox(height: 16),
+                    const Text(
+                      '街机模式（双击模式）:',
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 8),
+                    const Text(
+                      '当拖动超过阈值时，如果左或右方向键被按下，会触发松开再按下一次（模拟双击效果）',
+                      style: TextStyle(fontSize: 14),
+                    ),
+                    const SizedBox(height: 16),
+                    SwitchListTile(
+                      title: const Text('启用街机模式'),
+                      value: enableArcadeMode,
+                      onChanged: (value) {
+                        enableArcadeMode = value;
+                        setDialogState(() {});
+                      },
+                    ),
+                    if (enableArcadeMode) ...[
+                      const SizedBox(height: 16),
+                      TextField(
+                        controller: arcadeThresholdController,
+                        decoration: const InputDecoration(
+                          labelText: '街机模式阈值 (0.0-1.0)',
+                          hintText: '默认0.5',
+                          border: OutlineInputBorder(),
+                        ),
+                        keyboardType: TextInputType.number,
+                      ),
+                    ],
+                    const SizedBox(height: 24),
                     const Text(
                       '虚拟键盘（点击选择按键）:',
                       style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 8),
+                    const Text(
+                      '• 点击方向键映射区域选择方向键\n'
+                      '• 点击静步键/奔跑键区域选择静步键/奔跑键',
+                      style: TextStyle(fontSize: 12, color: Colors.grey),
                     ),
                     const SizedBox(height: 16),
                     Center(
@@ -1986,10 +2375,16 @@ class _ControlManagementScreenState extends State<ControlManagementScreen> {
                               type: VirtualKeyboardType.Hardware,
                               keyPressedCallback: (keyCode, isDown) {
                                 if (isDown) {
-                                  _showDirectionSelectionDialog(
+                                  _showWASDKeySelectionDialog(
                                     context,
                                     keyCode,
                                     keyMapping,
+                                    (sneak) {
+                                      sneakKeyCode = sneak;
+                                    },
+                                    (sprint) {
+                                      sprintKeyCode = sprint;
+                                    },
                                     setDialogState,
                                   );
                                 }
