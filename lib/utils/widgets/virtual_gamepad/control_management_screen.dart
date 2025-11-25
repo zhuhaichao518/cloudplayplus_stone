@@ -756,6 +756,28 @@ class _ControlManagementScreenState extends State<ControlManagementScreen> {
                       setDialogState(() {});
                     },
                   ),
+                  const SizedBox(height: 16),
+                  SwitchListTile(
+                    title: const Text('启用街机模式'),
+                    subtitle: const Text('当拖动超过阈值时，如果左或右方向键被按下，会触发松开再按下一次（模拟双击效果）'),
+                    value: enableArcadeMode,
+                    onChanged: (value) {
+                      enableArcadeMode = value;
+                      setDialogState(() {});
+                    },
+                  ),
+                  if (enableArcadeMode) ...[
+                    const SizedBox(height: 16),
+                    TextField(
+                      controller: arcadeThresholdController,
+                      decoration: const InputDecoration(
+                        labelText: '街机模式阈值 (0.0-1.0)',
+                        hintText: '默认0.5',
+                        border: OutlineInputBorder(),
+                      ),
+                      keyboardType: TextInputType.number,
+                    ),
+                  ],
                   const SizedBox(height: 24),
                   const Divider(),
                   const SizedBox(height: 16),
@@ -847,39 +869,6 @@ class _ControlManagementScreenState extends State<ControlManagementScreen> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 24),
-                  const Divider(),
-                  const SizedBox(height: 16),
-                  const Text(
-                    '街机模式（双击模式）:',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 8),
-                  const Text(
-                    '当拖动超过阈值时，如果左或右方向键被按下，会触发松开再按下一次（模拟双击效果）',
-                    style: TextStyle(fontSize: 14),
-                  ),
-                  const SizedBox(height: 16),
-                  SwitchListTile(
-                    title: const Text('启用街机模式'),
-                    value: enableArcadeMode,
-                    onChanged: (value) {
-                      enableArcadeMode = value;
-                      setDialogState(() {});
-                    },
-                  ),
-                  if (enableArcadeMode) ...[
-                    const SizedBox(height: 16),
-                    TextField(
-                      controller: arcadeThresholdController,
-                      decoration: const InputDecoration(
-                        labelText: '街机模式阈值 (0.0-1.0)',
-                        hintText: '默认0.5',
-                        border: OutlineInputBorder(),
-                      ),
-                      keyboardType: TextInputType.number,
-                    ),
-                  ],
                   const SizedBox(height: 24),
                   const Text(
                     '虚拟键盘（点击选择按键）:',
@@ -1375,8 +1364,8 @@ class _ControlManagementScreenState extends State<ControlManagementScreen> {
                   ),
                   const SizedBox(height: 16),
                   SwitchListTile(
-                    title: const Text('FPS开火按键'),
-                    subtitle: const Text('按下后，手指移动会触发鼠标移动事件（适用于FPS游戏）'),
+                    title: const Text('按下同时移动鼠标'),
+                    subtitle: const Text('按下后，手指移动会触发鼠标移动事件（适用于FPS游戏开火）'),
                     value: isFpsFireButton,
                     onChanged: (bool value) {
                       setDialogState(() {
@@ -2003,7 +1992,7 @@ class _ControlManagementScreenState extends State<ControlManagementScreen> {
                     ),
                     const SizedBox(height: 16),
                     SwitchListTile(
-                      title: const Text('FPS开火按键'),
+                      title: const Text('按下同时移动鼠标'),
                       subtitle: const Text('按下后，手指移动会触发鼠标移动事件（适用于FPS游戏）'),
                       value: isFpsFireButton,
                       onChanged: (bool value) {
@@ -2228,6 +2217,28 @@ class _ControlManagementScreenState extends State<ControlManagementScreen> {
                         setDialogState(() {});
                       },
                     ),
+                    const SizedBox(height: 16),
+                    SwitchListTile(
+                      title: const Text('启用街机模式'),
+                      subtitle: const Text('当拖动超过阈值时，如果左或右方向键被按下，会触发松开再按下一次（模拟双击效果）'),
+                      value: enableArcadeMode,
+                      onChanged: (value) {
+                        enableArcadeMode = value;
+                        setDialogState(() {});
+                      },
+                    ),
+                    if (enableArcadeMode) ...[
+                      const SizedBox(height: 16),
+                      TextField(
+                        controller: arcadeThresholdController,
+                        decoration: const InputDecoration(
+                          labelText: '街机模式阈值 (0.0-1.0)',
+                          hintText: '默认0.5',
+                          border: OutlineInputBorder(),
+                        ),
+                        keyboardType: TextInputType.number,
+                      ),
+                    ],
                     const SizedBox(height: 24),
                     const Divider(),
                     const SizedBox(height: 16),
@@ -2319,39 +2330,6 @@ class _ControlManagementScreenState extends State<ControlManagementScreen> {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 24),
-                    const Divider(),
-                    const SizedBox(height: 16),
-                    const Text(
-                      '街机模式（双击模式）:',
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                    ),
-                    const SizedBox(height: 8),
-                    const Text(
-                      '当拖动超过阈值时，如果左或右方向键被按下，会触发松开再按下一次（模拟双击效果）',
-                      style: TextStyle(fontSize: 14),
-                    ),
-                    const SizedBox(height: 16),
-                    SwitchListTile(
-                      title: const Text('启用街机模式'),
-                      value: enableArcadeMode,
-                      onChanged: (value) {
-                        enableArcadeMode = value;
-                        setDialogState(() {});
-                      },
-                    ),
-                    if (enableArcadeMode) ...[
-                      const SizedBox(height: 16),
-                      TextField(
-                        controller: arcadeThresholdController,
-                        decoration: const InputDecoration(
-                          labelText: '街机模式阈值 (0.0-1.0)',
-                          hintText: '默认0.5',
-                          border: OutlineInputBorder(),
-                        ),
-                        keyboardType: TextInputType.number,
-                      ),
-                    ],
                     const SizedBox(height: 24),
                     const Text(
                       '虚拟键盘（点击选择按键）:',
