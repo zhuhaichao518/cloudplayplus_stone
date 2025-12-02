@@ -109,6 +109,17 @@ class WebSocketService {
     };
 
     _socket?.onClose = (code, message) async {
+      onDeviceListchanged?.call([
+        {
+          'owner_id': ApplicationInfo.user.uid,
+          'owner_nickname': ApplicationInfo.user.nickname,
+          'connection_id': ApplicationInfo.thisDevice.websocketSessionid,
+          'device_type': 'Web',
+          'device_name': '重连中',
+          'connective': false,
+          'screen_count': 1
+        }
+      ]);
       onDisConnected();
       _stopHeartbeat();
       if (should_be_connected) {
