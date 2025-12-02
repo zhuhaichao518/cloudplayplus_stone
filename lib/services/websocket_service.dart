@@ -184,6 +184,7 @@ class WebSocketService {
       case 'connection_info':
         {
           //This is first response from server. update device info.
+          AppStateService.lastwebsocketSessionid = AppStateService.websocketSessionid;
           AppStateService.websocketSessionid = data['connection_id'];
           ApplicationInfo.user =
               User(uid: data['uid'], nickname: data['nickname']);

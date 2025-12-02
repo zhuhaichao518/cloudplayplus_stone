@@ -41,11 +41,14 @@ class _DevicesPageState extends State<DevicesPage> {
           deviceInstance.devicename = device['device_name'];
           deviceInstance.connective = device['connective'];
           deviceInstance.screencount = device['screen_count'];
-        } else if (device['connection_id'] == DeviceSelectManager.lastSelectedDevice?.websocketSessionid) {
+        } else if (device['connection_id'] == DeviceSelectManager.lastSelectedDevice?.websocketSessionid
+          || (AppStateService.lastwebsocketSessionid != null && AppStateService.lastwebsocketSessionid == DeviceSelectManager.lastSelectedDevice?.websocketSessionid
+          && device['connection_id'] == AppStateService.websocketSessionid)) {
           deviceInstance = DeviceSelectManager.lastSelectedDevice!;
           deviceInstance.devicename = device['device_name'];
           deviceInstance.connective = device['connective'];
           deviceInstance.screencount = device['screen_count'];
+          deviceInstance.websocketSessionid = device['connection_id'];
         }
         else {
           deviceInstance = Device(

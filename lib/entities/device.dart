@@ -8,7 +8,7 @@ class Device {
   String devicename;
   //TODO: use an enum value instead of string.
   final String devicetype;
-  final String websocketSessionid;
+  String websocketSessionid;
   //allow this device to be connected
   bool connective;
   int screencount;

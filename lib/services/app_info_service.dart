@@ -84,6 +84,8 @@ class AppStateService {
   // When conneted to ws server, get the ws session id.
   // This is the connection_id on the server
   static String? websocketSessionid;
+  // Used during reconnection.
+  static String? lastwebsocketSessionid;
   static ControlState controlState = ControlState.normal;
   static HostState hostState = HostState.normal;
   // Only used for mobile to render native cursor.
