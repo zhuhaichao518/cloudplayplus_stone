@@ -364,7 +364,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
           SettingsSection(title: const Text('版本号'), tiles: <SettingsTile>[
             SettingsTile(
-              title: const Text('1.0.8'),
+              title: const Text(ApplicationInfo.currentVersion),
               leading: const Icon(Icons.sunny),
             ),
             if (AppPlatform.isMobile)

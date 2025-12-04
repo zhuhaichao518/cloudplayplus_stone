@@ -7,6 +7,7 @@ import '../entities/device.dart';
 import '../entities/user.dart';
 
 class ApplicationInfo {
+  static const String currentVersion = "1.0.9";
   static late Device thisDevice;
   static late User user;
   //count of connected monitors.

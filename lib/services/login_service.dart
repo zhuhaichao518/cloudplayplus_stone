@@ -530,4 +530,14 @@ class LoginService {
       throw Exception("Failed to load games");
     }
   }
+
+  static Future<String> getLatestVersion() async {
+    Uri url = Uri.parse('$_baseUrl/api/getlatestversion/');
+    try {
+      final response = await http.get(url);
+      return json.decode(response.body)["version"];
+    } catch (e) {
+      return "1.0.0";
+    }
+  }
 }

@@ -93,7 +93,12 @@ class _ControlManagementScreenState extends State<ControlManagementScreen> {
                 ),
                 const SizedBox(height: 8),
                 const Text('没有可编辑的控件'),
-                const SizedBox(height: 16),
+                const SizedBox(height: 8),
+                ElevatedButton(
+                  onPressed: _importMouseButtonControls,
+                  child: const Text('导入鼠标左右键'),
+                ),
+                const SizedBox(height: 8),
                 ElevatedButton(
                   onPressed: _importDefaultControls,
                   child: const Text('导入默认手柄控件开始编辑'),
@@ -2588,6 +2593,16 @@ class _ControlManagementScreenState extends State<ControlManagementScreen> {
         ),
       ),
     );
+  }
+
+  void _importMouseButtonControls() async {
+    String defaultController = '[{"id":"72","type":"button","centerX":0.32,"centerY":0.84,"size":0.15,"label":"左键","keyCode":1,"color":4288585374,"opacity":0.3,"isGamepadButton":false,"isMouseButton":true,"shape":"square","isFpsFireButton":false,"isToggleMode":false},{"id":"73","type":"button","centerX":0.68,"centerY":0.84,"size":0.15,"label":"右键","keyCode":3,"color":4288585374,"opacity":0.2,"isGamepadButton":false,"isMouseButton":true,"shape":"square","isFpsFireButton":false,"isToggleMode":false}]';
+    final success =
+        await widget.controlManager.importControls(defaultController);
+    if (success) {
+      widget.onControlsUpdated();
+      setState(() {}); // 确保界面更新
+    }
   }
 
   void _importDefaultControls() async {

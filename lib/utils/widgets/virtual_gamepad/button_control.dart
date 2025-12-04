@@ -23,8 +23,8 @@ class ButtonControl extends ControlBase {
     required super.size,
     required this.label,
     required this.keyCode,
-    super.color = Colors.blue,
-    super.opacity = 0.4,
+    super.color = Colors.grey,
+    super.opacity = 0.2,
     this.isGamepadButton = false, // 默认为键盘按钮
     this.isMouseButton = false, // 默认为非鼠标按钮
     this.shape = ButtonShape.circle, // 默认为圆形
