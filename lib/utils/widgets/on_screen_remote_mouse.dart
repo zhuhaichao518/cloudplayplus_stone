@@ -30,8 +30,10 @@ class OnScreenRemoteMouseController extends ChangeNotifier {
   }
 
   void setAspectRatio(double ratio) {
-    aspectRatio = ratio;
-    notifyListeners();
+    if (aspectRatio != ratio) {
+      aspectRatio = ratio;
+      notifyListeners();
+    }
   }
 
   void setCursorBuffer(Uint8List? buffer) {
