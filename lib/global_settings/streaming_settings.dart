@@ -148,17 +148,7 @@ class StreamingSettings {
     switchCmdCtrl = SharedPreferencesManager.getBool('switchCmdCtrl') ??
         AppPlatform.isMacos;
 
-    // 兼容旧的 bool 配置，转换为新的 int 配置
-    // TODO：2.0版本需要删除这个兼容代码
-    bool? oldUseTouchForTouch = SharedPreferencesManager.getBool('useTouchForTouch');
-    if (oldUseTouchForTouch != null) {
-      // 迁移旧配置：true -> touch(0), false -> mouse(2)
-      touchInputMode = oldUseTouchForTouch ? TouchInputMode.touch.index : TouchInputMode.mouse.index;
-      // 保存新配置
-      SharedPreferencesManager.setInt('touchInputMode', touchInputMode);
-    } else {
-      touchInputMode = SharedPreferencesManager.getInt('touchInputMode') ?? TouchInputMode.touch.index;
-    }
+    touchInputMode = SharedPreferencesManager.getInt('touchInputMode') ?? TouchInputMode.touch.index;
 
     cursorScale = SharedPreferencesManager.getDouble('cursorScale') ?? (AppPlatform.isAndroidTV? 100.0:50.0);
 

@@ -67,10 +67,16 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
   
   Offset? _lastTouchpadPosition;
   Map<int, Offset> _touchpadPointers = {};
+  Map<int, DateTime> _touchpadPointerDownTime = {}; // 记录每个手指按下的时间
+  Map<int, Offset> _touchpadPointerDownPosition = {}; // 记录每个手指按下的位置
   double? _lastPinchDistance;
   double? _initialPinchDistance;
   Offset? _initialTwoFingerCenter;
   bool _isTwoFingerScrolling = false;
+  
+  // 快速单击的阈值
+  static const Duration _quickTapDuration = Duration(milliseconds: 300); // 300ms内视为快速单击
+  static const double _quickTapMaxDistance = 10.0; // 移动距离小于10像素视为快速单击
   
   double _videoScale = 1.0;
   Offset _videoOffset = Offset.zero;
@@ -195,6 +201,8 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
 
   void _handleTouchpadDown(PointerDownEvent event) {
     _touchpadPointers[event.pointer] = event.position;
+    _touchpadPointerDownTime[event.pointer] = DateTime.now();
+    _touchpadPointerDownPosition[event.pointer] = event.position;
     
     if (_touchpadPointers.length == 1) {
       _lastTouchpadPosition = event.position;
@@ -232,11 +240,58 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
   }
 
   void _handleTouchpadUp(PointerEvent event) {
+    // 检测是否是快速单击
+    final downTime = _touchpadPointerDownTime[event.pointer];
+    final downPosition = _touchpadPointerDownPosition[event.pointer];
+    bool isQuickTap = false;
+    
+    if (downTime != null && downPosition != null) {
+      final duration = DateTime.now().difference(downTime);
+      final distance = (event.position - downPosition).distance;
+      
+      // 判断是否是快速单击
+      isQuickTap = duration < _quickTapDuration && distance < _quickTapMaxDistance;
+      
+      if (isQuickTap) {
+        // 根据当前手指数量决定是左键还是右键
+        if (_touchpadPointers.length == 1) {
+          // 单指快速单击 -> 左键点击
+          WebrtcService.currentRenderingSession?.inputController
+              ?.requestMouseClick(1, true); // 按下左键
+          // 延迟一小段时间后松开，模拟单击
+          Future.delayed(const Duration(milliseconds: 50), () {
+            WebrtcService.currentRenderingSession?.inputController
+                ?.requestMouseClick(1, false); // 松开左键
+          });
+        } else if (_touchpadPointers.length == 2) {
+          // 在有一个手指按下的情况下，第二根手指快速单击 -> 右键点击
+          WebrtcService.currentRenderingSession?.inputController
+              ?.requestMouseClick(3, true); // 按下右键
+          // 延迟一小段时间后松开，模拟单击
+          Future.delayed(const Duration(milliseconds: 50), () {
+            WebrtcService.currentRenderingSession?.inputController
+                ?.requestMouseClick(3, false); // 松开右键
+          });
+          // 如果是第二根手指快速单击，停止双指滚动
+          if (_isTwoFingerScrolling) {
+            _scrollController.startFling();
+            _isTwoFingerScrolling = false;
+          }
+        }
+      }
+    }
+    
+    // 清理该手指的记录
+    _touchpadPointerDownTime.remove(event.pointer);
+    _touchpadPointerDownPosition.remove(event.pointer);
     _touchpadPointers.remove(event.pointer);
     
-    if (_isTwoFingerScrolling && _touchpadPointers.length < 2) {
-      _scrollController.startFling();
-      _isTwoFingerScrolling = false;
+    // 如果不是快速单击，才处理滚动逻辑
+    if (!isQuickTap) {
+      if (_isTwoFingerScrolling && _touchpadPointers.length < 2) {
+        _scrollController.startFling();
+        _isTwoFingerScrolling = false;
+      }
     }
     
     if (_touchpadPointers.isEmpty) {
