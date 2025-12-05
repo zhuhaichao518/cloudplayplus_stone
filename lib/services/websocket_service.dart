@@ -276,14 +276,7 @@ class WebSocketService {
     _heartbeatTimer?.cancel();
     _pongTimeoutTimer?.cancel();
     
-    _sendPing();
-    
     _heartbeatTimer = Timer.periodic(const Duration(minutes: 5), (Timer timer) {
-      if (connectionState != WebSocketConnectionState.connected || !AppPlatform.isDeskTop) {
-        timer.cancel();
-        _heartbeatTimer = null;
-        return;
-      }
       _sendPing();
     });
   }
@@ -299,6 +292,7 @@ class WebSocketService {
     
     _pongTimeoutTimer = Timer(const Duration(seconds: 10), () {
       VLOG0("no pong received within 10 seconds, reconnecting");
+      _pongTimeoutTimer?.cancel();
       _pongTimeoutTimer = null;
       if (connectionState == WebSocketConnectionState.connected && AppPlatform.isDeskTop) {
         reconnect();
