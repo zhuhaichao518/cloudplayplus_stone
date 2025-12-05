@@ -73,10 +73,16 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
   double? _initialPinchDistance;
   Offset? _initialTwoFingerCenter;
   bool _isTwoFingerScrolling = false;
+  bool _isDragging = false; // 是否处于拖拽模式
+  int? _draggingPointerId; // 拖拽的手指ID
   
   // 快速单击的阈值
   static const Duration _quickTapDuration = Duration(milliseconds: 300); // 300ms内视为快速单击
   static const double _quickTapMaxDistance = 10.0; // 移动距离小于10像素视为快速单击
+  
+  // 长按拖拽的阈值
+  static const Duration _longPressDuration = Duration(milliseconds: 500); // 500ms长按进入拖拽模式
+  static const double _longPressMaxDistance = 5.0; // 长按期间移动距离小于5像素视为原地不动
   
   double _videoScale = 1.0;
   Offset _videoOffset = Offset.zero;
@@ -206,6 +212,8 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
     
     if (_touchpadPointers.length == 1) {
       _lastTouchpadPosition = event.position;
+      _isDragging = false; // 重置拖拽状态
+      _draggingPointerId = null;
     } else if (_touchpadPointers.length == 2) {
       _lastTouchpadPosition = null;
       _lastPinchDistance = _calculatePinchDistance();
@@ -281,6 +289,17 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
       }
     }
     
+    // 处理拖拽模式结束
+    if (_isDragging && _draggingPointerId == event.pointer) {
+      // 如果这是拖拽的手指，且是最后一根手指，发送鼠标松开事件
+      if (_touchpadPointers.length == 1) {
+        WebrtcService.currentRenderingSession?.inputController
+            ?.requestMouseClick(1, false);
+        _leftButtonDown = false;
+        _isDragging = false;
+        _draggingPointerId = null;
+      }
+    }
     // 清理该手指的记录
     _touchpadPointerDownTime.remove(event.pointer);
     _touchpadPointerDownPosition.remove(event.pointer);
@@ -302,6 +321,14 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
       _pinchFocalPoint = null;
       _lastPinchFocalPoint = null;
       _twoFingerGestureType = TwoFingerGestureType.undecided;
+      // 如果还有拖拽状态，确保清理
+      if (_isDragging) {
+        WebrtcService.currentRenderingSession?.inputController
+            ?.requestMouseClick(1, false); // 松开左键
+        _leftButtonDown = false;
+        _isDragging = false;
+        _draggingPointerId = null;
+      }
     } else if (_touchpadPointers.length == 1) {
       _lastTouchpadPosition = _touchpadPointers.values.first;
       _lastPinchDistance = null;
@@ -319,15 +346,48 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
       return;
     }
     
+    // 检查是否应该进入拖拽模式
+    if (!_isDragging && _touchpadPointers.length == 1) {
+      final downTime = _touchpadPointerDownTime[event.pointer];
+      final downPosition = _touchpadPointerDownPosition[event.pointer];
+      
+      if (downTime != null && downPosition != null) {
+        final duration = DateTime.now().difference(downTime);
+        final distanceFromStart = (event.position - downPosition).distance;
+        
+        // 如果长按且原地不动，进入拖拽模式
+        if (duration >= _longPressDuration && distanceFromStart < _longPressMaxDistance) {
+          _isDragging = true;
+          _draggingPointerId = event.pointer;
+          
+          // 发送鼠标按下事件
+          WebrtcService.currentRenderingSession?.inputController
+              ?.requestMouseClick(1, true);
+          _leftButtonDown = true;
+        }
+      }
+    }
+    
     double deltaX = (event.position.dx - _lastTouchpadPosition!.dx) * StreamingSettings.touchpadSensitivity;
     double deltaY = (event.position.dy - _lastTouchpadPosition!.dy) * StreamingSettings.touchpadSensitivity;
     _lastTouchpadPosition = event.position;
     
-    if (InputController.isCursorLocked) {
-      WebrtcService.currentRenderingSession?.inputController
-          ?.requestMoveMouseRelative(deltaX * 10, deltaY * 10, 0);
-    } else {
-      InputController.mouseController.moveDelta(deltaX, deltaY);
+    // 如果在拖拽模式下，发送相对鼠标移动
+    if (_isDragging && _draggingPointerId == event.pointer) {
+      if (InputController.isCursorLocked) {
+        WebrtcService.currentRenderingSession?.inputController
+            ?.requestMoveMouseRelative(deltaX * 10, deltaY * 10, 0);
+      } else {
+        InputController.mouseController.moveDelta(deltaX, deltaY);
+      }
+    } else if (!_isDragging) {
+      // 非拖拽模式下的正常鼠标移动
+      if (InputController.isCursorLocked) {
+        WebrtcService.currentRenderingSession?.inputController
+            ?.requestMoveMouseRelative(deltaX * 10, deltaY * 10, 0);
+      } else {
+        InputController.mouseController.moveDelta(deltaX, deltaY);
+      }
     }
   }
 
