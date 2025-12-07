@@ -8,6 +8,7 @@ list(APPEND FLUTTER_PLUGIN_LIST
   flutter_webrtc
   flutter_window_close
   fullscreen_window
+  gamepads_windows
   hardware_simulator
   pointer_lock
   screen_retriever

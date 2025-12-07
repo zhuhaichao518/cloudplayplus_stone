@@ -46,8 +46,6 @@ class InputController {
         HardwareSimulator.addKeyboardPressed(keyboardPressedCallbackAndroid);
       }
     }
-    // We don't use Gamepads for windows.
-    if (AppPlatform.isWindows) return;
     var gamepads = await Gamepads.list();
     if (gamepads.isNotEmpty && gamepads[0].name == "uinput-goodix") {
       // For xiaomi, there is always a virtual uinput-goodix reported.

@@ -111,6 +111,22 @@ class CGamepadState {
     'button 14': XINPUT_GAMEPAD_DPAD_LEFT,
     'button 15': XINPUT_GAMEPAD_DPAD_RIGHT,
 
+    //windows
+    'a': XINPUT_GAMEPAD_A,
+    'b': XINPUT_GAMEPAD_B,
+    'x': XINPUT_GAMEPAD_X,
+    'y': XINPUT_GAMEPAD_Y,
+    'leftShoulder': XINPUT_GAMEPAD_LEFT_SHOULDER,
+    'rightShoulder': XINPUT_GAMEPAD_RIGHT_SHOULDER,
+    'view': XINPUT_GAMEPAD_BACK,
+    'menu': XINPUT_GAMEPAD_START,
+    'leftThumbstick': XINPUT_GAMEPAD_LEFT_THUMB,
+    'rightThumbstick': XINPUT_GAMEPAD_RIGHT_THUMB,
+    'dpadUp': XINPUT_GAMEPAD_DPAD_UP,
+    'dpadDown': XINPUT_GAMEPAD_DPAD_DOWN,
+    'dpadLeft': XINPUT_GAMEPAD_DPAD_LEFT,
+    'dpadRight': XINPUT_GAMEPAD_DPAD_RIGHT,
+
     //macos
     'a.circle': XINPUT_GAMEPAD_A,
     'b.circle': XINPUT_GAMEPAD_B,
@@ -166,6 +182,14 @@ class CGamepadState {
     'analog 1': sThumbLY,
     'analog 2': sThumbRX,
     'analog 3': sThumbRY,
+
+    //windows
+    'leftTrigger': bLeftTrigger,
+    'rightTrigger': bRightTrigger,
+    'leftThumbstickX': sThumbLX,
+    'leftThumbstickY': sThumbLY,
+    'rightThumbstickX': sThumbRX,
+    'rightThumbstickY': sThumbRY,
 
     //macos
     'lt.rectangle.roundedtop': bLeftTrigger,
@@ -336,7 +360,7 @@ class CGamepadController {
     }
     state = gamepadstates[event.gamepadId]!;
     if (state.update(event)) {
-      if (AppPlatform.isAndroid) {
+      if (AppPlatform.isAndroid || AppPlatform.isWindows) {
         int realId = 0;
         for (int i = 0; i < gamepads.length; i++) {
           if (gamepads[i].id == event.gamepadId) {
