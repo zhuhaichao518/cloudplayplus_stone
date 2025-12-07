@@ -270,13 +270,12 @@ class WebSocketService {
   }
 
   static void _startHeartbeat() {
-    if (!AppPlatform.isDeskTop) {
-      return;
-    }
+    VLOG0("staring heartbeat timer");
     _heartbeatTimer?.cancel();
     _pongTimeoutTimer?.cancel();
     
     _heartbeatTimer = Timer.periodic(const Duration(minutes: 5), (Timer timer) {
+      VLOG0("sending ping message");
       _sendPing();
     });
   }
