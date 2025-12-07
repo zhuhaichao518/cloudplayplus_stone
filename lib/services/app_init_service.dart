@@ -12,6 +12,13 @@ enum AppInitState {
   needLogin,
   needReconnect,
   loggedin,
+  // a new version of cloudplayplus is available.
+  haveUpdate,
+}
+
+// 存储检测到的最新版本，供更新页面使用
+class UpdateInfo {
+  static String? latestVersion;
 }
 
 //这个类决定了app启动的时候进入哪一个页面。
@@ -30,6 +37,18 @@ class AppInitService {
     if (DevelopSettings.alwaysShowIntroPage) {
       return AppInitState.firstTime;
     }
+    
+    String latestVersion = await LoginService.getLatestVersion();
+    if (latestVersion != 'unknown' && latestVersion != ApplicationInfo.currentVersion) {
+      // 检查用户是否已经跳过了这个版本
+      String? skippedVersion = SharedPreferencesManager.getString('skipped_version');
+      if (skippedVersion != latestVersion) {
+        // 存储最新版本供更新页面使用
+        UpdateInfo.latestVersion = latestVersion;
+        return AppInitState.haveUpdate;
+      }
+    }
+
     bool appintroFinished =
         SharedPreferencesManager.getBool('appintroFinished') ?? false;
     ApplicationInfo.deviceNameOverride =

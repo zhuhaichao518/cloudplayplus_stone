@@ -537,7 +537,7 @@ class LoginService {
       final response = await http.get(url);
       return json.decode(response.body)["version"];
     } catch (e) {
-      return "1.0.0";
+      return "unknown";
     }
   }
 }
