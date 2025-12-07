@@ -36,6 +36,10 @@ class InputController {
 
   final Map<String, bool> buttonInputs = {};
   static void init() async {
+    if (AppPlatform.isWindows) {
+      // We don't support gamepad untill we run webrtc as a service.
+      return;
+    }
     if (AppPlatform.isMobile) {
       mouseController = OnScreenRemoteMouseController();
       _smoothMouseController = SmoothMouseController(mouseController);

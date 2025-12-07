@@ -11,7 +11,6 @@
 #include <flutter_webrtc/flutter_web_r_t_c_plugin.h>
 #include <flutter_window_close/flutter_window_close_plugin.h>
 #include <fullscreen_window/fullscreen_window_plugin_c_api.h>
-#include <gamepads_windows/gamepads_windows_plugin_c_api.h>
 #include <hardware_simulator/hardware_simulator_plugin_c_api.h>
 #include <pointer_lock/pointer_lock_plugin_c_api.h>
 #include <screen_retriever/screen_retriever_plugin.h>
@@ -30,8 +29,6 @@ void RegisterPlugins(flutter::PluginRegistry* registry) {
       registry->GetRegistrarForPlugin("FlutterWindowClosePlugin"));
   FullscreenWindowPluginCApiRegisterWithRegistrar(
       registry->GetRegistrarForPlugin("FullscreenWindowPluginCApi"));
-  GamepadsWindowsPluginCApiRegisterWithRegistrar(
-      registry->GetRegistrarForPlugin("GamepadsWindowsPluginCApi"));
   HardwareSimulatorPluginCApiRegisterWithRegistrar(
       registry->GetRegistrarForPlugin("HardwareSimulatorPluginCApi"));
   PointerLockPluginCApiRegisterWithRegistrar(
