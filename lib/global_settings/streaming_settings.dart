@@ -61,6 +61,9 @@ class StreamingSettings {
   // 触控板灵敏度：范围 0.1 - 5.0，默认 1.0
   static double touchpadSensitivity = 1.0;
 
+  // 鼠标锁定状态下的移动灵敏度：默认 10.0
+  static double touchpadSensitivityLocked = 10.0;
+
   // 触控板手势开关
   static bool touchpadTwoFingerScroll = true;  // 双指滚动
   static bool touchpadTwoFingerZoom = true;    // 双指缩放
@@ -153,6 +156,8 @@ class StreamingSettings {
     cursorScale = SharedPreferencesManager.getDouble('cursorScale') ?? (AppPlatform.isAndroidTV? 100.0:50.0);
 
     touchpadSensitivity = SharedPreferencesManager.getDouble('touchpadSensitivity') ?? 1.0;
+    
+    touchpadSensitivityLocked = SharedPreferencesManager.getDouble('touchpadSensitivityLocked') ?? 10.0;
     
     touchpadTwoFingerScroll = SharedPreferencesManager.getBool('touchpadTwoFingerScroll') ?? true;
     touchpadTwoFingerZoom = SharedPreferencesManager.getBool('touchpadTwoFingerZoom') ?? true;

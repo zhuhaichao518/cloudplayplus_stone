@@ -376,7 +376,7 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
     if (_isDragging && _draggingPointerId == event.pointer) {
       if (InputController.isCursorLocked) {
         WebrtcService.currentRenderingSession?.inputController
-            ?.requestMoveMouseRelative(deltaX * 10, deltaY * 10, 0);
+            ?.requestMoveMouseRelative(deltaX * StreamingSettings.touchpadSensitivityLocked, deltaY * StreamingSettings.touchpadSensitivityLocked, 0);
       } else {
         InputController.mouseController.moveDelta(deltaX, deltaY);
       }
@@ -384,7 +384,7 @@ class _VideoScreenState extends State<GlobalRemoteScreenRenderer> {
       // 非拖拽模式下的正常鼠标移动
       if (InputController.isCursorLocked) {
         WebrtcService.currentRenderingSession?.inputController
-            ?.requestMoveMouseRelative(deltaX * 10, deltaY * 10, 0);
+            ?.requestMoveMouseRelative(deltaX * StreamingSettings.touchpadSensitivityLocked, deltaY * StreamingSettings.touchpadSensitivityLocked, 0);
       } else {
         InputController.mouseController.moveDelta(deltaX, deltaY);
       }
