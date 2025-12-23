@@ -16,21 +16,24 @@ We use custom build of WebRTC for cloudplayplus. The main purpose is add hardwar
 # Linux
 Personally I use steam deck to develop this project. Here is the list of commands to make flutter runnable on steam deck:
 steamdeck flutter:
+```bash
 sudo pacman-key --init
 sudo pacman-key --populate archlinux
 sudo steamos-readonly disable 
 sudo pacman-key --populate holo 
 sudo pacman -S base-devel cmake ninja glibc linux-api-headers gtk3 pango glib2 sysprof harfbuzz freetype2 libpng util-linux fribidi cairo lzo pixman gdk-pixbuf2 libcloudproviders atk at-spi2-atk dbus at-spi2-core libx11 xorgproto
+```
 
 To login to github desktop:
+```bash
 sudo pacman -S kwalletmanager
 sudo pacman -S kwallet
 
-sudo pacman -S tpm2-tss for secure_storage.
-
+sudo pacman -S tpm2-tss # for secure_storage.
+```
 chrome debug:
 set chrome path to 
-var/lib/flatpak/app/com.google.Chrome/current/active/export/bin/com.google.Chrome
+`var/lib/flatpak/app/com.google.Chrome/current/active/export/bin/com.google.Chrome`
 if using flatpak
 
 # MacOS debug WebRTCFramework:
@@ -39,11 +42,15 @@ use xcode to build
 
 first time:
 modify pod
-pod install in cloudplayplus/macos
+`pod install` in cloudplayplus/macos
 
 # Web Debug
 ## use local server:
+```bash
 flutter run -d chrome --web-browser-flag "--disable-web-security"
+```
 
 rtc build:
+```bash
 python3 run.py build macos_arm64
+```
